@@ -108,6 +108,12 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_CURVES_SUN_HORIZONTAL_ROTATION = L10n.lang("bbs.ui.camera.panels.curves.sun_horizontal_rotation");
     public static final IKey CAMERA_PANELS_CURVES_WEATHER = L10n.lang("bbs.ui.camera.panels.curves.weather");
     public static final IKey CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR = L10n.lang("bbs.ui.camera.panels.curves.chroma_sky_color");
+    public static final IKey CAMERA_PANELS_CURVES_WORLD = L10n.lang("bbs.ui.camera.panels.curves.world");
+    public static final IKey CAMERA_PANELS_CURVES_SHADER = L10n.lang("bbs.ui.camera.panels.curves.shader");
+    public static final IKey CAMERA_PANELS_CURVES_NOT_IN_MENU = L10n.lang("bbs.ui.camera.panels.curves.not_in_menu");
+    public static final IKey CAMERA_PANELS_CURVES_NO_SHADERS = L10n.lang("bbs.ui.camera.panels.curves.no_shaders");
+    public static final IKey CAMERA_PANELS_CURVES_FOUND = L10n.lang("bbs.ui.camera.panels.curves.found");
+    public static final IKey CAMERA_PANELS_CURVES_NOT_FOUND = L10n.lang("bbs.ui.camera.panels.curves.not_found");
     public static final IKey CAMERA_PANELS_CURVE_ADD = L10n.lang("bbs.ui.camera.panels.curve.add");
     public static final IKey CAMERA_PANELS_CURVE_REMOVE = L10n.lang("bbs.ui.camera.panels.curve.remove");
     public static final IKey CAMERA_PANELS_DETERMINISTIC = L10n.lang("bbs.ui.camera.panels.deterministic");
@@ -143,7 +149,6 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_OFFSET = L10n.lang("bbs.ui.camera.panels.offset");
     public static final IKey CAMERA_PANELS_PATH_POINTS = L10n.lang("bbs.ui.camera.panels.path_points");
     public static final IKey CAMERA_PANELS_PICK_KEY = L10n.lang("bbs.ui.camera.panels.pick_key");
-    public static final IKey CAMERA_PANELS_SHADER_LIST = L10n.lang("bbs.ui.camera.panels.shader_list");
     public static final IKey CAMERA_PANELS_SHADER_PROFILE = L10n.lang("bbs.ui.camera.panels.shader_profile");
     public static final IKey CAMERA_PANELS_SHADER_CUSTOM = L10n.lang("bbs.ui.camera.panels.shader_custom");
     public static final IKey CAMERA_PANELS_SHADER_ON = L10n.lang("bbs.ui.camera.panels.shader_on");

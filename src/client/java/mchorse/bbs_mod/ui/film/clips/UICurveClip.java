@@ -1,6 +1,6 @@
 package mchorse.bbs_mod.ui.film.clips;
 
-import mchorse.bbs_mod.BBSModClient;
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.camera.clips.misc.CurveClip;
 import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.data.types.MapType;
@@ -12,25 +12,22 @@ import mchorse.bbs_mod.ui.film.UIClipsPanel;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditor;
 import mchorse.bbs_mod.ui.film.utils.keyframes.UIFilmKeyframes;
 import mchorse.bbs_mod.ui.film.utils.shader.ShaderCurvePicker;
-import mchorse.bbs_mod.ui.framework.UIContext;
+import mchorse.bbs_mod.ui.film.utils.shader.UICurvePicker;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.KeyframeState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
-import mchorse.bbs_mod.ui.framework.elements.overlay.UILabelListOverlayPanel;
-import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
-import mchorse.bbs_mod.ui.utils.Label;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
+import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.clips.Clips;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.iris.ShaderCurves;
 import mchorse.bbs_mod.utils.keyframes.KeyframeChannel;
 import mchorse.bbs_mod.utils.keyframes.factories.KeyframeFactories;
+import net.minecraft.client.MinecraftClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 public class UICurveClip extends UIClip<CurveClip>
 {
@@ -42,49 +39,24 @@ public class UICurveClip extends UIClip<CurveClip>
         super(clip, editor);
     }
 
-    public static void offerCurveKeys(UIContext context, List<String> existing, Consumer<String> callback)
+    /** The curves of the world itself, for the picker; they work with shaders off too. */
+    private static List<UICurvePicker.WorldCurve> worldCurves()
     {
-        if (!ShaderCurvePicker.open(context, existing, callback))
-        {
-            offerCurveKeyList(context, existing, callback);
-        }
-    }
+        MinecraftClient mc = MinecraftClient.getInstance();
+        List<UICurvePicker.WorldCurve> curves = new ArrayList<>();
 
-    public static void offerCurveKeyList(UIContext context, List<String> existing, Consumer<String> callback)
-    {
-        List<Label<String>> list = new ArrayList<>();
-        String language = BBSModClient.getLanguageKey();
-        Map<String, String> languageMap = BBSRendering.getShadersLanguageMap(language);
+        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.SUN_ROTATION, UIKeys.CAMERA_PANELS_CURVES_SUN_ROTATION, Icons.SUN)
+            .value(() -> mc.world == null ? null : (mc.world.getTimeOfDay() % 24000L) / 1000D));
+        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.SUN_HORIZONTAL_ROTATION, UIKeys.CAMERA_PANELS_CURVES_SUN_HORIZONTAL_ROTATION, Icons.ORBIT)
+            .value(() -> (double) BBSRendering.getSunHorizontalRotation()));
+        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.WEATHER, UIKeys.CAMERA_PANELS_CURVES_WEATHER, Icons.DROP)
+            .value(() -> mc.world == null ? null : (double) mc.world.getRainGradient(1F)));
+        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.BRIGHTNESS, UIKeys.CAMERA_PANELS_CURVES_BRIGHTNESS, Icons.LIGHT)
+            .value(() -> mc.options.getGamma().getValue()));
+        curves.add(new UICurvePicker.WorldCurve(CurveClip.CHROMA_SKY_COLOR, UIKeys.CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR, Icons.COLOR)
+            .color(() -> BBSSettings.chromaSkyColor.get()));
 
-        for (ShaderCurves.ShaderVariable value : ShaderCurves.variableMap.values())
-        {
-            if (existing.contains(CurveClip.SHADER_CURVES_PREFIX + value.name))
-            {
-                continue;
-            }
-
-            String key = value.name;
-            String newKey = languageMap.get("option." + key);
-
-            if (newKey != null)
-            {
-                key = newKey + " (" + key + ")";
-            }
-
-            list.add(new Label<>(IKey.constant(key), CurveClip.SHADER_CURVES_PREFIX + value.name));
-        }
-
-        if (!existing.contains(ShaderCurves.BRIGHTNESS)) list.add(new Label<>(UIKeys.CAMERA_PANELS_CURVES_BRIGHTNESS, ShaderCurves.BRIGHTNESS));
-        if (!existing.contains(ShaderCurves.SUN_ROTATION)) list.add(new Label<>(UIKeys.CAMERA_PANELS_CURVES_SUN_ROTATION, ShaderCurves.SUN_ROTATION));
-        if (!existing.contains(ShaderCurves.SUN_HORIZONTAL_ROTATION)) list.add(new Label<>(UIKeys.CAMERA_PANELS_CURVES_SUN_HORIZONTAL_ROTATION, ShaderCurves.SUN_HORIZONTAL_ROTATION));
-        if (!existing.contains(ShaderCurves.WEATHER)) list.add(new Label<>(UIKeys.CAMERA_PANELS_CURVES_WEATHER, ShaderCurves.WEATHER));
-        if (!existing.contains(CurveClip.CHROMA_SKY_COLOR)) list.add(new Label<>(UIKeys.CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR, CurveClip.CHROMA_SKY_COLOR));
-
-        UILabelListOverlayPanel panel = new UILabelListOverlayPanel(UIKeys.CAMERA_PANELS_PICK_KEY, list, callback);
-
-        panel.strings.list.sort();
-
-        UIOverlay.addOverlay(context, panel, 0.9F, 0.5F);
+        return curves;
     }
 
     @Override
@@ -111,7 +83,7 @@ public class UICurveClip extends UIClip<CurveClip>
                     existing.add(channel.getId());
                 }
 
-                offerCurveKeys(this.getContext(), existing, (s) ->
+                ShaderCurvePicker.open(this.getContext(), worldCurves(), existing, (s) ->
                 {
                     if (CurveClip.isColorChannelId(s))
                     {
@@ -123,6 +95,13 @@ public class UICurveClip extends UIClip<CurveClip>
                     }
 
                     this.fillData();
+                }, (s) ->
+                {
+                    if (this.clip.channels.get(s) instanceof KeyframeChannel<?> channel)
+                    {
+                        this.clip.channels.removeChannel(channel);
+                        this.fillData();
+                    }
                 });
             }).label(UIKeys.CAMERA_PANELS_CURVE_ADD);
 

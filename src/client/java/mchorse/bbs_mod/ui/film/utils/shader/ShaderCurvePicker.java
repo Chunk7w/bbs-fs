@@ -1,103 +1,73 @@
 package mchorse.bbs_mod.ui.film.utils.shader;
 
 import mchorse.bbs_mod.BBSModClient;
-import mchorse.bbs_mod.camera.clips.misc.CurveClip;
-import mchorse.bbs_mod.ui.film.clips.UICurveClip;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.utils.iris.IrisShaderMenu;
+import mchorse.bbs_mod.utils.iris.ShaderCurves;
 import mchorse.bbs_mod.utils.iris.ShaderMenu;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Entry point of the refreshed shader-curve editor. Decides whether the "add curve" action opens the
- * BBS-styled {@link UIShaderOptionPicker} (a mirror of the Iris shader-options menu) or falls back to
- * BBS's stock flat list.
+ * Entry point of the curve picker: snapshots the shader pack's options menu, if there is one, and
+ * opens {@link UICurvePicker} with it and the world's curves.
  *
  * <p><b>Iris isolation:</b> this class references no {@code net.irisshaders.*} type directly; it only
  * reaches Iris through {@link IrisShaderMenu} <i>after</i> the {@code isModLoaded("iris")} gate. That
- * keeps {@link IrisShaderMenu} (and Iris itself) unloaded when Iris is absent, so the picker falls back
- * to the stock list instead of crashing.</p>
+ * keeps {@link IrisShaderMenu} (and Iris itself) unloaded when Iris is absent, and the picker then
+ * shows the world's curves only.</p>
  */
 public final class ShaderCurvePicker
 {
     private ShaderCurvePicker()
     {}
 
-    /**
-     * @return {@code true} if the refreshed picker was shown (caller should not also open the flat list);
-     *         {@code false} to let BBS's stock {@code offerCurveKeys} flat list run.
-     */
-    public static boolean open(UIContext context, List<String> existing, Consumer<String> callback)
+    public static void open(UIContext context, List<UICurvePicker.WorldCurve> world, Collection<String> existing, Consumer<String> onAdd, Consumer<String> onRemove)
     {
-        if (!FabricLoader.getInstance().isModLoaded("iris"))
+        ShaderMenu menu = null;
+        Map<String, String> lang = Collections.emptyMap();
+
+        if (FabricLoader.getInstance().isModLoaded("iris"))
         {
-            return false;
-        }
-
-        ShaderMenu menu;
-        Map<String, String> languageMap;
-
-        try
-        {
-            menu = IrisShaderMenu.buildShaderMenu();
-
-            if (menu == null)
+            try
             {
-                return false;
+                menu = IrisShaderMenu.buildShaderMenu();
+
+                if (menu != null)
+                {
+                    lang = IrisShaderMenu.getShadersRawLanguageMap(BBSModClient.getLanguageKey());
+                }
             }
-
-            languageMap = IrisShaderMenu.getShadersRawLanguageMap(BBSModClient.getLanguageKey());
+            catch (LinkageError e)
+            {
+                /* An Iris build whose option-menu API differs from the one we compiled against: no
+                 * menu to mirror, so every curvable option goes on the "not in the menu" page */
+                menu = flatMenu();
+                lang = Collections.emptyMap();
+            }
         }
-        catch (LinkageError e)
-        {
-            /* Iris build whose option-menu API differs from the one we compiled against: stock list. */
-            return false;
-        }
 
-        List<String> addedChannels = new ArrayList<>(existing);
-        Consumer<String> onAddOptionId = (id) ->
-        {
-            String channel = CurveClip.SHADER_CURVES_PREFIX + id;
-
-            callback.accept(channel);
-            addedChannels.add(channel);
-        };
-        Runnable openLegacy = () ->
-        {
-            UICurveClip.offerCurveKeyList(context, addedChannels, callback);
-        };
-
-        UIShaderOptionPicker picker = new UIShaderOptionPicker(menu, languageMap, collectAddedOptionIds(existing), onAddOptionId, openLegacy);
+        UICurvePicker picker = new UICurvePicker(world, menu, lang, existing, onAdd, onRemove);
 
         UIOverlay.addOverlay(context, picker, picker.preferredWidth(), picker.preferredHeight());
-
-        return true;
     }
 
-    /**
-     * Bare option ids (prefix stripped) of the curve channels already present, so the picker can mark
-     * those cells as animated (a highlighted outline).
-     */
-    private static Set<String> collectAddedOptionIds(List<String> existing)
+    private static ShaderMenu flatMenu()
     {
-        Set<String> added = new HashSet<>();
-
-        for (String id : existing)
+        if (ShaderCurves.variableMap.isEmpty())
         {
-            if (id.startsWith(CurveClip.SHADER_CURVES_PREFIX))
-            {
-                added.add(id.substring(CurveClip.SHADER_CURVES_PREFIX.length()));
-            }
+            return null;
         }
 
-        return added;
+        ShaderMenu.Screen main = new ShaderMenu.Screen(ShaderMenu.MAIN_SCREEN, 2, Collections.emptyList());
+
+        return new ShaderMenu("", main, Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), new HashSet<>(ShaderCurves.variableMap.keySet()));
     }
 }

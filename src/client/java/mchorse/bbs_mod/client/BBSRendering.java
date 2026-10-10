@@ -870,16 +870,6 @@ public class BBSRendering
         return IrisUtils.getSliderProperties();
     }
 
-    public static Map<String, String> getShadersLanguageMap(String language)
-    {
-        if (!iris)
-        {
-            return Collections.emptyMap();
-        }
-
-        return IrisUtils.getShadersLanguageMap(language);
-    }
-
     /* Curves */
 
     public static Long getTimeOfDay()

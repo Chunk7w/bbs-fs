@@ -9,7 +9,7 @@ import java.util.Set;
  * Neutral, Iris-free snapshot of a shader pack's options menu.
  *
  * <p>Built by {@link IrisShaderMenu#buildShaderMenu()} from Iris' {@code OptionMenuContainer}, this
- * model lets the BBS UI mirror the layout/UX of the Iris shader-options menu (screens, columns,
+ * model lets the curve picker mirror the layout of the Iris shader-options menu (screens, columns,
  * sliders, toggles, sub-page links, profiles) without dragging Iris classes into the UI layer.</p>
  *
  * <p>Options are split into three sets relative to {@code ShaderCurves.variableMap} (the curvable
@@ -17,13 +17,16 @@ import java.util.Set;
  * <ul>
  *     <li>{@link #curvableInMenu} — <b>M &cap; C</b>: active cells (click = add curve channel).</li>
  *     <li>{@link #nonCurvableInMenu} — <b>M \ C</b>: shown for context, not animatable.</li>
- *     <li>{@link #curvableNotInMenu} — <b>C \ M</b>: only reachable through the legacy list.</li>
+ *     <li>{@link #curvableNotInMenu} — <b>C \ M</b>: listed on the picker's own "not in the menu" page.</li>
  * </ul>
  */
 public class ShaderMenu
 {
     /** Sentinel id of the root screen (Iris' main screen has no key). */
     public static final String MAIN_SCREEN = "";
+
+    /** The pack's name as the player knows it, without the archive extension; may be empty. */
+    public final String name;
 
     public final Screen mainScreen;
     public final Map<String, Screen> subScreens;
@@ -32,8 +35,9 @@ public class ShaderMenu
     public final Set<String> nonCurvableInMenu;
     public final Set<String> curvableNotInMenu;
 
-    public ShaderMenu(Screen mainScreen, Map<String, Screen> subScreens, Set<String> curvableInMenu, Set<String> nonCurvableInMenu, Set<String> curvableNotInMenu)
+    public ShaderMenu(String name, Screen mainScreen, Map<String, Screen> subScreens, Set<String> curvableInMenu, Set<String> nonCurvableInMenu, Set<String> curvableNotInMenu)
     {
+        this.name = name;
         this.mainScreen = mainScreen;
         this.subScreens = subScreens;
         this.curvableInMenu = curvableInMenu;

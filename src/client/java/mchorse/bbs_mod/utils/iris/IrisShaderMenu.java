@@ -112,7 +112,14 @@ public final class IrisShaderMenu
             if (!menuOptions.contains(optionId)) curvableNotInMenu.add(optionId);
         }
 
-        return new ShaderMenu(mainScreen, subScreens, curvableInMenu, nonCurvableInMenu, curvableNotInMenu);
+        return new ShaderMenu(packName(), mainScreen, subScreens, curvableInMenu, nonCurvableInMenu, curvableNotInMenu);
+    }
+
+    private static String packName()
+    {
+        String name = Iris.getIrisConfig().getShaderPackName().orElse("");
+
+        return name.toLowerCase().endsWith(".zip") ? name.substring(0, name.length() - 4) : name;
     }
 
     private static ShaderMenu.Screen buildScreen(String id, OptionMenuElementScreen screen, Set<String> curvable, Set<String> menuOptions)
