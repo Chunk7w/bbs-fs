@@ -73,7 +73,7 @@ public final class IrisShaderMenu
      * model and classify every option relative to {@code ShaderCurves.variableMap}.
      *
      * <p>Returns {@code null} when no pack is loaded — the picker is built lazily on open, and the
-     * data is only valid while a pack is present ({@code ShaderCurves.reset()} clears it on swap).</p>
+     * data is only valid while a pack is present ({@code IrisShaderCurves.reset} clears it on swap).</p>
      */
     public static ShaderMenu buildShaderMenu()
     {
@@ -85,7 +85,7 @@ public final class IrisShaderMenu
         }
 
         OptionMenuContainer container = packOptional.get().getMenuContainer();
-        Set<String> curvable = ShaderCurves.variableMap.keySet();
+        Set<String> curvable = ShaderCurves.getCurvable();
         Set<String> menuOptions = new HashSet<>();
 
         ShaderMenu.Screen mainScreen = buildScreen(ShaderMenu.MAIN_SCREEN, container.mainScreen, curvable, menuOptions);

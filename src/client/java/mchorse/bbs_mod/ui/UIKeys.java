@@ -153,6 +153,8 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_SHADER_CUSTOM = L10n.lang("bbs.ui.camera.panels.shader_custom");
     public static final IKey CAMERA_PANELS_SHADER_ON = L10n.lang("bbs.ui.camera.panels.shader_on");
     public static final IKey CAMERA_PANELS_SHADER_OFF = L10n.lang("bbs.ui.camera.panels.shader_off");
+    public static final IKey CAMERA_PANELS_SHADER_FALLBACK_VALUES = L10n.lang("bbs.ui.camera.panels.shader_fallback_values");
+    public static final IKey CAMERA_PANELS_SHADER_FALLBACK_OFF = L10n.lang("bbs.ui.camera.panels.shader_fallback_off");
     public static final IKey CAMERA_PANELS_PITCH = L10n.lang("bbs.ui.camera.panels.pitch");
     public static final IKey CAMERA_PANELS_POINT = L10n.lang("bbs.ui.camera.panels.point");
     public static final IKey CAMERA_PANELS_POINTS_CONTEXT_ADD = L10n.lang("bbs.ui.camera.panels.points.context.add");

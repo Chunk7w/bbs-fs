@@ -45,6 +45,8 @@
         "iris.CustomUniformsBuilderMixin",
         "iris.CustomUniformsAccessor",
         "iris.JcppProcessorMixin",
+        "iris.ShaderPackOptionsMixin",
+        "iris.PropertiesPreprocessorMixin",
         "iris.ShaderPackMixin",
         "iris.IrisMixin",
         "iris.HandRendererMixin",

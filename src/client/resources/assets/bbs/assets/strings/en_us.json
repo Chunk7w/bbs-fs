@@ -743,6 +743,8 @@
 	"bbs.ui.camera.panels.shader_custom": "Custom",
 	"bbs.ui.camera.panels.shader_on": "On",
 	"bbs.ui.camera.panels.shader_off": "Off",
+	"bbs.ui.camera.panels.shader_fallback_values": "Shader pack didn't build with its #if options as curves, reloading it without them",
+	"bbs.ui.camera.panels.shader_fallback_off": "Shader pack didn't build with shader curves, reloading it without them",
 	"bbs.ui.camera.panels.pitch": "Pitch",
 	"bbs.ui.camera.panels.point": "Point",
 	"bbs.ui.camera.panels.points.context.add": "Add a point",

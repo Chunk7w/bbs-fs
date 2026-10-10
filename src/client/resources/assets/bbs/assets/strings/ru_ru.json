@@ -739,6 +739,8 @@
 	"bbs.ui.camera.panels.shader_custom": "Свой",
 	"bbs.ui.camera.panels.shader_on": "Вкл.",
 	"bbs.ui.camera.panels.shader_off": "Выкл.",
+	"bbs.ui.camera.panels.shader_fallback_values": "Шейдерпак не собрался с #if-опциями как кривыми, перезагружаю без них",
+	"bbs.ui.camera.panels.shader_fallback_off": "Шейдерпак не собрался с кривыми шейдеров, перезагружаю без них",
 	"bbs.ui.camera.panels.pitch": "Тангаж",
 	"bbs.ui.camera.panels.point": "Точка",
 	"bbs.ui.camera.panels.points.context.add": "Добавить точку",

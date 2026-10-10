@@ -539,6 +539,8 @@
     "bbs.ui.camera.panels.roll": "翻滚",
     "bbs.ui.camera.panels.shader_custom": "自定义",
     "bbs.ui.camera.panels.shader_off": "关",
+    "bbs.ui.camera.panels.shader_fallback_values": "光影包无法将 #if 选项作为曲线编译，正在不带它们重新加载",
+    "bbs.ui.camera.panels.shader_fallback_off": "光影包无法与光影曲线一起编译，正在不带曲线重新加载",
     "bbs.ui.camera.panels.shader_on": "开",
     "bbs.ui.camera.panels.shader_profile": "配置文件",
     "bbs.ui.camera.panels.shake": "摇晃",

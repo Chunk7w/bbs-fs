@@ -53,12 +53,12 @@ public class QueueMap<K, V> implements Map<K, V>
 
         if (variable != null && value instanceof String string)
         {
-            try
+            Float parsed = ShaderCurves.parse(string);
+
+            if (parsed != null)
             {
-                variable.defaultValue = Float.parseFloat(string);
+                variable.defaultValue = parsed;
             }
-            catch (Exception e)
-            {}
         }
 
         return this.map.put(key, value);
@@ -79,12 +79,12 @@ public class QueueMap<K, V> implements Map<K, V>
 
             if (variable != null && m.get(k) instanceof String string)
             {
-                try
+                Float parsed = ShaderCurves.parse(string);
+
+                if (parsed != null)
                 {
-                    variable.defaultValue = Float.parseFloat(string);
+                    variable.defaultValue = parsed;
                 }
-                catch (Exception e)
-                {}
             }
         }
 

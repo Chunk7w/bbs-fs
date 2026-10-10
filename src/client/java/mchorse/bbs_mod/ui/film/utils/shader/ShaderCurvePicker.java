@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -61,13 +62,15 @@ public final class ShaderCurvePicker
 
     private static ShaderMenu flatMenu()
     {
-        if (ShaderCurves.variableMap.isEmpty())
+        Set<String> curvable = ShaderCurves.getCurvable();
+
+        if (curvable.isEmpty())
         {
             return null;
         }
 
         ShaderMenu.Screen main = new ShaderMenu.Screen(ShaderMenu.MAIN_SCREEN, 2, Collections.emptyList());
 
-        return new ShaderMenu("", main, Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), new HashSet<>(ShaderCurves.variableMap.keySet()));
+        return new ShaderMenu("", main, Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), new HashSet<>(curvable));
     }
 }

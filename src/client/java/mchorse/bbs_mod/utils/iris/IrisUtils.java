@@ -46,6 +46,11 @@ public class IrisUtils
         properties = shaderProperties;
     }
 
+    public static ShaderProperties getShaderProperties()
+    {
+        return properties;
+    }
+
     public static List<String> getSliderProperties()
     {
         return properties == null ? Collections.emptyList() : properties.getSliderOptions();
@@ -309,7 +314,7 @@ public class IrisUtils
         {
             if (value.integer)
             {
-                list.add(new IntCachedUniform(value.uniformName, UniformUpdateFrequency.PER_FRAME, () -> (int) value.getValue()));
+                list.add(new IntCachedUniform(value.uniformName, UniformUpdateFrequency.PER_FRAME, value::getIntValue));
             }
             else
             {
