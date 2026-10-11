@@ -110,12 +110,14 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR = L10n.lang("bbs.ui.camera.panels.curves.chroma_sky_color");
     public static final IKey CAMERA_PANELS_CURVES_WORLD = L10n.lang("bbs.ui.camera.panels.curves.world");
     public static final IKey CAMERA_PANELS_CURVES_SHADER = L10n.lang("bbs.ui.camera.panels.curves.shader");
+    public static final IKey CAMERA_PANELS_CURVES_SHADER_SECTION = L10n.lang("bbs.ui.camera.panels.curves.shader_section");
     public static final IKey CAMERA_PANELS_CURVES_NOT_IN_MENU = L10n.lang("bbs.ui.camera.panels.curves.not_in_menu");
     public static final IKey CAMERA_PANELS_CURVES_NO_SHADERS = L10n.lang("bbs.ui.camera.panels.curves.no_shaders");
     public static final IKey CAMERA_PANELS_CURVES_FOUND = L10n.lang("bbs.ui.camera.panels.curves.found");
     public static final IKey CAMERA_PANELS_CURVES_NOT_FOUND = L10n.lang("bbs.ui.camera.panels.curves.not_found");
     public static final IKey CAMERA_PANELS_CURVE_ADD = L10n.lang("bbs.ui.camera.panels.curve.add");
     public static final IKey CAMERA_PANELS_CURVE_REMOVE = L10n.lang("bbs.ui.camera.panels.curve.remove");
+    public static final IKey CAMERA_PANELS_CURVE_CREATE = L10n.lang("bbs.ui.camera.panels.curve.create");
     public static final IKey CAMERA_PANELS_DETERMINISTIC = L10n.lang("bbs.ui.camera.panels.deterministic");
     public static final IKey CAMERA_PANELS_DETERMINISTIC_TOOLTIP = L10n.lang("bbs.ui.camera.panels.deterministic_tooltip");
     public static final IKey CAMERA_PANELS_DISTANCE = L10n.lang("bbs.ui.camera.panels.distance");
@@ -148,7 +150,6 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_METRICS = L10n.lang("bbs.ui.camera.panels.metrics");
     public static final IKey CAMERA_PANELS_OFFSET = L10n.lang("bbs.ui.camera.panels.offset");
     public static final IKey CAMERA_PANELS_PATH_POINTS = L10n.lang("bbs.ui.camera.panels.path_points");
-    public static final IKey CAMERA_PANELS_PICK_KEY = L10n.lang("bbs.ui.camera.panels.pick_key");
     public static final IKey CAMERA_PANELS_SHADER_PROFILE = L10n.lang("bbs.ui.camera.panels.shader_profile");
     public static final IKey CAMERA_PANELS_SHADER_CUSTOM = L10n.lang("bbs.ui.camera.panels.shader_custom");
     public static final IKey CAMERA_PANELS_SHADER_ON = L10n.lang("bbs.ui.camera.panels.shader_on");
@@ -369,6 +370,11 @@ public class UIKeys
     public static final IKey FILM_PANELS_EDIT_AREA = L10n.lang("bbs.ui.film.panels.edit_area");
     public static final IKey FILM_PANELS_REPLAYS_LIST = L10n.lang("bbs.ui.film.panels.replays_list");
     public static final IKey FILM_PANELS_REPLAY_PROPS = L10n.lang("bbs.ui.film.panels.replay_props");
+    public static final IKey FILM_SHADER_PENDING = L10n.lang("bbs.ui.film.shader.pending");
+    public static final IKey FILM_SHADER_APPLY = L10n.lang("bbs.ui.film.shader.apply");
+    public static final IKey FILM_SHADER_DISCARD = L10n.lang("bbs.ui.film.shader.discard");
+    public static final IKey FILM_SHADER_RELOAD = L10n.lang("bbs.ui.film.shader.reload");
+    public static final IKey FILM_SHADER_CURVE = L10n.lang("bbs.ui.film.shader.curve");
     public static final IKey SNOWSTORM_PANELS_GENERAL = L10n.lang("bbs.ui.snowstorm.panels.general");
     public static final IKey SNOWSTORM_PANELS_EMITTER = L10n.lang("bbs.ui.snowstorm.panels.emitter");
     public static final IKey SNOWSTORM_PANELS_PARTICLE = L10n.lang("bbs.ui.snowstorm.panels.particle");

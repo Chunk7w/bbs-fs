@@ -46,7 +46,7 @@ public class ShaderCurves
     }
 
     /** A number of an option's value ("true"/"false" too), or null */
-    static Float parse(String value)
+    public static Float parse(String value)
     {
         if (value == null)
         {

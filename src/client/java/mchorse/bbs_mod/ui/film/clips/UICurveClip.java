@@ -1,8 +1,6 @@
 package mchorse.bbs_mod.ui.film.clips;
 
-import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.camera.clips.misc.CurveClip;
-import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.Keys;
@@ -11,52 +9,35 @@ import mchorse.bbs_mod.ui.film.IUIClipsDelegate;
 import mchorse.bbs_mod.ui.film.UIClipsPanel;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditor;
 import mchorse.bbs_mod.ui.film.utils.keyframes.UIFilmKeyframes;
-import mchorse.bbs_mod.ui.film.utils.shader.ShaderCurvePicker;
-import mchorse.bbs_mod.ui.film.utils.shader.UICurvePicker;
+import mchorse.bbs_mod.ui.film.utils.shader.UIShaderPanel;
+import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.KeyframeState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
-import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.clips.Clips;
+import mchorse.bbs_mod.utils.colors.Color;
 import mchorse.bbs_mod.utils.colors.Colors;
-import mchorse.bbs_mod.utils.iris.ShaderCurves;
 import mchorse.bbs_mod.utils.keyframes.KeyframeChannel;
+import mchorse.bbs_mod.utils.keyframes.factories.IKeyframeFactory;
 import mchorse.bbs_mod.utils.keyframes.factories.KeyframeFactories;
-import net.minecraft.client.MinecraftClient;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * The curve clip's properties: the clip's own fields, then the sections of the film editor's
+ * {@link UIShaderPanel} &mdash; the world and the shader pack &mdash; where curves are made. The
+ * tracks themselves are edited in the keyframe editor that replaces the timeline.
+ */
 public class UICurveClip extends UIClip<CurveClip>
 {
     public UIKeyframeEditor keyframes;
     public UIButton edit;
 
+    private UIShaderPanel shader;
+
     public UICurveClip(CurveClip clip, IUIClipsDelegate editor)
     {
         super(clip, editor);
-    }
-
-    /** The curves of the world itself, for the picker; they work with shaders off too. */
-    private static List<UICurvePicker.WorldCurve> worldCurves()
-    {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        List<UICurvePicker.WorldCurve> curves = new ArrayList<>();
-
-        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.SUN_ROTATION, UIKeys.CAMERA_PANELS_CURVES_SUN_ROTATION, Icons.SUN)
-            .value(() -> mc.world == null ? null : (mc.world.getTimeOfDay() % 24000L) / 1000D));
-        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.SUN_HORIZONTAL_ROTATION, UIKeys.CAMERA_PANELS_CURVES_SUN_HORIZONTAL_ROTATION, Icons.ORBIT)
-            .value(() -> (double) BBSRendering.getSunHorizontalRotation()));
-        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.WEATHER, UIKeys.CAMERA_PANELS_CURVES_WEATHER, Icons.DROP)
-            .value(() -> mc.world == null ? null : (double) mc.world.getRainGradient(1F)));
-        curves.add(new UICurvePicker.WorldCurve(ShaderCurves.BRIGHTNESS, UIKeys.CAMERA_PANELS_CURVES_BRIGHTNESS, Icons.LIGHT)
-            .value(() -> mc.options.getGamma().getValue()));
-        curves.add(new UICurvePicker.WorldCurve(CurveClip.CHROMA_SKY_COLOR, UIKeys.CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR, Icons.COLOR)
-            .color(() -> BBSSettings.chromaSkyColor.get()));
-
-        return curves;
     }
 
     @Override
@@ -74,36 +55,7 @@ public class UICurveClip extends UIClip<CurveClip>
 
         this.keyframes.view.context((menu) ->
         {
-            menu.icon(MenuVerb.ADD, () ->
-            {
-                List<String> existing = new ArrayList<>();
-
-                for (KeyframeChannel<?> channel : this.clip.channels.getAllKeyframeChannels())
-                {
-                    existing.add(channel.getId());
-                }
-
-                ShaderCurvePicker.open(this.getContext(), worldCurves(), existing, (s) ->
-                {
-                    if (CurveClip.isColorChannelId(s))
-                    {
-                        this.clip.channels.addChannel(s, KeyframeFactories.COLOR);
-                    }
-                    else
-                    {
-                        this.clip.channels.addChannel(s, KeyframeFactories.DOUBLE);
-                    }
-
-                    this.fillData();
-                }, (s) ->
-                {
-                    if (this.clip.channels.get(s) instanceof KeyframeChannel<?> channel)
-                    {
-                        this.clip.channels.removeChannel(channel);
-                        this.fillData();
-                    }
-                });
-            }).label(UIKeys.CAMERA_PANELS_CURVE_ADD);
+            menu.icon(MenuVerb.ADD, () -> this.shader.focusSearch()).label(UIKeys.CAMERA_PANELS_CURVE_ADD);
 
             UIKeyframeSheet sheet = this.keyframes.view.getGraph().getSheet(this.getContext().mouseX, this.getContext().mouseY);
 
@@ -114,20 +66,77 @@ public class UICurveClip extends UIClip<CurveClip>
             }).label(UIKeys.CAMERA_PANELS_CURVE_REMOVE).enabled(sheet != null);
         });
 
-        this.edit = new UIButton(UIKeys.CAMERA_PANELS_EDIT_KEYFRAMES, (b) ->
-        {
-            this.editor.embedView(this.keyframes);
-            this.keyframes.view.resetView();
-            this.keyframes.view.getGraph().clearSelection();
-        });
+        this.edit = new UIButton(UIKeys.CAMERA_PANELS_EDIT_KEYFRAMES, (b) -> this.openKeyframes());
         this.edit.keys().register(Keys.FORMS_EDIT, () -> this.edit.clickItself());
+
+        this.shader = ((UIClipsPanel) this.editor).filmPanel.shader;
+        this.shader.attach(this);
+    }
+
+    private void openKeyframes()
+    {
+        this.editor.embedView(this.keyframes);
+        this.keyframes.view.resetView();
+        this.keyframes.view.getGraph().clearSelection();
     }
 
     private void addKeyframeSheet(KeyframeChannel<?> channel)
     {
-        int sheetColor = channel.getId().hashCode() & Colors.RGB;
+        String id = channel.getId();
+        int sheetColor = id.hashCode() & Colors.RGB;
 
-        this.keyframes.view.addSheet(new UIKeyframeSheet(channel.getId(), IKey.constant(channel.getId()), sheetColor, channel, null));
+        this.keyframes.view.addSheet(new UIKeyframeSheet(id, (IKey) () -> this.shader.channelLabel(id), sheetColor, channel, null));
+    }
+
+    /* === Curves === */
+
+    public boolean hasCurve(String channelId)
+    {
+        return this.clip.channels.get(channelId) instanceof KeyframeChannel<?>;
+    }
+
+    /**
+     * Makes a track with one keyframe of the given value: at the playhead while it's over the
+     * clip, at the clip's start otherwise. The keyframe editor opens, since the track is where the
+     * curve gets shaped from then on.
+     */
+    public void createCurve(String channelId, double value)
+    {
+        this.createCurve(channelId, KeyframeFactories.DOUBLE, value);
+    }
+
+    public void createCurve(String channelId, Color color)
+    {
+        this.createCurve(channelId, KeyframeFactories.COLOR, color);
+    }
+
+    private <T> void createCurve(String channelId, IKeyframeFactory<T> factory, T value)
+    {
+        if (this.hasCurve(channelId))
+        {
+            return;
+        }
+
+        int tick = this.editor.getCursor() - this.clip.tick.get();
+        KeyframeChannel<T> channel = new KeyframeChannel<>(channelId, factory);
+
+        channel.insert(tick >= 0 && tick <= this.clip.duration.get() ? tick : 0, value);
+        this.clip.channels.addChannel(channel);
+        this.fillData();
+
+        if (!this.keyframes.hasParent())
+        {
+            this.openKeyframes();
+        }
+    }
+
+    public void removeCurve(String channelId)
+    {
+        if (this.clip.channels.get(channelId) instanceof KeyframeChannel<?> channel)
+        {
+            this.clip.channels.removeChannel(channel);
+            this.fillData();
+        }
     }
 
     @Override
@@ -136,6 +145,15 @@ public class UICurveClip extends UIClip<CurveClip>
         super.registerPanels();
 
         this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:curve"), this.edit));
+        this.panels.add(this.shader.world, this.shader);
+    }
+
+    @Override
+    public void render(UIContext context)
+    {
+        this.shader.update();
+
+        super.render(context);
     }
 
     @Override

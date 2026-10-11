@@ -79,11 +79,14 @@ public class IrisShaderCurves
         optionSet = null;
         candidates = null;
         conditionals = 0;
+        ShaderOptions.packLoading();
     }
 
     public static synchronized void finishLoading()
     {
         int animated = ShaderCurves.getCurvable().size();
+
+        ShaderOptions.changed();
 
         if (animated > 0 || !ShaderCurves.blocked.isEmpty())
         {

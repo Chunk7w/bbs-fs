@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mchorse.bbs_mod.utils.iris.IrisShaderCurves;
 import mchorse.bbs_mod.utils.iris.QueueMap;
+import mchorse.bbs_mod.utils.iris.ShaderOptions;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.shaderpack.programs.ProgramSet;
@@ -44,7 +45,11 @@ public class IrisMixin
         IrisShaderCurves.finishLoading();
     }
 
-    /** A pack that doesn't build with its options as uniforms is reloaded going less far */
+    /**
+     * A pack that doesn't build with its options as uniforms is reloaded going less far. Building
+     * reads the programs of a dimension with programs of its own for the first time, and they can
+     * turn more options into uniforms, so the editor's shader panel looks again either way.
+     */
     @WrapOperation(method = "createPipeline", at = @At(value = "NEW", target = "(Lnet/irisshaders/iris/shaderpack/programs/ProgramSet;)Lnet/irisshaders/iris/pipeline/IrisRenderingPipeline;"), remap = false)
     private static IrisRenderingPipeline onCreatePipeline(ProgramSet programs, Operation<IrisRenderingPipeline> original)
     {
@@ -57,6 +62,10 @@ public class IrisMixin
             IrisShaderCurves.onPipelineFailed();
 
             throw e;
+        }
+        finally
+        {
+            ShaderOptions.changed();
         }
     }
 }
