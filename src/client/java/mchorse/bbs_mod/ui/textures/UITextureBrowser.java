@@ -1243,7 +1243,7 @@ public class UITextureBrowser extends UIElement implements IFolderTreeHost
             }
         });
 
-        panel.text.filename();
+        panel.text.validator(UITextbox.SPACED_FILENAME_PREDICATE);
         panel.text.setText(name);
         panel.text.textbox.selectFilename();
 
@@ -1480,7 +1480,7 @@ public class UITextureBrowser extends UIElement implements IFolderTreeHost
 
             return true;
         }
-        else if (context.isPressed(GLFW.GLFW_KEY_F2))
+        else if (context.isPressed(Keys.TEXTURE_PICKER_RENAME))
         {
             List<Link> subjects = this.modifiableSubjects();
 
