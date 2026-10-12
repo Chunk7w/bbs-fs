@@ -515,6 +515,8 @@ public class UIFilmPreview extends UIElement
         }
 
         this.iconsVisible &= this.icons.getChildren().stream().anyMatch(element -> element.isVisible());
+        /* None of them can be used during an export, and the frame is all there is to watch */
+        this.iconsVisible &= !this.panel.recorder.isExporting();
         this.icons.setVisible(this.iconsVisible);
     }
 
@@ -538,6 +540,9 @@ public class UIFilmPreview extends UIElement
         this.updateIconsVisibility(context);
         this.hud.begin(area);
         if (this.iconsVisible) this.hud.reserve(PreviewHud.Anchor.BOTTOM_CENTER, area.ey() - this.icons.area.y);
+
+        /* First in the top left: while exporting, the export is what the editor is doing */
+        this.panel.recorder.renderHud(context, this.hud);
 
         /* The navigation widget claims the bottom left corner before anything else does, so
          * that whatever the editor stacks there later (the stick guide) ends up above it
