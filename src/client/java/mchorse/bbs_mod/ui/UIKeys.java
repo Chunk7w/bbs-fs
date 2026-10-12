@@ -596,7 +596,6 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_ACTIONS = L10n.lang("bbs.ui.forms.editors.model.actions");
     public static final IKey FORMS_EDITORS_MODEL_IK = L10n.lang("bbs.ui.forms.editors.model.ik");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONES = L10n.lang("bbs.ui.forms.editors.model.ik.bones");
-    public static final IKey FORMS_EDITORS_MODEL_IK_BONES_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.ik.bones_tooltip");
     public static final IKey FORMS_EDITORS_MODEL_IK_DEBUG = L10n.lang("bbs.ui.forms.editors.model.ik.debug");
     public static final IKey FORMS_EDITORS_MODEL_IK_SETTINGS = L10n.lang("bbs.ui.forms.editors.model.ik.settings");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller");
@@ -668,7 +667,6 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_PHYSICS_CONTEXT_SAVE = L10n.lang("bbs.ui.forms.editors.model.physics.context.save");
     public static final IKey FORMS_EDITORS_MODEL_PHYSICS_CONTEXT_NAME = L10n.lang("bbs.ui.forms.editors.model.physics.context.name");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_TITLE = L10n.lang("bbs.ui.forms.editors.model.shake.title");
-    public static final IKey FORMS_EDITORS_MODEL_SHAKE_BONES_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.shake.bones_tooltip");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_SETTINGS = L10n.lang("bbs.ui.forms.editors.model.shake.settings");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_ENABLED = L10n.lang("bbs.ui.forms.editors.model.shake.enabled");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_STRENGTH = L10n.lang("bbs.ui.forms.editors.model.shake.strength");
@@ -1221,6 +1219,12 @@ public class UIKeys
     public static final IKey MODEL_EDITOR_LOOK_AT_LIMIT = L10n.lang("bbs.ui.model_editor.look_at.limit");
     public static final IKey MODEL_EDITOR_PICK_BONE = L10n.lang("bbs.ui.model_editor.pick_bone");
     public static final IKey BONE_PICKER_CLICK_BONE = L10n.lang("bbs.ui.bone_picker.click_bone");
+    public static final IKey BONES_ROLE_CHAIN = L10n.lang("bbs.ui.bones.role.chain");
+    public static final IKey BONES_ROLE_LINK = L10n.lang("bbs.ui.bones.role.link");
+    public static final IKey BONES_ROLE_TARGET = L10n.lang("bbs.ui.bones.role.target");
+    public static final IKey BONES_ROLE_POLE = L10n.lang("bbs.ui.bones.role.pole");
+    public static final IKey BONES_ROLE_LIMIT = L10n.lang("bbs.ui.bones.role.limit");
+    public static final IKey BONES_ROLE_OFF = L10n.lang("bbs.ui.bones.role.off");
     public static final IKey MODEL_EDITOR_FACE_FRONT = L10n.lang("bbs.ui.model_editor.face.front");
     public static final IKey MODEL_EDITOR_FACE_BACK = L10n.lang("bbs.ui.model_editor.face.back");
     public static final IKey MODEL_EDITOR_FACE_RIGHT = L10n.lang("bbs.ui.model_editor.face.right");
@@ -1246,7 +1250,6 @@ public class UIKeys
     public static final IKey MODEL_EDITOR_BONE_VISIBLE = L10n.lang("bbs.ui.model_editor.bone.visible");
     public static final IKey MODEL_EDITOR_BONE_MIRROR = L10n.lang("bbs.ui.model_editor.bone.mirror");
     public static final IKey MODEL_EDITOR_BONE_PICKING = L10n.lang("bbs.ui.model_editor.bone.picking");
-    public static final IKey MODEL_EDITOR_BONES_LEGEND = L10n.lang("bbs.ui.model_editor.bones.legend");
     public static final IKey MODEL_EDITOR_SNEAKING = L10n.lang("bbs.ui.model_editor.sneaking");
     public static final IKey MODEL_EDITOR_DEFAULT_POSE = L10n.lang("bbs.ui.model_editor.default_pose");
     public static final IKey MODEL_EDITOR_SNEAKING_CLEAR = L10n.lang("bbs.ui.model_editor.sneaking.clear");

@@ -16,6 +16,7 @@ import mchorse.bbs_mod.ui.utils.BoneSelection;
 import mchorse.bbs_mod.ui.utils.IBoneSelectionHost;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
+import mchorse.bbs_mod.ui.utils.bones.BoneRoles;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.context.MenuIcon;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
@@ -68,6 +69,7 @@ public class UIPoseEditor extends UIElement
     {
         this.groups = new UIBoneList(this::pickBones);
         this.groups.onFiltered = this::afterFilter;
+        this.groups.list.roles(this::describeBones);
 
         /* The bone list eats whatever room the panel has to spare, down through every layer between
          * it and the scroll view. The height below is what it asks for, i.e. its minimum: when the
@@ -240,6 +242,26 @@ public class UIPoseEditor extends UIElement
     public Pose getPose()
     {
         return this.pose;
+    }
+
+    /**
+     * A bone this pose moves, hides or tints reads at full strength in the list; the rest
+     * step back. Only the pose itself counts — what IK or physics do to a bone is their tab's.
+     */
+    private void describeBones(BoneRoles roles)
+    {
+        if (this.pose == null)
+        {
+            return;
+        }
+
+        for (Map.Entry<String, PoseTransform> entry : this.pose.transforms.entrySet())
+        {
+            if (!entry.getValue().isDefault())
+            {
+                roles.touch(entry.getKey());
+            }
+        }
     }
 
     /**

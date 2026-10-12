@@ -148,6 +148,15 @@ public final class ModelPhysicsRuntime
         STATES.putAll(snapshot);
     }
 
+    /**
+     * The bones of the physics chain from {@code root} down to {@code end}, root first — empty
+     * when the end isn't below the root. The bone list draws the chain from it.
+     */
+    public static List<String> chainBones(IModel model, String root, String end)
+    {
+        return ModelPhysicsCache.buildChainIds(model, end, root);
+    }
+
     public static void invalidate(String modelId)
     {
         /* The skeleton the checkpoint was taken against is gone, so putting it back would resurrect a
