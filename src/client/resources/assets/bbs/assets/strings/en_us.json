@@ -1443,6 +1443,7 @@
 	"bbs.ui.forms.editors.vanilla_particle.velocity": "Velocity",
 	"bbs.ui.forms.editors.vanilla_particle.vertical": "Vertical",
 	"bbs.ui.forms.editor.keys.center_camera": "Centre the view on the form",
+	"bbs.ui.forms.editor.keys.tab": "Switch to tab %s",
 	"bbs.ui.forms.list.context.focus": "Focus search",
 	"bbs.ui.forms.list.edit": "Edit",
 	"bbs.ui.forms.list.collapse_all": "Collapse all categories",

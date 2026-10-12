@@ -1438,6 +1438,7 @@
 	"bbs.ui.forms.editors.vanilla_particle.velocity": "Ускорение",
 	"bbs.ui.forms.editors.vanilla_particle.vertical": "Вертикальный",
 	"bbs.ui.forms.editor.keys.center_camera": "Вид по центру формы",
+	"bbs.ui.forms.editor.keys.tab": "Переключить на вкладку %s",
 	"bbs.ui.forms.list.context.focus": "Сфокусировать поле поиска",
 	"bbs.ui.forms.list.edit": "Редактировать",
 	"bbs.ui.forms.list.collapse_all": "Свернуть все категории",
