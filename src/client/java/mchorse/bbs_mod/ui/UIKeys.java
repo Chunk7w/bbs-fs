@@ -797,6 +797,7 @@ public class UIKeys
     public static final IKey FORMS_EDITOR_STATES_TOGGLE = L10n.lang("bbs.ui.forms.editor.states.toggle");
     public static final IKey FORMS_EDITOR_USE_TARGET = L10n.lang("bbs.ui.forms.editor.use_target");
     public static final IKey FORMS_EDITOR_KEYS_CENTER_CAMERA = L10n.lang("bbs.ui.forms.editor.keys.center_camera");
+    public static final IKey FORMS_EDITOR_KEYS_TAB = L10n.lang("bbs.ui.forms.editor.keys.tab");
     public static final IKey FORMS_LIST_CONTEXT_FOCUS = L10n.lang("bbs.ui.forms.list.context.focus");
     public static final IKey FORMS_LIST_COLLAPSE_ALL = L10n.lang("bbs.ui.forms.list.collapse_all");
     public static final IKey FORMS_LIST_EDIT = L10n.lang("bbs.ui.forms.list.edit");

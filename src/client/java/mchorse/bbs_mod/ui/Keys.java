@@ -91,6 +91,16 @@ public class Keys
     public static final KeyCombo FORMS_OPEN_STATES_EDITOR = new KeyCombo("open_states_editor", UIKeys.FORMS_EDITOR_STATES_OPEN, GLFW.GLFW_KEY_BACKSLASH).categoryKey("forms");
     public static final KeyCombo FORMS_TOGGLE_BODY_PART_GIZMO = new KeyCombo("toggle_body_part_gizmo", UIKeys.FORMS_EDITOR_BODY_PART_GIZMO, GLFW.GLFW_KEY_Q, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("forms");
     public static final KeyCombo FORMS_CENTER_CAMERA = new KeyCombo("center_camera", UIKeys.FORMS_EDITOR_KEYS_CENTER_CAMERA, GLFW.GLFW_KEY_C).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_1 = new KeyCombo("tab_1", UIKeys.FORMS_EDITOR_KEYS_TAB.format(1), GLFW.GLFW_KEY_1).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_2 = new KeyCombo("tab_2", UIKeys.FORMS_EDITOR_KEYS_TAB.format(2), GLFW.GLFW_KEY_2).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_3 = new KeyCombo("tab_3", UIKeys.FORMS_EDITOR_KEYS_TAB.format(3), GLFW.GLFW_KEY_3).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_4 = new KeyCombo("tab_4", UIKeys.FORMS_EDITOR_KEYS_TAB.format(4), GLFW.GLFW_KEY_4).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_5 = new KeyCombo("tab_5", UIKeys.FORMS_EDITOR_KEYS_TAB.format(5), GLFW.GLFW_KEY_5).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_6 = new KeyCombo("tab_6", UIKeys.FORMS_EDITOR_KEYS_TAB.format(6), GLFW.GLFW_KEY_6).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_7 = new KeyCombo("tab_7", UIKeys.FORMS_EDITOR_KEYS_TAB.format(7), GLFW.GLFW_KEY_7).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_8 = new KeyCombo("tab_8", UIKeys.FORMS_EDITOR_KEYS_TAB.format(8), GLFW.GLFW_KEY_8).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_9 = new KeyCombo("tab_9", UIKeys.FORMS_EDITOR_KEYS_TAB.format(9), GLFW.GLFW_KEY_9).categoryKey("forms");
+    public static final KeyCombo FORMS_TAB_10 = new KeyCombo("tab_10", UIKeys.FORMS_EDITOR_KEYS_TAB.format(10), GLFW.GLFW_KEY_0).categoryKey("forms");
 
     /* Pixel editor */
     public static final KeyCombo PIXEL_SWAP = new KeyCombo("swap", UIKeys.TEXTURES_KEYS_SWAP, GLFW.GLFW_KEY_X).categoryKey("pixels");
