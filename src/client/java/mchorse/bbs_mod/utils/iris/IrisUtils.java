@@ -41,6 +41,9 @@ public class IrisUtils
     private static ShaderProperties properties;
     private static int offscreenDepth;
 
+    /** Scratch for {@link #computeTangent}: render thread only. */
+    private static final SuperTriangle TANGENT_TRIANGLE = new SuperTriangle();
+
     public static void setShaderProperties(ShaderProperties shaderProperties)
     {
         properties = shaderProperties;
@@ -304,6 +307,15 @@ public class IrisUtils
         }
 
         return t;
+    }
+
+    /** Iris' tangent for a triangle with the given normal, packed as {@link NormI8} like its vertex formats carry it. */
+    public static int computeTangent(float nx, float ny, float nz,
+        float x0, float y0, float z0, float u0, float v0,
+        float x1, float y1, float z1, float u1, float v1,
+        float x2, float y2, float z2, float u2, float v2)
+    {
+        return NormalHelper.computeTangent(nx, ny, nz, TANGENT_TRIANGLE.set(x0, y0, z0, u0, v0, x1, y1, z1, u1, v1, x2, y2, z2, u2, v2));
     }
 
     public static void addUniforms(List<CachedUniform> list, Map<String, ShaderCurves.ShaderVariable> variableMap)
