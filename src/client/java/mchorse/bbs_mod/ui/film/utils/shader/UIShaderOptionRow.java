@@ -13,7 +13,6 @@ import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.resizers.layout.LabelRowResizer;
 import mchorse.bbs_mod.utils.colors.Colors;
-import mchorse.bbs_mod.utils.iris.ShaderCurves;
 import mchorse.bbs_mod.utils.iris.ShaderMenu;
 
 import java.util.ArrayList;
@@ -109,9 +108,7 @@ public class UIShaderOptionRow extends UIElement
                 menu.action(Icons.REFRESH, UIKeys.GENERAL_RESET, () -> this.panel.set(this.optionId, this.cell.defaultValue));
             }
 
-            String channelId = CurveClip.SHADER_CURVES_PREFIX + this.optionId;
-
-            this.panel.curveActions(menu, channelId, this.panel.isCurvable(this.optionId), () -> this.panel.createCurve(channelId, this.curveStart()));
+            this.panel.curveActions(menu, CurveClip.SHADER_CURVES_PREFIX + this.optionId, this.panel.isCurvable(this.optionId));
         });
 
         LabelRowResizer.apply(this, width, true);
@@ -173,21 +170,6 @@ public class UIShaderOptionRow extends UIElement
         }
 
         return this.panel.isPending(this.optionId) ? Colors.A100 | Colors.ORANGE : Colors.WHITE;
-    }
-
-    /** What a new curve starts from: the value the row shows */
-    private double curveStart()
-    {
-        Double curve = this.panel.curveValue(this.optionId);
-
-        if (curve != null)
-        {
-            return curve;
-        }
-
-        Float value = ShaderCurves.parse(this.panel.value(this.optionId));
-
-        return value == null ? 0D : value;
     }
 
     /** The allowed value closest to a curve's, for the control to stand on */

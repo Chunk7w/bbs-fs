@@ -5,6 +5,7 @@ import mchorse.bbs_mod.camera.clips.misc.CurveClip;
 import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
+import mchorse.bbs_mod.utils.colors.Color;
 import mchorse.bbs_mod.utils.iris.ShaderCurves;
 import net.minecraft.client.MinecraftClient;
 
@@ -66,5 +67,18 @@ public class WorldCurve
         this.color = color;
 
         return this;
+    }
+
+    /** What a curve of it starts from: the world's value now (zero without a world), or colour */
+    public Object start()
+    {
+        if (this.color != null)
+        {
+            return new Color().set(this.color.getAsInt(), true);
+        }
+
+        Double value = this.value.get();
+
+        return value == null ? 0D : value;
     }
 }

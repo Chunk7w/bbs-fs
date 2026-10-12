@@ -35,19 +35,7 @@ public class UIWorldCurveRow extends UIElement
 
         name.tooltip(curve.label);
         value.h(UIConstants.CONTROL_HEIGHT);
-        this.context((menu) -> panel.curveActions(menu, curve.id, true, () ->
-        {
-            if (curve.color != null)
-            {
-                panel.createColorCurve(curve.id, curve.color.getAsInt());
-            }
-            else
-            {
-                Double now = curve.value.get();
-
-                panel.createCurve(curve.id, now == null ? 0D : now);
-            }
-        }));
+        this.context((menu) -> panel.curveActions(menu, curve.id, true));
 
         LabelRowResizer.apply(this, VALUE_WIDTH, true);
         this.add(name, value);

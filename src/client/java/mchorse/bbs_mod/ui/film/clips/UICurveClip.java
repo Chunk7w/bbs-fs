@@ -17,10 +17,8 @@ import mchorse.bbs_mod.ui.framework.elements.input.keyframes.KeyframeState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
 import mchorse.bbs_mod.utils.clips.Clips;
-import mchorse.bbs_mod.utils.colors.Color;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.keyframes.KeyframeChannel;
-import mchorse.bbs_mod.utils.keyframes.factories.IKeyframeFactory;
 import mchorse.bbs_mod.utils.keyframes.factories.KeyframeFactories;
 
 /**
@@ -80,12 +78,14 @@ public class UICurveClip extends UIClip<CurveClip>
         this.keyframes.view.getGraph().clearSelection();
     }
 
+    /** A keyframe put on an empty track starts from the value the curve has now, like a new curve */
     private void addKeyframeSheet(KeyframeChannel<?> channel)
     {
         String id = channel.getId();
         int sheetColor = id.hashCode() & Colors.RGB;
 
-        this.keyframes.view.addSheet(new UIKeyframeSheet(id, (IKey) () -> this.shader.channelLabel(id), sheetColor, channel, null));
+        this.keyframes.view.addSheet(new UIKeyframeSheet(id, (IKey) () -> this.shader.channelLabel(id), sheetColor, channel, null)
+            .seed(() -> this.startValue(channel)));
     }
 
     /* === Curves === */
@@ -96,21 +96,12 @@ public class UICurveClip extends UIClip<CurveClip>
     }
 
     /**
-     * Makes a track with one keyframe of the given value: at the playhead while it's over the
-     * clip, at the clip's start otherwise. The keyframe editor opens, since the track is where the
-     * curve gets shaped from then on.
+     * Makes a track with one keyframe of the value the curve has now ({@link UIShaderPanel#startValue}),
+     * so the picture doesn't change: at the playhead while it's over the clip, at the clip's start
+     * otherwise. The keyframe editor opens, since the track is where the curve gets shaped from
+     * then on.
      */
-    public void createCurve(String channelId, double value)
-    {
-        this.createCurve(channelId, KeyframeFactories.DOUBLE, value);
-    }
-
-    public void createCurve(String channelId, Color color)
-    {
-        this.createCurve(channelId, KeyframeFactories.COLOR, color);
-    }
-
-    private <T> void createCurve(String channelId, IKeyframeFactory<T> factory, T value)
+    public void createCurve(String channelId)
     {
         if (this.hasCurve(channelId))
         {
@@ -118,9 +109,9 @@ public class UICurveClip extends UIClip<CurveClip>
         }
 
         int tick = this.editor.getCursor() - this.clip.tick.get();
-        KeyframeChannel<T> channel = new KeyframeChannel<>(channelId, factory);
+        KeyframeChannel channel = new KeyframeChannel(channelId, CurveClip.isColorChannelId(channelId) ? KeyframeFactories.COLOR : KeyframeFactories.DOUBLE);
 
-        channel.insert(tick >= 0 && tick <= this.clip.duration.get() ? tick : 0, value);
+        channel.insert(tick >= 0 && tick <= this.clip.duration.get() ? tick : 0, this.startValue(channel));
         this.clip.channels.addChannel(channel);
         this.fillData();
 
@@ -128,6 +119,13 @@ public class UICurveClip extends UIClip<CurveClip>
         {
             this.openKeyframes();
         }
+    }
+
+    private Object startValue(KeyframeChannel<?> channel)
+    {
+        Object value = this.shader.startValue(channel.getId());
+
+        return value == null ? channel.getFactory().createEmpty() : value;
     }
 
     public void removeCurve(String channelId)

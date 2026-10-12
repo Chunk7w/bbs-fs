@@ -204,10 +204,10 @@ public class UIShaderPanel extends UISection
     }
 
     /**
-     * Right click on a row: a curve for it in the clip, made by {@code create} (which starts it
-     * from the value the row shows), or the way to take the clip's curve out.
+     * Right click on a row: a curve for it in the clip (starting from the value the row shows), or
+     * the way to take the clip's curve out.
      */
-    void curveActions(ContextMenuManager menu, String channelId, boolean curvable, Runnable create)
+    void curveActions(ContextMenuManager menu, String channelId, boolean curvable)
     {
         if (this.owner == null)
         {
@@ -220,24 +220,42 @@ public class UIShaderPanel extends UISection
         }
         else if (curvable)
         {
-            menu.action(Icons.CURVES, UIKeys.CAMERA_PANELS_CURVE_CREATE, create);
+            menu.action(Icons.CURVES, UIKeys.CAMERA_PANELS_CURVE_CREATE, () -> this.owner.createCurve(channelId));
         }
     }
 
-    void createCurve(String channelId, double value)
+    /**
+     * The value a curve starts from: the one its row shows now, which may be what a curve of the
+     * film gives it at the playhead. A new curve's first keyframe takes it, so making a curve
+     * leaves the picture as it was. A colour for a colour curve; null for a track the panel
+     * doesn't know.
+     */
+    public Object startValue(String channelId)
     {
-        if (this.owner != null)
+        for (UIWorldCurveRow row : this.world.fields.getChildren(UIWorldCurveRow.class))
         {
-            this.owner.createCurve(channelId, value);
+            if (row.curve.id.equals(channelId))
+            {
+                return row.curve.start();
+            }
         }
-    }
 
-    void createColorCurve(String channelId, int color)
-    {
-        if (this.owner != null)
+        if (!channelId.startsWith(CurveClip.SHADER_CURVES_PREFIX))
         {
-            this.owner.createCurve(channelId, new Color().set(color, true));
+            return null;
         }
+
+        String optionId = channelId.substring(CurveClip.SHADER_CURVES_PREFIX.length());
+        Double curve = this.curveValue(optionId);
+
+        if (curve != null)
+        {
+            return curve;
+        }
+
+        Float value = ShaderCurves.parse(this.value(optionId));
+
+        return value == null ? 0D : value.doubleValue();
     }
 
     private String sectionTitle()
