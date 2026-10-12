@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.utils.iris;
 
+import com.mojang.logging.LogUtils;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.shaderpack.LanguageMap;
 import net.irisshaders.iris.shaderpack.ShaderPack;
@@ -7,6 +8,7 @@ import net.irisshaders.iris.shaderpack.option.MergedBooleanOption;
 import net.irisshaders.iris.shaderpack.option.MergedStringOption;
 import net.irisshaders.iris.shaderpack.option.OptionSet;
 import net.irisshaders.iris.shaderpack.option.ProfileSet;
+import net.irisshaders.iris.shaderpack.option.ShaderPackOptions;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuBooleanOptionElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuContainer;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuElement;
@@ -15,7 +17,9 @@ import net.irisshaders.iris.shaderpack.option.menu.OptionMenuLinkElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuOptionElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuProfileElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuStringOptionElement;
+import net.irisshaders.iris.shaderpack.option.values.MutableOptionValues;
 import net.irisshaders.iris.shaderpack.option.values.OptionValues;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,12 +40,15 @@ import java.util.Set;
 
 /**
  * Reads the Iris options menu into a neutral snapshot for the shader panel of the curve clip, and
- * sets the pack's options for the panel. Only call after checking that Iris is loaded;
+ * sets the pack's options for the panel and for Iris' own menu (applying animatable ones without
+ * a reload). Only call after checking that Iris is loaded;
  * UI classes do not link Iris types. Adapted from qualet's BBS Curve Fixer (see
  * docs/third-party/curvefixer.md).
  */
 public final class IrisShaderMenu
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private IrisShaderMenu()
     {}
 
@@ -138,15 +145,6 @@ public final class IrisShaderMenu
         return menu;
     }
 
-    /**
-     * Puts an option's value in Iris' option queue: an animatable option's uniform takes it at
-     * once ({@link QueueMap}), and the pack's next load applies it.
-     */
-    public static void queue(String optionId, String value)
-    {
-        Iris.getShaderPackOptionQueue().put(optionId, value);
-    }
-
     /** Queues the values and reloads the pack once, so they apply. */
     public static void apply(Map<String, String> values) throws IOException
     {
@@ -155,11 +153,11 @@ public final class IrisShaderMenu
     }
 
     /**
-     * Writes an option's value into the pack's settings file the way Iris does after a load (a
-     * value equal to the default is left out). Iris writes it only when it loads a pack, so a value
-     * set without a reload would otherwise be gone with the game.
+     * Sets animatable options without a reload: their uniforms take the values at once, the
+     * loaded pack takes them as applied (menus, Iris' own too, show them so), and its settings
+     * file has them for the next load.
      */
-    public static void save(String optionId, String value) throws IOException
+    public static void setLive(Map<String, String> values) throws IOException
     {
         Optional<ShaderPack> pack = Iris.getCurrentPack();
 
@@ -168,6 +166,72 @@ public final class IrisShaderMenu
             return;
         }
 
+        ShaderPackOptions options = pack.get().getShaderPackOptions();
+
+        values.forEach(ShaderCurves::setDefault);
+
+        if (options.getOptionValues() instanceof MutableOptionValues applied)
+        {
+            applied.addAll(values);
+        }
+
+        save(options.getOptionSet(), values);
+    }
+
+    /**
+     * Applies Iris' option queue without a reload and empties it, when it only has animatable
+     * options and no reset of the options is coming. Otherwise it stays for Iris to reload with.
+     */
+    public static void applyQueueLive()
+    {
+        Map<String, String> queue = new HashMap<>(Iris.getShaderPackOptionQueue());
+
+        if (queue.isEmpty() || Iris.shouldResetShaderPackOptionsOnNextReload() || !ShaderCurves.getCurvable().containsAll(queue.keySet()))
+        {
+            return;
+        }
+
+        try
+        {
+            setLive(queue);
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("Shader curves: couldn't save the shader pack's options, reloading it instead", e);
+
+            return;
+        }
+
+        Iris.clearShaderPackOptionQueue();
+        ShaderOptions.changed();
+    }
+
+    /** Puts the uniforms of the queued options back to the pack's values: the queue is dropped. */
+    public static void revertQueue()
+    {
+        Optional<ShaderPack> pack = Iris.getCurrentPack();
+
+        if (pack.isEmpty())
+        {
+            return;
+        }
+
+        OptionSet options = pack.get().getShaderPackOptions().getOptionSet();
+        OptionValues applied = pack.get().getShaderPackOptions().getOptionValues();
+
+        for (String optionId : Iris.getShaderPackOptionQueue().keySet())
+        {
+            ShaderCurves.setDefault(optionId, appliedValue(options, applied, optionId));
+        }
+    }
+
+    /**
+     * Writes options' values into the pack's settings file the way Iris does after a load (a
+     * value equal to the default is left out). Iris writes it only when it loads a pack, so a value
+     * set without a reload would otherwise be gone with the game.
+     */
+    private static void save(OptionSet options, Map<String, String> values) throws IOException
+    {
         Path path = Iris.getShaderpacksDirectory().resolve(Iris.getCurrentPackName() + ".txt");
         Properties properties = new Properties();
 
@@ -179,13 +243,16 @@ public final class IrisShaderMenu
             }
         }
 
-        if (value.equals(defaultValue(pack.get().getShaderPackOptions().getOptionSet(), optionId)))
+        for (Map.Entry<String, String> entry : values.entrySet())
         {
-            properties.remove(optionId);
-        }
-        else
-        {
-            properties.setProperty(optionId, value);
+            if (entry.getValue().equals(defaultValue(options, entry.getKey())))
+            {
+                properties.remove(entry.getKey());
+            }
+            else
+            {
+                properties.setProperty(entry.getKey(), entry.getValue());
+            }
         }
 
         if (properties.isEmpty())
@@ -213,6 +280,16 @@ public final class IrisShaderMenu
         MergedStringOption stringOption = options.getStringOptions().get(optionId);
 
         return stringOption == null ? null : stringOption.getOption().getDefaultValue();
+    }
+
+    private static String appliedValue(OptionSet options, OptionValues applied, String optionId)
+    {
+        if (options.getBooleanOptions().containsKey(optionId))
+        {
+            return Boolean.toString(applied.getBooleanValueOrDefault(optionId));
+        }
+
+        return options.getStringOptions().containsKey(optionId) ? applied.getStringValueOrDefault(optionId) : null;
     }
 
     /** A cell for an animatable option no screen shows, built from the pack's own option */

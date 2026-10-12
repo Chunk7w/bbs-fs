@@ -52,6 +52,7 @@
         "iris.HandRendererMixin",
         "iris.SliderElementWidgetMixin",
         "iris.StringElementWidgetInvoker",
+        "iris.ShaderPackScreenMixin",
         "SimpleOptionMixin",
         "BlockEntityRenderDispatcherMixin",
         "WorldMixin",

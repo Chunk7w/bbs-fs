@@ -45,6 +45,18 @@ public class ShaderCurves
         return blocked.containsKey(name);
     }
 
+    /** Sets the value an animatable option's uniform has without a curve, from the option's value */
+    public static void setDefault(String name, String value)
+    {
+        ShaderVariable variable = variableMap.get(name);
+        Float parsed = parse(value);
+
+        if (variable != null && parsed != null)
+        {
+            variable.defaultValue = parsed;
+        }
+    }
+
     /** A number of an option's value ("true"/"false" too), or null */
     public static Float parse(String value)
     {

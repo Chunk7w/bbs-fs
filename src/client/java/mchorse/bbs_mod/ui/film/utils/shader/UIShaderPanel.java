@@ -249,15 +249,10 @@ public class UIShaderPanel extends UISection
 
     /* === Values === */
 
-    /** The value an option has now: waiting for a reload, set without one, or the pack's */
+    /** The value an option has now: waiting for a reload, or the pack's */
     String value(String optionId)
     {
         String value = this.pending.get(optionId);
-
-        if (value == null)
-        {
-            value = ShaderOptions.getLive(optionId);
-        }
 
         if (value == null && this.menu != null)
         {
@@ -307,6 +302,8 @@ public class UIShaderPanel extends UISection
 
         if (this.curvable.contains(optionId))
         {
+            this.menu.values.put(optionId, value);
+
             try
             {
                 ShaderOptions.setLive(optionId, value);

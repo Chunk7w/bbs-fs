@@ -79,7 +79,7 @@ public class IrisShaderCurves
         optionSet = null;
         candidates = null;
         conditionals = 0;
-        ShaderOptions.packLoading();
+        ShaderOptions.changed();
     }
 
     public static synchronized void finishLoading()
