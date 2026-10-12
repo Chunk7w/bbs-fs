@@ -140,6 +140,7 @@ public class UIPoseEditor extends UIElement
         this.transform.setModel();
 
         this.keys().register(Keys.TRANSFORMATIONS_TOGGLE_FIX, this::toggleFix).category(UIKeys.TRANSFORMS_KEYS_CATEGORY);
+        this.keys().register(Keys.TRANSFORMATIONS_FLIP_POSE, this::flipPose).active(this.groups::hasBones).category(UIKeys.TRANSFORMS_KEYS_CATEGORY);
 
         this.column().vertical().stretch();
         this.buildLayout(false);
