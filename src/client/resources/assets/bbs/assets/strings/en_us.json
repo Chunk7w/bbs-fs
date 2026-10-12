@@ -720,7 +720,6 @@
 	"bbs.ui.camera.panels.edit_keyframes": "Edit keyframes",
 	"bbs.ui.camera.panels.enabled": "Enabled",
 	"bbs.ui.camera.panels.envelopes.end_d": "Fade out",
-	"bbs.ui.camera.panels.envelopes.modes.normal": "Normal",
 	"bbs.ui.camera.panels.envelopes.post": "Post",
 	"bbs.ui.camera.panels.envelopes.pre": "Pre",
 	"bbs.ui.camera.panels.envelopes.start_d": "Fade in",

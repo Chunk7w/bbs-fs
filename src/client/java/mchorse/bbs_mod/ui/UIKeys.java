@@ -130,7 +130,6 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_EDIT_KEYFRAMES = L10n.lang("bbs.ui.camera.panels.edit_keyframes");
     public static final IKey CAMERA_PANELS_ENABLED = L10n.lang("bbs.ui.camera.panels.enabled");
     public static final IKey CAMERA_PANELS_ENVELOPES_END_D = L10n.lang("bbs.ui.camera.panels.envelopes.end_d");
-    public static final IKey CAMERA_PANELS_ENVELOPES_MODES_NORMAL = L10n.lang("bbs.ui.camera.panels.envelopes.modes.normal");
     public static final IKey CAMERA_PANELS_ENVELOPES_POST = L10n.lang("bbs.ui.camera.panels.envelopes.post");
     public static final IKey CAMERA_PANELS_ENVELOPES_PRE = L10n.lang("bbs.ui.camera.panels.envelopes.pre");
     public static final IKey CAMERA_PANELS_ENVELOPES_START_D = L10n.lang("bbs.ui.camera.panels.envelopes.start_d");

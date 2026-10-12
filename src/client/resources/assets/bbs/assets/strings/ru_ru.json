@@ -716,7 +716,6 @@
 	"bbs.ui.camera.panels.edit_keyframes": "Ред. ключевые кадры",
 	"bbs.ui.camera.panels.enabled": "Включён",
 	"bbs.ui.camera.panels.envelopes.end_d": "Затухание",
-	"bbs.ui.camera.panels.envelopes.modes.normal": "Обычный",
 	"bbs.ui.camera.panels.envelopes.post": "После",
 	"bbs.ui.camera.panels.envelopes.pre": "До",
 	"bbs.ui.camera.panels.envelopes.start_d": "Появление",
