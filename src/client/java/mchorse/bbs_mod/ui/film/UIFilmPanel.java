@@ -58,6 +58,7 @@ import mchorse.bbs_mod.ui.framework.elements.overlay.UINumberOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIPromptOverlayPanel;
 import mchorse.bbs_mod.ui.utils.Area;
+import mchorse.bbs_mod.ui.utils.Scale;
 import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.context.ContextMenuManager;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
@@ -80,6 +81,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.joml.Vector3d;
 
@@ -149,6 +151,8 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     private boolean newFilm;
     private double timelineXMin = Double.NaN;
     private double timelineXMax = Double.NaN;
+    /* The timelines' own views (min and max tick) while a video export lays its range over them */
+    private final List<Vector2d> exportTimelineViews = new ArrayList<>();
     /* Vertical timeline scrolls per film id, so switching film tabs restores where each one was left */
     private final ScrollMemory<String> cameraScrolls = new ScrollMemory<>();
     private final ScrollMemory<String> actionScrolls = new ScrollMemory<>();
@@ -1999,12 +2003,60 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         this.runner.toggle(this.getCursor());
         this.lastRunning = this.runner.isRunning();
 
-        if (this.runner.isRunning())
+        /* While exporting, the timelines show the whole exported range instead */
+        if (this.runner.isRunning() && !this.recorder.isExporting())
         {
-            this.cameraEditor.clips.getXAxis().shiftIntoMiddle(this.getCursor());
-
-            this.replayEditor.getActiveTimeline().getXAxis().shiftIntoMiddle(this.getCursor());
+            for (Scale axis : this.getTimelineAxes())
+            {
+                axis.shiftIntoMiddle(this.getCursor());
+            }
         }
+    }
+
+    /**
+     * The time axes that show the playhead: the camera clips and the replays' active timeline.
+     */
+    private Scale[] getTimelineAxes()
+    {
+        return new Scale[] {this.cameraEditor.clips.getXAxis(), this.replayEditor.getActiveTimeline().getXAxis()};
+    }
+
+    /**
+     * Lay the exported range over the whole width of the timelines, so the playhead crosses
+     * them edge to edge while the video records. {@link #restoreTimelineViews()} brings back
+     * the views they had.
+     */
+    public void fitTimelinesToExport(int start, int end)
+    {
+        this.exportTimelineViews.clear();
+
+        if (end <= start)
+        {
+            return;
+        }
+
+        for (Scale axis : this.getTimelineAxes())
+        {
+            this.exportTimelineViews.add(new Vector2d(axis.getMinValue(), axis.getMaxValue()));
+            axis.view(start, end);
+        }
+    }
+
+    public void restoreTimelineViews()
+    {
+        Scale[] axes = this.getTimelineAxes();
+
+        for (int i = 0; i < Math.min(axes.length, this.exportTimelineViews.size()); i++)
+        {
+            Vector2d view = this.exportTimelineViews.get(i);
+
+            if (view.x < view.y)
+            {
+                axes[i].view(view.x, view.y);
+            }
+        }
+
+        this.exportTimelineViews.clear();
     }
 
     public boolean canUseKeybinds()
