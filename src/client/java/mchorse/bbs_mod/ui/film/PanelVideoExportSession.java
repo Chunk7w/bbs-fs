@@ -88,6 +88,7 @@ public class PanelVideoExportSession extends VideoExportSession
         this.end = looping && min != max ? Math.max(min, max) : this.duration;
 
         this.editor.setCursor(this.start);
+        this.editor.fitTimelinesToExport(this.start, this.end);
         this.editor.notifyServer(ActionState.RESTART);
 
         if (this.ui.resetReplays)
@@ -214,6 +215,7 @@ public class PanelVideoExportSession extends VideoExportSession
     {
         this.editor.getController().setPaused(this.restorePaused);
         this.editor.restorePreviewSize();
+        this.editor.restoreTimelineViews();
 
         if (this.editor.isRunning())
         {

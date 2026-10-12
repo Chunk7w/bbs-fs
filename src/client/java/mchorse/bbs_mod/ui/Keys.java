@@ -245,4 +245,6 @@ public class Keys
 
     /* Texture picker */
     public static final KeyCombo TEXTURE_PICKER_FIND = new KeyCombo("find", UIKeys.TEXTURE_KEYS_FIND_ALL, GLFW.GLFW_KEY_F, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("texture_picker");
+    /* Not F2: Minecraft takes F2 for a screenshot before any screen sees it */
+    public static final KeyCombo TEXTURE_PICKER_RENAME = new KeyCombo("rename", UIKeys.GENERAL_RENAME, GLFW.GLFW_KEY_R, GLFW.GLFW_KEY_LEFT_CONTROL).categoryKey("texture_picker");
 }
