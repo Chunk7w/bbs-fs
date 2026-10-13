@@ -6,6 +6,7 @@ import mchorse.bbs_mod.forms.forms.BodyPart;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
+import mchorse.bbs_mod.graphics.window.Window;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIStringList;
@@ -13,9 +14,12 @@ import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
 import mchorse.bbs_mod.ui.framework.tooltips.ITooltip;
 import mchorse.bbs_mod.ui.framework.tooltips.LabelTooltip;
 import mchorse.bbs_mod.ui.utils.Area;
+import mchorse.bbs_mod.ui.utils.Scroll;
+import mchorse.bbs_mod.ui.utils.ScrollDirection;
 import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.utils.StringUtils;
 import mchorse.bbs_mod.utils.colors.Colors;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,6 +50,11 @@ import java.util.function.Predicate;
  * with nothing on it is quieter than one that carries something, role marks sit at the
  * row's right edge, and a chain runs as a coloured line along the branches between its
  * bones.</p>
+ *
+ * <p>A deep rig can run wider than the panel, so the tree scrolls sideways once it doesn't
+ * fit: Shift+wheel, the bar along the bottom, or holding the middle button and dragging the
+ * list around in both directions. Only the branches and names move — the rows' highlight
+ * and the role marks stay where they are.</p>
  */
 public class UIBoneTreeList extends UIStringList
 {
@@ -78,9 +87,21 @@ public class UIBoneTreeList extends UIStringList
      *  while a query is active, so matches render flat like built-in filtering does. */
     private boolean flat;
 
+    /** Sideways scroll over the rows' content; its area is the list's, less the vertical bar's lane. */
+    private final Scroll horizontal = new Scroll(new Area());
+
+    /** Middle button held over the list: the cursor drags the content along, both ways. */
+    private boolean panning;
+    private int panX;
+    private int panY;
+
     public UIBoneTreeList(Consumer<List<String>> callback)
     {
         super(callback);
+
+        this.horizontal.direction = ScrollDirection.HORIZONTAL;
+        this.horizontal.cancelScrollEdge = true;
+        this.horizontal.scrollSpeed = INDENT * 2;
     }
 
     /**
@@ -377,9 +398,116 @@ public class UIBoneTreeList extends UIStringList
     public void render(UIContext context)
     {
         this.describe();
+        this.measureWidth(context);
         this.hoveredRole = null;
 
         super.render(context);
+    }
+
+    /**
+     * How wide the rows run — indent, name, and the marks at the right edge, which the name
+     * must stop short of — against the room the list has; the difference is the sideways scroll.
+     * Measured every frame over all rows, not only those on screen, so scrolling up and down
+     * doesn't change how far it goes sideways.
+     */
+    private void measureWidth(UIContext context)
+    {
+        List<String> visible = this.visible();
+        int width = 0;
+
+        for (int i = 0; i < visible.size(); i++)
+        {
+            String element = visible.get(i);
+            Meta meta = this.shownMeta(element);
+            int cells = this.markCells(element, meta != null);
+            int tail = cells == 0 ? ROW_PADDING : 2 + 3 + cells * (MARK + MARK_GAP);
+            int label = context.batcher.getFont().getWidth(this.rowLabel(context, i, element, meta));
+
+            width = Math.max(width, this.rowContentX(element) + label + tail);
+        }
+
+        this.horizontal.area.copy(this.area);
+        this.horizontal.area.w -= this.scroll.hasScrollbar() ? this.scroll.getScrollbarWidth() : 0;
+        this.horizontal.scrollSize = width;
+        this.horizontal.clamp();
+    }
+
+    @Override
+    protected void renderContent(UIContext context)
+    {
+        super.renderContent(context);
+
+        this.horizontal.renderScrollbar(context.batcher);
+    }
+
+    /* Sideways scroll and the middle-button drag */
+
+    @Override
+    public boolean subMouseClicked(UIContext context)
+    {
+        if (this.horizontal.mouseClicked(context))
+        {
+            return true;
+        }
+
+        /* Only a list that has somewhere to go takes the middle button from what's behind it */
+        boolean scrolls = this.scroll.hasScrollbar() || this.horizontal.hasScrollbar();
+
+        if (context.mouseButton == 2 && scrolls && this.area.isInside(context))
+        {
+            this.panning = true;
+            this.panX = context.mouseX;
+            this.panY = context.mouseY;
+
+            return true;
+        }
+
+        return super.subMouseClicked(context);
+    }
+
+    /** Shift turns the wheel sideways, the way the text editor's does. */
+    @Override
+    public boolean subMouseScrolled(UIContext context)
+    {
+        if (Window.isShiftPressed() && this.horizontal.hasScrollbar() && this.horizontal.mouseScroll(context))
+        {
+            return true;
+        }
+
+        return super.subMouseScrolled(context);
+    }
+
+    @Override
+    public boolean subMouseReleased(UIContext context)
+    {
+        this.horizontal.mouseReleased(context);
+        this.panning = false;
+
+        return super.subMouseReleased(context);
+    }
+
+    @Override
+    protected void updateGestures(UIContext context)
+    {
+        super.updateGestures(context);
+
+        /* A release swallowed by another element must not leave the list stuck to the cursor */
+        if (this.panning && !Window.isMouseButtonPressed(GLFW.GLFW_MOUSE_BUTTON_MIDDLE))
+        {
+            this.panning = false;
+        }
+
+        if (this.panning)
+        {
+            /* Straight to the position, past the smoothing — the content stays under the cursor */
+            this.scroll.setScroll(this.scroll.getScroll() + this.panY - context.mouseY);
+            this.horizontal.setScroll(this.horizontal.getScroll() + this.panX - context.mouseX);
+
+            this.panX = context.mouseX;
+            this.panY = context.mouseY;
+        }
+
+        this.horizontal.drag(context);
     }
 
     /** Ask the host about its bones again and work out where its chains run in the tree. */
@@ -461,21 +589,21 @@ public class UIBoneTreeList extends UIStringList
     @Override
     protected void renderElementPart(UIContext context, String element, int i, int x, int y, boolean hover, boolean selected)
     {
-        boolean filtering = this.flat || this.isFiltering();
         Meta meta = this.shownMeta(element);
         int depth = meta == null ? 0 : meta.depth;
         int h = this.scroll.scrollItemSize;
-        int textX = x + this.rowContentX(element);
+
+        /* The branches and the name scroll sideways; the marks keep to the row's right edge */
+        int sx = x - (int) this.horizontal.getScroll();
+        int textX = sx + this.rowContentX(element);
 
         if (meta != null)
         {
-            this.renderTreeGuides(context, x, y, depth, meta.lines, meta.last, textX);
-            this.renderChainGuides(context, element, x, y, depth, textX);
+            this.renderTreeGuides(context, sx, y, depth, meta.lines, meta.last, textX);
+            this.renderChainGuides(context, element, sx, y, depth, textX);
         }
 
-        String label = meta == null
-            ? (filtering ? this.elementToString(context, i, element) : element)
-            : meta.treeLabel;
+        String label = this.rowLabel(context, i, element, meta);
         boolean lit = hover || selected;
         int right = this.renderMarks(context, element, meta != null, x, y, h, hover);
 
@@ -485,6 +613,17 @@ public class UIBoneTreeList extends UIStringList
         }
 
         context.batcher.textShadow(label, textX, y + (h - context.batcher.getFont().getHeight()) / 2, this.labelColor(element, lit));
+    }
+
+    /** What a row reads: the bare name in the tree, the full label when matches render flat. */
+    private String rowLabel(UIContext context, int i, String element, Meta meta)
+    {
+        if (meta != null)
+        {
+            return meta.treeLabel;
+        }
+
+        return this.flat || this.isFiltering() ? this.elementToString(context, i, element) : element;
     }
 
     /**
@@ -551,8 +690,7 @@ public class UIBoneTreeList extends UIStringList
             return x + this.area.w;
         }
 
-        ChainGuides guides = tree ? this.chainGuides.get(element) : null;
-        BoneRoles.Link link = guides != null && guides.into != 0 ? this.roles.getLink(element) : null;
+        BoneRoles.Link link = this.drawnLink(element, tree);
         int right = x + this.area.w - 3 - this.scroll.getScrollbarArea().w;
         int top = y + (h - MARK) / 2;
         int used = 0;
@@ -561,7 +699,7 @@ public class UIBoneTreeList extends UIStringList
         {
             BoneRole role = marks[slot];
 
-            if (role == null || (slot == 0 && link != null && role == link.role()))
+            if (!showsMark(role, slot, link))
             {
                 continue;
             }
@@ -579,6 +717,44 @@ public class UIBoneTreeList extends UIStringList
         }
 
         return used == 0 ? x + this.area.w : right - used * (MARK + MARK_GAP);
+    }
+
+    /** How many mark cells the row takes from its right edge — a skipped slot still holds its place. */
+    private int markCells(String element, boolean tree)
+    {
+        BoneRole[] marks = this.describer == null ? null : this.roles.getMarks(element);
+
+        if (marks == null)
+        {
+            return 0;
+        }
+
+        BoneRoles.Link link = this.drawnLink(element, tree);
+        int used = 0;
+
+        for (int slot = 0; slot < marks.length; slot++)
+        {
+            if (showsMark(marks[slot], slot, link))
+            {
+                used = slot + 1;
+            }
+        }
+
+        return used;
+    }
+
+    /** The link whose chain the tree already draws into the row, or null. */
+    private BoneRoles.Link drawnLink(String element, boolean tree)
+    {
+        ChainGuides guides = tree ? this.chainGuides.get(element) : null;
+
+        return guides != null && guides.into != 0 ? this.roles.getLink(element) : null;
+    }
+
+    /** A link mark stays off where the line into the row already says it. */
+    private static boolean showsMark(BoneRole role, int slot, BoneRoles.Link link)
+    {
+        return role != null && !(slot == 0 && link != null && role == link.role());
     }
 
     private static void renderMark(UIContext context, BoneRole role, int x, int y)
