@@ -1420,6 +1420,7 @@
     "bbs.ui.model_blocks.transform.third_person": "第三人称变换",
     "bbs.ui.model_debug.attach": "连接",
     "bbs.ui.model_debug.configure": "调试外观",
+    "bbs.ui.model_debug.reset": "重置为默认外观",
     "bbs.ui.model_debug.dashed": "虚线链条",
     "bbs.ui.model_debug.enabled": "显示调试信息",
     "bbs.ui.model_debug.joints": "关节",

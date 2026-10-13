@@ -1381,6 +1381,7 @@
 	"bbs.ui.model_debug.shape": "Shape (click to cycle)",
 	"bbs.ui.model_debug.opacity": "Opacity",
 	"bbs.ui.model_debug.configure": "Debug appearance",
+	"bbs.ui.model_debug.reset": "Reset to default look",
 	"bbs.ui.model_debug.lines": "Lines",
 	"bbs.ui.model_debug.joints": "Joints",
 	"bbs.ui.model_debug.tip": "Tip",
