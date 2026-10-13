@@ -46,6 +46,7 @@ import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.joml.Vectors;
 import mchorse.bbs_mod.settings.values.numeric.ValueBoolean;
 import mchorse.bbs_mod.utils.iris.IrisShaderPacks;
+import mchorse.bbs_mod.utils.iris.ShaderOptions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
@@ -319,18 +320,15 @@ public class UIFilmPreview extends UIElement
     {
         if (!FabricLoader.getInstance().isModLoaded("iris")) return;
 
-        try
+        UIContext context = this.getContext();
+
+        ShaderOptions.reload(() ->
         {
             if (!IrisShaderPacks.toggle())
             {
-                UIOverlay.addOverlay(this.getContext(), new UIMessageOverlayPanel(UIKeys.FILM_TOGGLE_SHADERS, UIKeys.FILM_SELECT_SHADER));
+                UIOverlay.addOverlay(context, new UIMessageOverlayPanel(UIKeys.FILM_TOGGLE_SHADERS, UIKeys.FILM_SELECT_SHADER));
             }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            UIOverlay.addOverlay(this.getContext(), new UIMessageOverlayPanel(UIKeys.GENERAL_ERROR, UIKeys.UTILITY_SHADER_ERROR));
-        }
+        }, () -> UIOverlay.addOverlay(context, new UIMessageOverlayPanel(UIKeys.GENERAL_ERROR, UIKeys.UTILITY_SHADER_ERROR)));
     }
 
     /**
