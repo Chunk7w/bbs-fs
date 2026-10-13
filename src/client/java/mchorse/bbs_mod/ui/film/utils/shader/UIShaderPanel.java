@@ -353,15 +353,10 @@ public class UIShaderPanel extends UISection
         this.pending.clear();
         this.layoutParts();
 
-        try
-        {
-            ShaderOptions.apply(values);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            UIOverlay.addOverlay(this.getContext(), new UIMessageOverlayPanel(UIKeys.GENERAL_ERROR, UIKeys.UTILITY_SHADER_ERROR));
-        }
+        UIContext context = this.getContext();
+
+        ShaderOptions.reload(() -> ShaderOptions.apply(values),
+            () -> UIOverlay.addOverlay(context, new UIMessageOverlayPanel(UIKeys.GENERAL_ERROR, UIKeys.UTILITY_SHADER_ERROR)));
     }
 
     private void discardPending()

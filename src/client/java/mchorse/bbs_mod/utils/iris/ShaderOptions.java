@@ -2,6 +2,7 @@ package mchorse.bbs_mod.utils.iris;
 
 import mchorse.bbs_mod.BBSModClient;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -72,9 +73,36 @@ public final class ShaderOptions
         }
     }
 
+    /**
+     * Runs a pack reload once input handling is over, at the start of the next frame. Clicks and
+     * keys arrive while GLFW polls the window's events, and the game holds its keep-alive replies
+     * back while that lasts: a pack compiling in there for longer than the server waits for one
+     * (15–30 s) dropped the player, even from a singleplayer world.
+     */
+    public static void reload(Reload reload, Runnable failed)
+    {
+        MinecraftClient.getInstance().send(() ->
+        {
+            try
+            {
+                reload.run();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                failed.run();
+            }
+        });
+    }
+
     /** Name of the pack that's on, or an empty string */
     public static String currentPack()
     {
         return IRIS ? IrisShaderPacks.current() : "";
+    }
+
+    public interface Reload
+    {
+        void run() throws Exception;
     }
 }
