@@ -8,6 +8,7 @@ import mchorse.bbs_mod.camera.data.Point;
 import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.client.renderer.DeathPose;
 import mchorse.bbs_mod.client.renderer.ModelBlockEntityRenderer;
+import mchorse.bbs_mod.cubic.physics.PhysicsCarrier;
 import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.entities.IEntity;
@@ -18,6 +19,7 @@ import mchorse.bbs_mod.forms.renderers.FormRenderingContext;
 import mchorse.bbs_mod.forms.renderers.utils.FormFrameCache;
 import mchorse.bbs_mod.forms.renderers.utils.MatrixCache;
 import mchorse.bbs_mod.forms.renderers.utils.MatrixCacheEntry;
+import mchorse.bbs_mod.forms.renderers.utils.RenderFrame;
 import mchorse.bbs_mod.graphics.Draw;
 import mchorse.bbs_mod.ui.framework.UIBaseMenu;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
@@ -124,6 +126,7 @@ public class FilmEntityRenderer
         }
 
         Matrix4f targetWorld;
+        PhysicsCarrier carrier = null;
 
         if (relative)
         {
@@ -135,7 +138,10 @@ public class FilmEntityRenderer
             Pair<Matrix4f, Float> pairWorld = FilmMatrices.getTotalMatrix(entities, FilmMatrices.getAnchor(entity, context.replay), defaultWorldMatrix, 0D, 0D, 0D, transition, 0, false, anchorFrame);
 
             targetWorld = pairWorld.a != null ? pairWorld.a : defaultWorldMatrix;
+            carrier = FilmMatrices.getCarrier(entities, FilmMatrices.getAnchor(entity, context.replay), defaultWorldMatrix, transition, anchorFrame);
         }
+
+        RenderFrame.setCarrier(form, carrier);
 
         BlockPos pos = BlockPos.ofFloored(position.x, position.y + 0.5D, position.z);
         int sky = entity.getWorld().getLightLevel(LightType.SKY, pos);

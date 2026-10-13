@@ -1234,6 +1234,8 @@
     "bbs.ui.forms.list.status.selected": "已选择 %s 个形态",
     "bbs.ui.generic_keyframes.anchor.keep_transform": "保持变换",
     "bbs.ui.generic_keyframes.anchor.keep_transform_tooltip": "锚点目标变更时补偿变换，让形态留在原位；动画锚点仅当前帧精确。",
+    "bbs.ui.generic_keyframes.anchor.physics": "载体物理",
+    "bbs.ui.generic_keyframes.anchor.physics_tooltip": "骨骼物理（头发、布料）对附着目标运动的感受程度。100% 与在世界中相同；0% 时载具照常行驶，头发只对形态自身的动作作出反应。",
     "bbs.ui.generic_keyframes.anchor.pick_actor": "选择角色...",
     "bbs.ui.generic_keyframes.anchor.pick_attachment": "选择附件...",
     "bbs.ui.generic_keyframes.boolean.true": "是",

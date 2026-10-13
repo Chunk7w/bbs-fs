@@ -104,6 +104,8 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     private int lastRestartCursor = -1;
     private final Position position = new Position(0, 0, 0, 0, 0);
     private final Position lastPosition = new Position(0, 0, 0, 0, 0);
+    /** Whether the current flight started in a mode whose FOV is the editor setting */
+    private boolean flightOverOrbit;
 
 
     public UIElement main;
@@ -1559,7 +1561,14 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         {
             if (!flight)
             {
-                this.persistFlightFov();
+                /* Only a flight over the editor's own view hands its FOV to the setting: flying
+                 * the film's camera sets the clip's FOV, and the orbit keeps its own. Checked at
+                 * both ends, so switching modes mid-flight doesn't carry it across either. */
+                if (this.isFlying() && this.flightOverOrbit && this.controller.orbit.enabled)
+                {
+                    this.persistFlightFov();
+                }
+
                 if (this.undoHandler != null)
                 {
                     this.undoHandler.getUndoManager().markLastUndoNoMerging();
@@ -1571,6 +1580,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
             }
             else
             {
+                this.flightOverOrbit = this.controller.orbit.enabled;
                 this.lastPosition.set(Position.ZERO);
                 this.dashboard.orbit.apply(this.position);
             }

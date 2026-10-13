@@ -1454,6 +1454,8 @@
 	"bbs.ui.generic_keyframes.anchor.detach_tooltip": "Detach without moving",
 	"bbs.ui.generic_keyframes.anchor.keep_transform": "Keep transform",
 	"bbs.ui.generic_keyframes.anchor.keep_transform_tooltip": "Keep the form appearance when changing the target at the current frame.",
+	"bbs.ui.generic_keyframes.anchor.physics": "Physics from target",
+	"bbs.ui.generic_keyframes.anchor.physics_tooltip": "How much bone physics (hair, cloth) feels the motion of what the form is attached to. 100% is like in the world. At 0% the car drives on, and the hair reacts only to the form's own moves.",
 	"bbs.ui.generic_keyframes.anchor.pick_actor": "Pick actor...",
 	"bbs.ui.generic_keyframes.anchor.pick_attachment": "Pick attachment...",
 	"bbs.ui.generic_keyframes.boolean.true": "True",

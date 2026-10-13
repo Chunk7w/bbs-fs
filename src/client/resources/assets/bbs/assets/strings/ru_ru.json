@@ -1449,6 +1449,8 @@
 	"bbs.ui.generic_keyframes.anchor.detach_tooltip": "Отвязать без смещения",
 	"bbs.ui.generic_keyframes.anchor.keep_transform": "Сохранять вид",
 	"bbs.ui.generic_keyframes.anchor.keep_transform_tooltip": "Сохранять вид формы при смене цели в текущем кадре.",
+	"bbs.ui.generic_keyframes.anchor.physics": "Физика от носителя",
+	"bbs.ui.generic_keyframes.anchor.physics_tooltip": "Насколько физика костей (волосы, ткань) чувствует движение того, к чему прикреплена форма. 100% — как в мире. При 0% машина едет, а волосы реагируют только на движения самой формы.",
 	"bbs.ui.generic_keyframes.anchor.pick_actor": "Выбрать актёра...",
 	"bbs.ui.generic_keyframes.anchor.pick_attachment": "Выбрать кость...",
 	"bbs.ui.generic_keyframes.boolean.true": "Включено",
