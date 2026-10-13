@@ -37,6 +37,7 @@ public class GlslDynamicOptionsTest
         derivedFlag();
         settledInsideBranch();
         blockedArraySize();
+        arrayVariants();
         blockedIrisConst();
         blockedRenderTargets();
         blockedExpression();
@@ -341,6 +342,41 @@ public class GlslDynamicOptionsTest
 
         check(result.blocked.containsKey("SAMPLES"), "An array size can't follow an option");
         check(result.source.equals(source), "Nothing changes then");
+    }
+
+    /** Bliss: the bokeh offsets are a constant array of another size for each quality */
+    private static void arrayVariants()
+    {
+        String source = String.join("\n",
+            "#version 130",
+            "#define WORLD",
+            "#define DOF_QUALITY 0 // [0 1]",
+            "#define BLUR 0 // [0 1]",
+            "#if DOF_QUALITY == 0",
+            "const vec2 offsets[2] = vec2[2](vec2(0.0), vec2(1.0));",
+            "#else",
+            "const vec2 offsets[3] = vec2[3](vec2(0.0), vec2(1.0), vec2(2.0));",
+            "#endif",
+            "#if BLUR == 0",
+            "const float weights[2] = float[2](0.5, 0.5);",
+            "#else",
+            "const float weights[2] = float[2](0.25, 0.75);",
+            "#endif",
+            "varying vec2 uv;",
+            "void main() {",
+            "    gl_FragColor = vec4(offsets[0] * weights[0], uv);",
+            "}",
+            "");
+        Map<String, GlslOption> options = value("DOF_QUALITY", false);
+
+        options.putAll(value("BLUR", false));
+
+        GlslDynamicOptions.Result result = transform(source, options);
+
+        check(result.blocked.containsKey("DOF_QUALITY"), "Arrays of different sizes can't be chosen at runtime");
+        check(result.uniforms.containsKey("BLUR"), "Arrays of one size can: " + result.blocked);
+        contains(result, "float weights[2] = ", "The array keeps its size");
+        valid(result, "arrayVariants");
     }
 
     private static void blockedIrisConst()

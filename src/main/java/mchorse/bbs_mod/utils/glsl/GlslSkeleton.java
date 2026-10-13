@@ -675,7 +675,7 @@ class GlslSkeleton
         {
             int close = this.closeBracket(stmt, i);
 
-            decl.typeArrays.add(new int[] {i, close});
+            decl.typeArrays.add(new ArrayList<>(stmt.subList(i, close + 1)));
             this.constants.add(new ConstantContext(stmt.subList(i + 1, close), "it sets an array size", this.presence));
             i = close + 1;
         }
@@ -707,7 +707,7 @@ class GlslSkeleton
             {
                 int close = this.closeBracket(stmt, i);
 
-                declarator.arrays.add(new int[] {i, close});
+                declarator.arrays.add(new ArrayList<>(stmt.subList(i, close + 1)));
                 declarator.unsized |= close == i + 1;
                 this.constants.add(new ConstantContext(stmt.subList(i + 1, close), "it sets an array size", this.presence));
                 i = close + 1;
@@ -1910,9 +1910,9 @@ class GlslSkeleton
     {
         StringBuilder builder = new StringBuilder(this.token(decl.type).text);
 
-        for (int[] range : decl.typeArrays)
+        for (List<Integer> range : decl.typeArrays)
         {
-            for (int t = range[0]; t <= range[1]; t++)
+            for (int t : range)
             {
                 builder.append(this.token(t).text);
             }
@@ -2155,12 +2155,9 @@ class GlslSkeleton
                         rootDeclarations.computeIfAbsent(name, (k) -> new ArrayList<>()).add(new int[] {branchDecl.event});
                         hoisted.computeIfAbsent(name, (k) -> new LinkedHashSet<>()).addAll(conversion.dyn.symbols);
 
-                        for (int[] range : declarator.arrays)
+                        for (List<Integer> range : declarator.arrays)
                         {
-                            for (int t = range[0]; t <= range[1]; t++)
-                            {
-                                this.blank.add(t);
-                            }
+                            this.blank.addAll(range);
                         }
                     }
 
@@ -2171,12 +2168,9 @@ class GlslSkeleton
 
                     this.blank.add(decl.type);
 
-                    for (int[] range : decl.typeArrays)
+                    for (List<Integer> range : decl.typeArrays)
                     {
-                        for (int t = range[0]; t <= range[1]; t++)
-                        {
-                            this.blank.add(t);
-                        }
+                        this.blank.addAll(range);
                     }
                 }
             }
@@ -2401,9 +2395,9 @@ class GlslSkeleton
 
         builder.append(this.tokens.get(decl.type).text);
 
-        for (int[] range : decl.typeArrays)
+        for (List<Integer> range : decl.typeArrays)
         {
-            for (int t = range[0]; t <= range[1]; t++)
+            for (int t : range)
             {
                 builder.append(this.tokens.get(t).text);
             }
@@ -2416,9 +2410,9 @@ class GlslSkeleton
     {
         StringBuilder builder = new StringBuilder();
 
-        for (int[] range : declarator.arrays)
+        for (List<Integer> range : declarator.arrays)
         {
-            for (int t = range[0]; t <= range[1]; t++)
+            for (int t : range)
             {
                 builder.append(this.tokens.get(t).text);
             }
@@ -2705,7 +2699,7 @@ class GlslSkeleton
     {
         final List<Integer> qualifiers = new ArrayList<>();
         int type = -1;
-        final List<int[]> typeArrays = new ArrayList<>();
+        final List<List<Integer>> typeArrays = new ArrayList<>();
         final List<Declarator> declarators = new ArrayList<>();
         boolean isConst;
         int constToken = -1;
@@ -2722,7 +2716,7 @@ class GlslSkeleton
     private static class Declarator
     {
         int name;
-        final List<int[]> arrays = new ArrayList<>();
+        final List<List<Integer>> arrays = new ArrayList<>();
         boolean unsized;
         List<Integer> init;
     }
