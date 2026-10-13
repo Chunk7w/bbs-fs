@@ -933,6 +933,8 @@ public class UIKeys
     public static final IKey GENERIC_KEYFRAMES_ANCHOR_DETACH_TOOLTIP = L10n.lang("bbs.ui.generic_keyframes.anchor.detach_tooltip");
     public static final IKey GENERIC_KEYFRAMES_ANCHOR_KEEP_TRANSFORM = L10n.lang("bbs.ui.generic_keyframes.anchor.keep_transform");
     public static final IKey GENERIC_KEYFRAMES_ANCHOR_KEEP_TRANSFORM_TOOLTIP = L10n.lang("bbs.ui.generic_keyframes.anchor.keep_transform_tooltip");
+    public static final IKey GENERIC_KEYFRAMES_ANCHOR_PHYSICS = L10n.lang("bbs.ui.generic_keyframes.anchor.physics");
+    public static final IKey GENERIC_KEYFRAMES_ANCHOR_PHYSICS_TOOLTIP = L10n.lang("bbs.ui.generic_keyframes.anchor.physics_tooltip");
     public static final IKey GENERIC_KEYFRAMES_BOOLEAN_TRUE = L10n.lang("bbs.ui.generic_keyframes.boolean.true");
     public static final IKey GENERIC_KEYFRAMES_LINK_PICK_TEXTURE = L10n.lang("bbs.ui.generic_keyframes.link.pick_texture");
     public static final IKey GUN_COMMANDS_FIRING = L10n.lang("bbs.ui.gun.commands.firing");
