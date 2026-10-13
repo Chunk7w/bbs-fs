@@ -458,7 +458,7 @@ public final class ModelPhysicsDebug
 
         for (Vector3f end : tips)
         {
-            DebugOverlay.marker(dots, stack, ValueDebugElement.SHAPE_SPHERE, end, unit * 0.05F, color, a);
+            DebugOverlay.marker(dots, stack, ValueDebugElement.SHAPE_SPHERE, end, unit * 0.025F, color, a);
         }
 
         BufferRenderer.drawWithGlobalProgram(dots.end());
