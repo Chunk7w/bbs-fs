@@ -2277,7 +2277,7 @@
 	"bbs.ui.textures.macros.clear": "Очистить",
 	"bbs.ui.textures.macros.flip_h": "Отразить по горизонтали",
 	"bbs.ui.textures.macros.flip_v": "Отразить по вертикали",
-	"bbs.ui.textures.macros.tooltip": "Макросы: выделение, а без него — весь кадр; на активном слое",
+	"bbs.ui.textures.options": "Действия с текстурой",
 	"bbs.ui.textures.layers": "Слои",
 	"bbs.ui.textures.layers.add": "Добавить слой...",
 	"bbs.ui.textures.layers.add_empty": "Пустой слой",

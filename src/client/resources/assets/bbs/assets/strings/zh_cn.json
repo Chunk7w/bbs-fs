@@ -2205,7 +2205,7 @@
     "bbs.ui.textures.macros.clear": "清除",
     "bbs.ui.textures.macros.flip_h": "水平翻转",
     "bbs.ui.textures.macros.flip_v": "垂直翻转",
-    "bbs.ui.textures.macros.tooltip": "宏命令：作用于选区，无选区时作用于整个帧 — 均在当前活动图层上",
+    "bbs.ui.textures.options": "纹理操作",
     "bbs.ui.textures.player_skin.error": "无法获取 %s 的皮肤",
     "bbs.ui.textures.player_skin.refresh": "重新下载皮肤",
     "bbs.ui.textures.save_dialog.name": "文件名...",

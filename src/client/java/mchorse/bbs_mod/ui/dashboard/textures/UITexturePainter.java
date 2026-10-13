@@ -102,9 +102,7 @@ public class UITexturePainter extends UIElement
     private UIElement colorPickersRow;
 
     public UIIcon saveIcon;
-    public UIIcon resizeIcon;
-    public UIIcon extractIcon;
-    public UIIcon macrosIcon;
+    public UIIcon menuIcon;
     public UIIcon animationIcon;
     public UIIcon materialIcon;
     public UIIcon gridIcon;
@@ -232,20 +230,16 @@ public class UITexturePainter extends UIElement
         });
         this.saveIcon.tooltip(UIKeys.TEXTURES_SAVE_TOOLTIP);
 
-        this.resizeIcon = new UIIcon(Icons.FULLSCREEN, (b) -> this.withEditor(UITextureEditor::openResizeOverlay));
-        this.resizeIcon.tooltip(UIKeys.TEXTURES_RESIZE);
-        this.extractIcon = new UIIcon(Icons.UPLOAD, (b) -> this.withEditor(UITextureEditor::openExtractOverlay));
-        this.extractIcon.tooltip(UIKeys.TEXTURES_EXTRACT_FRAMES_TITLE);
         this.modelPreviewIcon = new UIIcon(Icons.POSE, (b) -> this.toggleModelPreview());
         this.modelPreviewIcon.tooltip(UIKeys.TEXTURES_PREVIEW_MODEL);
         this.animationIcon = new UIIcon(Icons.FILM, (b) -> this.withEditor(this::toggleAnimation));
         this.animationIcon.tooltip(UIKeys.TEXTURES_FRAMES_TOGGLE);
         this.materialIcon = new UIIcon(Icons.MATERIAL, (b) -> this.toggleMaterial());
         this.materialIcon.tooltip(UIKeys.TEXTURES_MATERIAL);
-        this.macrosIcon = new UIIcon(Icons.WRENCH, (b) -> this.openMacrosMenu());
-        this.macrosIcon.tooltip(UIKeys.TEXTURES_MACROS_TOOLTIP);
         this.gridIcon = new UIIcon(Icons.GALLERY, (b) -> this.toggleGrid());
         this.gridIcon.tooltip(UIKeys.TEXTURES_GRID);
+        this.menuIcon = new UIIcon(Icons.GEAR, (b) -> this.openMenu());
+        this.menuIcon.tooltip(UIKeys.TEXTURES_OPTIONS);
     }
 
     /** The grid is a way of looking, the same in every texture and every painter, so it lives in the settings. */
@@ -263,8 +257,12 @@ public class UITexturePainter extends UIElement
         this.gridStepRow.setVisible(BBSSettings.textureGrid.get());
     }
 
-    /** The one-shot operations as a list under the bar button: the selection, or the whole frame without one, on the active layer. */
-    private void openMacrosMenu()
+    /**
+     * Everything the bar has no button for, as a list under the gear the way the film editor does
+     * it: what is done to the whole texture, then the one-shot operations on the selection (or the
+     * whole frame without one) of the active layer, clearing last.
+     */
+    private void openMenu()
     {
         if (this.editor == null)
         {
@@ -273,9 +271,11 @@ public class UITexturePainter extends UIElement
 
         this.getContext().replaceContextMenu((menu) ->
         {
-            menu.action(Icons.ERASER, UIKeys.TEXTURES_MACROS_CLEAR, () -> this.withEditor((editor) -> editor.applyMacroToWindow(PixelMacro.CLEAR)));
+            menu.action(Icons.FULLSCREEN, UIKeys.TEXTURES_RESIZE, () -> this.withEditor(UITextureEditor::openResizeOverlay));
+            menu.action(Icons.UPLOAD, UIKeys.TEXTURES_EXTRACT_FRAMES_TITLE, () -> this.withEditor(UITextureEditor::openExtractOverlay));
             menu.action(Icons.FLIP_HORIZONTAL, UIKeys.TEXTURES_MACROS_FLIP_H, () -> this.withEditor((editor) -> editor.applyMacroToWindow(PixelMacro.FLIP_HORIZONTAL)));
             menu.action(Icons.FLIP_VERTICAL, UIKeys.TEXTURES_MACROS_FLIP_V, () -> this.withEditor((editor) -> editor.applyMacroToWindow(PixelMacro.FLIP_VERTICAL)));
+            menu.action(Icons.ERASER, UIKeys.TEXTURES_MACROS_CLEAR, () -> this.withEditor((editor) -> editor.applyMacroToWindow(PixelMacro.CLEAR)));
         });
     }
 
@@ -288,21 +288,17 @@ public class UITexturePainter extends UIElement
         this.actionBar = bar;
 
         bar.action(this.materialIcon, () -> this.editor != null && this.editor.isMaterial())
-            .action(this.resizeIcon)
-            .action(this.extractIcon)
-            .action(this.macrosIcon)
             .action(this.animationIcon, this::isAnimated)
             .action(this.modelPreviewIcon, this.modelPreviewHost::isVisible)
             .action(this.gridIcon, BBSSettings.textureGrid::get)
-            .common(this.saveIcon);
+            .common(this.saveIcon)
+            .menu(this.menuIcon);
     }
 
     public void setActionsVisible(boolean visible)
     {
         this.saveIcon.setVisible(visible);
-        this.resizeIcon.setVisible(visible);
-        this.extractIcon.setVisible(visible);
-        this.macrosIcon.setVisible(visible);
+        this.menuIcon.setVisible(visible);
         this.animationIcon.setVisible(visible);
         this.modelPreviewIcon.setVisible(visible);
         this.materialIcon.setVisible(visible);
