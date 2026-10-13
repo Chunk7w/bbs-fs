@@ -47,9 +47,11 @@ public final class DebugOverlay
      * in the model's pixel space, so taken on their own they measured how far
      * a bone sits from the model's origin — handles on bones high up (hair on
      * a head) came out oversized. They come back to blocks the way the renderer
-     * takes them ({@code ICubicRenderer.moveToGroupPivot}), while BOBJ rest
-     * matrices are already parent-relative in the overlay's space. Top-level
-     * bones have no parent to measure from and are left out.
+     * takes them ({@code ICubicRenderer.moveToGroupPivot}). BOBJ heads come off
+     * the bind matrices, already in the overlay's space; the parent-relative
+     * matrix would not do — it is in the parent's local frame, which carries the
+     * armature's scale (a Mixamo rig's 0.01 inflated the unit a hundredfold).
+     * Top-level bones have no parent to measure from and are left out.
      */
     public static float modelUnit(IModel model)
     {
@@ -78,12 +80,12 @@ public final class DebugOverlay
         {
             for (BOBJBone bone : bobj.getAllBOBJBones())
             {
-                if (bone.parent == null || bone.parent.isEmpty())
+                if (bone.parentBone == null)
                 {
                     continue;
                 }
 
-                float length = bone.relBoneMat.getTranslation(new Vector3f()).length();
+                float length = bone.boneMat.getTranslation(new Vector3f()).distance(bone.parentBone.boneMat.getTranslation(new Vector3f()));
 
                 if (length > EPS)
                 {
