@@ -124,6 +124,7 @@ public class Keys
     public static final KeyCombo PIXEL_CLEAR = new KeyCombo("clear", UIKeys.TEXTURES_KEYS_CLEAR, GLFW.GLFW_KEY_DELETE).categoryKey("pixels");
     public static final KeyCombo PIXEL_FLIP_H = new KeyCombo("flip_h", UIKeys.TEXTURES_KEYS_FLIP_H, GLFW.GLFW_KEY_H, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("pixels");
     public static final KeyCombo PIXEL_FLIP_V = new KeyCombo("flip_v", UIKeys.TEXTURES_KEYS_FLIP_V, GLFW.GLFW_KEY_V, GLFW.GLFW_KEY_LEFT_SHIFT).categoryKey("pixels");
+    public static final KeyCombo PIXEL_GRID = new KeyCombo("grid", UIKeys.TEXTURES_GRID, GLFW.GLFW_KEY_G).categoryKey("pixels");
 
     /* Keyframes */
     public static final KeyCombo KEYFRAMES_ENABLE = new KeyCombo("keyframes_enable", UIKeys.KEYFRAMES_KEYS_ENABLED, GLFW.GLFW_KEY_J).categoryKey("keyframes");

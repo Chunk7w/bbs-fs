@@ -107,6 +107,9 @@ public class UITexturePainter extends UIElement
     public UIIcon macrosIcon;
     public UIIcon animationIcon;
     public UIIcon materialIcon;
+    public UIIcon gridIcon;
+    private UITrackpad gridStep;
+    private UIElement gridStepRow;
     private UIElement materialOptions;
     private UISliderTrackpad materialOverlay;
 
@@ -241,6 +244,23 @@ public class UITexturePainter extends UIElement
         this.materialIcon.tooltip(UIKeys.TEXTURES_MATERIAL);
         this.macrosIcon = new UIIcon(Icons.WRENCH, (b) -> this.openMacrosMenu());
         this.macrosIcon.tooltip(UIKeys.TEXTURES_MACROS_TOOLTIP);
+        this.gridIcon = new UIIcon(Icons.GALLERY, (b) -> this.toggleGrid());
+        this.gridIcon.tooltip(UIKeys.TEXTURES_GRID);
+    }
+
+    /** The grid is a way of looking, the same in every texture and every painter, so it lives in the settings. */
+    private void toggleGrid()
+    {
+        BBSSettings.textureGrid.set(!BBSSettings.textureGrid.get());
+        this.syncGrid();
+        this.optionsHost.resize();
+    }
+
+    /** Another painter may have switched the grid or changed its step since this one was on screen. */
+    private void syncGrid()
+    {
+        this.gridStep.setValue(BBSSettings.textureGridStep.get());
+        this.gridStepRow.setVisible(BBSSettings.textureGrid.get());
     }
 
     /** The one-shot operations as a list under the bar button: the selection, or the whole frame without one, on the active layer. */
@@ -273,6 +293,7 @@ public class UITexturePainter extends UIElement
             .action(this.macrosIcon)
             .action(this.animationIcon, this::isAnimated)
             .action(this.modelPreviewIcon, this.modelPreviewHost::isVisible)
+            .action(this.gridIcon, BBSSettings.textureGrid::get)
             .common(this.saveIcon);
     }
 
@@ -285,6 +306,7 @@ public class UITexturePainter extends UIElement
         this.animationIcon.setVisible(visible);
         this.modelPreviewIcon.setVisible(visible);
         this.materialIcon.setVisible(visible);
+        this.gridIcon.setVisible(visible);
 
         if (this.actionBar != null)
         {
@@ -402,6 +424,11 @@ public class UITexturePainter extends UIElement
         this.brightness.limit(0, 1).setValue(0.7);
         this.brightness.tooltip(UIKeys.TEXTURES_VIEWER_BRIGHTNESS);
 
+        this.gridStep = new UITrackpad((v) -> BBSSettings.textureGridStep.set(v.intValue()));
+        this.gridStep.integer().limit(1, 256, true);
+        this.gridStep.tooltip(UIKeys.TEXTURES_GRID_STEP_TOOLTIP);
+        this.gridStepRow = UI.labelRow(UIKeys.TEXTURES_GRID_STEP, this.gridStep);
+
         this.brushSize = new UITrackpad((v) -> this.setBrushSize(v.intValue()));
         this.brushSize.integer().limit(1, MAX_BRUSH_SIZE, true).setValue(1);
         this.brushSoftness = new UISliderTrackpad((v) -> {});
@@ -446,6 +473,7 @@ public class UITexturePainter extends UIElement
             this.colorPickersRow,
             this.alphaLockToggle,
             UI.labelRow(UIKeys.TEXTURES_VIEWER_BRIGHTNESS, this.brightness),
+            this.gridStepRow,
             this.brushSizeRow,
             this.brushSoftnessRow,
             this.roundBrushToggle,
@@ -596,6 +624,7 @@ public class UITexturePainter extends UIElement
         this.keys().register(Keys.PIXEL_TOOL_SELECTION, () -> this.userSelectTool(TexturePaintTool.SELECTION)).inside().category(category);
         this.keys().register(Keys.PIXEL_BRUSH_DEC, () -> this.adjustBrushSize(-1)).inside().category(category);
         this.keys().register(Keys.PIXEL_BRUSH_INC, () -> this.adjustBrushSize(1)).inside().category(category);
+        this.keys().register(Keys.PIXEL_GRID, this::toggleGrid).inside().active(() -> this.editor != null).category(category);
         /* The plain steps are strict, so they step aside for their Shift and Alt+Shift variants */
         this.keys().register(Keys.PIXEL_FRAME_PREV, () -> this.framesPanel.step(-1)).inside().strict().active(this::isAnimated).category(category);
         this.keys().register(Keys.PIXEL_FRAME_NEXT, () -> this.framesPanel.step(1)).inside().strict().active(this::isAnimated).category(category);
@@ -924,6 +953,7 @@ public class UITexturePainter extends UIElement
         editor.colorSupplier(() -> this.primary.picker.color);
         editor.pickColorConsumer((color) -> this.primary.setColor(color.getARGBColor()));
         editor.backgroundSupplier(() -> (float) this.brightness.getValue());
+        editor.gridSupplier(BBSSettings.textureGrid::get, BBSSettings.textureGridStep::get);
         editor.toolSupplier(this::getActiveTexturePaintTool);
         editor.strokeShapeSupplier(this::getActiveTextureStrokeShape);
         editor.strokeBuildUpSupplier(this::isBrushBuildUpEnabled);
@@ -985,6 +1015,7 @@ public class UITexturePainter extends UIElement
         {
             this.materialOverlay.setValue(editor.getMaterialOverlay() * 100F);
         }
+        this.syncGrid();
         this.updateFramesVisibility();
         this.resize();
     }
