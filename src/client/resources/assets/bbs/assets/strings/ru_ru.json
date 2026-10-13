@@ -1376,6 +1376,7 @@
 	"bbs.ui.model_debug.shape": "Форма (клик — следующая)",
 	"bbs.ui.model_debug.opacity": "Непрозрачность",
 	"bbs.ui.model_debug.configure": "Внешний вид отладки",
+	"bbs.ui.model_debug.reset": "Сбросить вид по умолчанию",
 	"bbs.ui.model_debug.lines": "Линии",
 	"bbs.ui.model_debug.joints": "Суставы",
 	"bbs.ui.model_debug.tip": "Кончик",
