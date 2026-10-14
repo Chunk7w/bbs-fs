@@ -1325,45 +1325,49 @@ public class UIKeyframes extends UITimelineCanvas
 
     public void resetViewX()
     {
-        int c = 0;
-        int min = Integer.MAX_VALUE;
-        int max = Integer.MIN_VALUE;
+        this.fitTime(this.getOperationSheets(), false, this.graphArea.w, 30);
+    }
 
-        /* Find minimum and maximum */
-        for (UIKeyframeSheet property : this.getOperationSheets())
+    /**
+     * Fit the time axis to the keyframes of {@code sheets} (or only their selection), a looped
+     * track counting up to its loop's end. Keys spread over different tracks count together, so
+     * a track with a single key still fits; one moment gets a second around it, no keys at all
+     * show the whole duration.
+     */
+    public void fitTime(List<UIKeyframeSheet> sheets, boolean selected, int width, int padding)
+    {
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+
+        for (UIKeyframeSheet sheet : sheets)
         {
-            List keyframes = property.channel.getKeyframes();
+            List<Keyframe> keys = selected ? sheet.selection.getSelected() : sheet.channel.getKeyframes();
 
-            for (Object object : keyframes)
+            for (Keyframe key : keys)
             {
-                Keyframe frame = (Keyframe) object;
-
-                min = Integer.min((int) frame.getTick(), min);
-                max = Integer.max((int) frame.getTick(), max);
+                min = Math.min(min, key.getTick());
+                max = Math.max(max, key.getTick());
             }
 
-            c = Math.max(c, keyframes.size());
-            if (!property.channel.getLoops().isEmpty())
+            if (!selected && !sheet.channel.getLoops().isEmpty())
             {
-                max = Math.max(max, (int) Math.ceil(property.channel.getLength()));
-                c = Math.max(c, 2);
+                max = Math.max(max, sheet.channel.getLength());
             }
         }
 
-        if (c <= 1)
+        if (!Double.isFinite(min))
         {
             min = 0;
-            max = this.getDuration();
+            max = Math.max(20, this.getDuration());
         }
 
-        if (Math.abs(max - min) > 0.01F)
+        if (max - min < 0.01D)
         {
-            this.xAxis.viewOffset(min, max, this.graphArea.w, 30);
+            min -= 10;
+            max += 10;
         }
-        else
-        {
-            this.xAxis.set(0, 2);
-        }
+
+        this.xAxis.viewOffset(min, max, width, padding);
     }
 
     /** The band being stretched, with a little slack so a keyframe grazed by its edge counts. */
@@ -1475,7 +1479,7 @@ public class UIKeyframes extends UITimelineCanvas
             }
             else if (context.mouseButton == 2)
             {
-                this.navigating = true;
+                this.startNavigating();
             }
 
             return context.mouseButton != 1;

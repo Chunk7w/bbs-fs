@@ -164,6 +164,14 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
      */
     private final Map<String, FoldState<String>> expandedTracksByReplay = new HashMap<>();
     private final Map<String, TimelineBodyPartSelection> selectedPartsByReplay = new HashMap<>();
+    /**
+     * Each replay's own time zoom. A rebuild for the same replay keeps the view as it is, but
+     * switching to another replay brings back the view it was left with (or fits its keys the
+     * first time) instead of dragging the previous replay's zoom along.
+     */
+    private final Map<String, Scale> timeViewByReplay = new HashMap<>();
+    /** The replay the current keyframe timeline was built for. */
+    private String timelineReplayId;
     private TimelineBodyPartSelection partSelection = new TimelineBodyPartSelection();
     private boolean allBodyPartsSetting;
     private final Map<String, List<String>> recentTrackSearches = new HashMap<>();
@@ -441,6 +449,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.useActionViewportForNewKeyframes = false;
         this.expandedTracksByReplay.clear();
         this.selectedPartsByReplay.clear();
+        this.timeViewByReplay.clear();
+        /* The timeline still shows the old film's replay; its view doesn't belong in the new film's map. */
+        this.timelineReplayId = null;
         this.replaysList.setBodyPartsReplay(null, this.partSelection);
         this.film = film;
         this.filmPanel.getController().orbit.reset();
@@ -576,12 +587,16 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.replaysList.resize();
 
         UIKeyframes lastEditor = this.keyframeEditor != null ? this.keyframeEditor.view : null;
+        String lastReplayId = this.timelineReplayId;
 
         if (this.keyframeEditor != null)
         {
+            this.rememberTimeView(lastReplayId, lastEditor);
             this.keyframeEditor.removeFromParent();
             this.keyframeEditor = null;
         }
+
+        this.timelineReplayId = null;
 
         if (this.replay == null)
         {
@@ -782,6 +797,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
             }
 
             this.add(this.keyframeEditor);
+            this.timelineReplayId = this.replay.getId();
             /* Category bar + actions toggle on top so they overlay the track names column. */
             this.bringBarToFront();
             this.updateTimelineModeVisibility();
@@ -789,9 +805,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         this.resize();
 
-        if (this.keyframeEditor != null && lastEditor == null)
+        if (this.keyframeEditor != null && (lastEditor == null || !this.timelineReplayId.equals(lastReplayId)))
         {
-            this.keyframeEditor.view.resetView();
+            this.restoreTimeView(this.keyframeEditor.view);
         }
 
         if (this.keyframeEditor != null && (this.actionsMode || this.useActionViewportForNewKeyframes))
@@ -1009,6 +1025,31 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         this.actionsMode = actionsMode;
         this.updateTimelineModeVisibility();
+    }
+
+    private void rememberTimeView(String replayId, UIKeyframes editor)
+    {
+        if (replayId == null) return;
+
+        Scale view = this.timeViewByReplay.computeIfAbsent(replayId, (k) -> new Scale(null));
+
+        editor.getXAxis().updateZoom();
+        view.copy(editor.getXAxis());
+    }
+
+    /** Bring back the current replay's own time zoom, or fit its keys if it has none yet. */
+    private void restoreTimeView(UIKeyframes editor)
+    {
+        Scale view = this.timeViewByReplay.get(this.timelineReplayId);
+
+        if (view == null)
+        {
+            editor.resetView();
+        }
+        else
+        {
+            editor.getXAxis().copy(view);
+        }
     }
 
     private void copyTimeViewport(UITimelineCanvas source, UITimelineCanvas target)
