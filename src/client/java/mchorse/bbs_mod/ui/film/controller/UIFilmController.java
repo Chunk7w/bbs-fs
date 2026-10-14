@@ -257,6 +257,9 @@ public class UIFilmController extends UIElement implements GizmoViewport
 
     public final OrbitFilmCameraController orbit = new OrbitFilmCameraController(this);
     public final OrbitViewGizmo orbitGizmo = new OrbitViewGizmo(this);
+
+    /** Where the free mode keeps its view. */
+    public final FreeFilmCamera free = new FreeFilmCamera(this);
     private int pov;
     private boolean paused;
 
@@ -281,6 +284,7 @@ public class UIFilmController extends UIElement implements GizmoViewport
         this.keys().register(Keys.FILM_CONTROLLER_TOGGLE_CONTROL, this::toggleControl).category(category);
         this.keys().register(Keys.FILM_CONTROLLER_TOGGLE_ORBIT_MODE, this::toggleOrbitMode).category(category);
         this.keys().register(Keys.FILM_CONTROLLER_TELEPORT_ORBIT, this::teleportOrbitPivotToReplay).strict().active(() -> this.getPovMode() == CAMERA_MODE_ORBIT).category(category);
+        this.keys().register(Keys.FILM_CONTROLLER_CAMERA_TO_PLAYER, this::cameraToPlayer).strict().active(() -> !this.isControlling()).category(category);
         this.keys().register(Keys.FILM_CONTROLLER_ATTACH_ORBIT, () ->
         {
             this.toggleOrbitAttachment();
@@ -922,6 +926,28 @@ public class UIFilmController extends UIElement implements GizmoViewport
         this.orbit.teleportPivotToReplay();
     }
 
+    /**
+     * Puts the free camera at the player's eyes: the reset that leaving the editor and coming back
+     * used to be, now that the free camera keeps its place. Any other mode gives way to the free
+     * one, as seeing through the player's eyes is what was asked for.
+     */
+    public void cameraToPlayer()
+    {
+        if (this.isControlling())
+        {
+            return;
+        }
+
+        Camera camera = this.panel.getWorldCamera();
+
+        this.panel.dashboard.copyCurrentEntityCamera();
+        /* The flight camera follows, FOV and all, so a flight going on carries on from the player */
+        this.panel.dashboard.orbit.setup(camera);
+
+        this.setPov(CAMERA_MODE_FREE);
+        this.free.moveTo(camera);
+    }
+
     public void toggleOrbitAttachment()
     {
         this.orbit.toggleAttachment();
@@ -1009,6 +1035,10 @@ public class UIFilmController extends UIElement implements GizmoViewport
             }
 
             camera.fov = BBSSettings.getFov();
+        }
+        else if (this.getPovMode() == CAMERA_MODE_FREE)
+        {
+            this.free.setup(camera);
         }
     }
 
