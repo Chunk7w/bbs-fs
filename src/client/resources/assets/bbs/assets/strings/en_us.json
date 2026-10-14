@@ -1849,6 +1849,8 @@
 	"bbs.ui.pose.context.copy": "Copy pose",
 	"bbs.ui.pose.context.fix": "Fix",
 	"bbs.ui.pose.context.fix-tooltip": "When enabled disables the influence of the model's animation",
+	"bbs.ui.pose.context.fix_in_place": "Fix in place",
+	"bbs.ui.pose.context.fix_in_place_children": "Fix in place with children",
 	"bbs.ui.pose.context.flip_pose": "Flip pose",
 	"bbs.ui.pose.context.name": "Name...",
 	"bbs.ui.pose.context.paste": "Paste pose",

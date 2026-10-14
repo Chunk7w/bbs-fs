@@ -2,6 +2,7 @@ package mchorse.bbs_mod.ui.utils.pose;
 
 import mchorse.bbs_mod.cubic.IBoneHierarchy;
 import mchorse.bbs_mod.data.types.MapType;
+import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
@@ -14,6 +15,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIStringList;
 import mchorse.bbs_mod.ui.utils.BoneSelection;
 import mchorse.bbs_mod.ui.utils.IBoneSelectionHost;
+import mchorse.bbs_mod.ui.utils.ILivePoseHost;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.bones.BoneRoles;
@@ -25,6 +27,7 @@ import mchorse.bbs_mod.utils.CollectionUtils;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import mchorse.bbs_mod.utils.pose.Pose;
+import mchorse.bbs_mod.utils.pose.PoseFixInPlace;
 import mchorse.bbs_mod.utils.pose.PoseManager;
 import mchorse.bbs_mod.utils.pose.PoseTransform;
 import mchorse.bbs_mod.utils.pose.Transform;
@@ -35,8 +38,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class UIPoseEditor extends UIElement
@@ -108,6 +113,12 @@ public class UIPoseEditor extends UIElement
             {
                 this.applyChildren((p) -> this.setFix(p, (float) this.fix.getValue()));
             });
+
+            if (this.livePoseHost() != null)
+            {
+                menu.action(Icons.LOCKED, UIKeys.POSE_CONTEXT_FIX_IN_PLACE, () -> this.fixInPlace(false));
+                menu.action(Icons.LIMB, UIKeys.POSE_CONTEXT_FIX_IN_PLACE_CHILDREN, () -> this.fixInPlace(true));
+            }
         });
         this.color = new UIColor((c) -> this.applyColorToSelection(c));
         this.color.withAlpha();
@@ -690,6 +701,68 @@ public class UIPoseEditor extends UIElement
         else
         {
             transform.rotate.mul(-1F, -1F, -1F);
+        }
+    }
+
+    /**
+     * The form value this editor's pose is, for the edits measured on the live model (see
+     * {@link PoseFixInPlace}); null where the pose belongs to no form on screen.
+     */
+    protected BaseValue getPoseProperty()
+    {
+        return null;
+    }
+
+    /** Where the pose's live model can be measured, or null — the fix-in-place actions then stay out of the menu. */
+    private ILivePoseHost livePoseHost()
+    {
+        BaseValue property = this.getPoseProperty();
+
+        return PoseFixInPlace.supports(property) ? this.selectionAnchor().getAncestor(ILivePoseHost.class) : null;
+    }
+
+    /**
+     * Fix the selected bones (with their descendants when {@code children}) while keeping the look
+     * on screen: the fix goes to 1 and the pose takes over what the animation was doing to them.
+     */
+    private void fixInPlace(boolean children)
+    {
+        ILivePoseHost host = this.livePoseHost();
+
+        if (host == null)
+        {
+            return;
+        }
+
+        Set<String> bones = new LinkedHashSet<>();
+
+        for (String bone : this.groups.list.getCurrent())
+        {
+            bones.add(bone);
+
+            if (children && this.model != null)
+            {
+                bones.addAll(this.model.getAllChildrenKeys(bone));
+            }
+        }
+
+        Map<String, PoseFixInPlace.Correction> corrections = PoseFixInPlace.measure(host.getLivePose(this.getPoseProperty()), bones);
+
+        if (corrections == null || corrections.isEmpty())
+        {
+            return;
+        }
+
+        this.applyFixInPlace(corrections);
+        this.pickBones(this.groups.list.getCurrent());
+    }
+
+    /** Lay the measured corrections into the edited pose; hosts with their own undo wrap it. */
+    protected void applyFixInPlace(Map<String, PoseFixInPlace.Correction> corrections)
+    {
+        for (Map.Entry<String, PoseFixInPlace.Correction> entry : corrections.entrySet())
+        {
+            entry.getValue().apply(this.pose.getOrCreate(entry.getKey()));
         }
     }
 

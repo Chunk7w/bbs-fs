@@ -1842,6 +1842,8 @@
 	"bbs.ui.pose.context.copy": "Скопировать позу",
 	"bbs.ui.pose.context.fix": "Зафиксировать",
 	"bbs.ui.pose.context.fix-tooltip": "0 - без фиксации, 1 - с полной фиксацией",
+	"bbs.ui.pose.context.fix_in_place": "Зафиксировать, сохранив вид",
+	"bbs.ui.pose.context.fix_in_place_children": "Зафиксировать с дочерними, сохранив вид",
 	"bbs.ui.pose.context.flip_pose": "Отзеркалить позу",
 	"bbs.ui.pose.context.name": "Имя...",
 	"bbs.ui.pose.context.paste": "Вставить позу",

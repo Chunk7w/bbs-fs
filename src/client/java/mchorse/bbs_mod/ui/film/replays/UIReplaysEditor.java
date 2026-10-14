@@ -37,6 +37,8 @@ import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.graphics.window.Window;
 import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.resources.Link;
+import mchorse.bbs_mod.settings.values.base.BaseValue;
+import mchorse.bbs_mod.settings.values.base.BaseValueBasic;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.film.UIClipsPanel;
@@ -60,6 +62,7 @@ import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCategoryBar;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.BoneSelection;
 import mchorse.bbs_mod.ui.utils.IBoneSelectionHost;
+import mchorse.bbs_mod.ui.utils.ILivePoseHost;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.Scale;
@@ -95,7 +98,7 @@ import java.util.Set;
 import mchorse.bbs_mod.ui.utils.GizmoInteraction;
 import mchorse.bbs_mod.ui.utils.SplineEditorUtils;
 
-public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
+public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, ILivePoseHost
 {
     private final BoneSelection boneSelection = new BoneSelection();
 
@@ -1106,6 +1109,30 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost
     public BoneSelection getBoneSelection()
     {
         return this.boneSelection;
+    }
+
+    /**
+     * The film renders the replay's entity, whose form is a copy of the replay's: the property is
+     * found there by its path, with the tracks laid over it at the playhead so it holds the frame
+     * on screen.
+     */
+    @Override
+    public LivePose getLivePose(BaseValue property)
+    {
+        Replay replay = this.getReplay();
+        IEntity entity = this.filmPanel.getController().getCurrentEntity();
+        Form root = entity == null ? null : entity.getForm();
+
+        if (replay == null || root == null || property == null)
+        {
+            return null;
+        }
+
+        replay.properties.applyProperties(root, this.filmPanel.getCursor());
+
+        BaseValueBasic live = FormUtils.getProperty(root, FormUtils.getPropertyPath(property));
+
+        return live == null ? null : new LivePose(live, entity, 0F);
     }
 
     private void pickFormBone(Form form, String bone, boolean insert)

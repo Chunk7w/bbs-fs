@@ -1326,6 +1326,8 @@ public class UIKeys
     public static final IKey POSE_CONTEXT_COPY = L10n.lang("bbs.ui.pose.context.copy");
     public static final IKey POSE_CONTEXT_FIX = L10n.lang("bbs.ui.pose.context.fix");
     public static final IKey POSE_CONTEXT_FIX_TOOLTIP = L10n.lang("bbs.ui.pose.context.fix-tooltip");
+    public static final IKey POSE_CONTEXT_FIX_IN_PLACE = L10n.lang("bbs.ui.pose.context.fix_in_place");
+    public static final IKey POSE_CONTEXT_FIX_IN_PLACE_CHILDREN = L10n.lang("bbs.ui.pose.context.fix_in_place_children");
     public static final IKey POSE_CONTEXT_FLIP_POSE = L10n.lang("bbs.ui.pose.context.flip_pose");
     public static final IKey POSE_CONTEXT_NAME = L10n.lang("bbs.ui.pose.context.name");
     public static final IKey POSE_CONTEXT_PASTE = L10n.lang("bbs.ui.pose.context.paste");
