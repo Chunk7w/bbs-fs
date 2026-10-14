@@ -477,6 +477,7 @@ public class UIKeys
     public static final IKey FILM_SCREENSHOT = L10n.lang("bbs.ui.film.screenshot");
     public static final IKey FILM_SCREENSHOT_DESCRIPTION = L10n.lang("bbs.ui.film.screenshot-description");
     public static final IKey FILM_SCREENSHOT_TITLE = L10n.lang("bbs.ui.film.screenshot-title");
+    public static final IKey FILM_TELEPORT_CONTEXT_CAMERA = L10n.lang("bbs.ui.film.teleport.context.camera");
     public static final IKey FILM_TELEPORT_CONTEXT_PLAYER = L10n.lang("bbs.ui.film.teleport.context.player");
     public static final IKey FILM_TELEPORT_DESCRIPTION = L10n.lang("bbs.ui.film.teleport-description");
     public static final IKey FILM_TELEPORT_TITLE = L10n.lang("bbs.ui.film.teleport-title");
@@ -986,10 +987,14 @@ public class UIKeys
     public static final IKey GUN_ZOOM_ON = L10n.lang("bbs.ui.gun.zoom.on");
     public static final IKey GUN_ZOOM_TITLE = L10n.lang("bbs.ui.gun.zoom.title");
     public static final IKey IMPORTER_AIFF = L10n.lang("bbs.ui.importer.aiff");
+    public static final IKey IMPORTER_AUDIO_CLIP_ERROR = L10n.lang("bbs.ui.importer.audio_clip-error");
     public static final IKey IMPORTER_FFMPEG_NOTIFICATION = L10n.lang("bbs.ui.importer.ffmpeg-notification");
     public static final IKey IMPORTER_FLAC = L10n.lang("bbs.ui.importer.flac");
     public static final IKey IMPORTER_GIF = L10n.lang("bbs.ui.importer.gif");
     public static final IKey IMPORTER_JPEG = L10n.lang("bbs.ui.importer.jpeg");
+    public static final IKey IMPORTER_MODEL_ERROR = L10n.lang("bbs.ui.importer.model-error");
+    public static final IKey IMPORTER_MODEL_NOTIFICATION = L10n.lang("bbs.ui.importer.model-notification");
+    public static final IKey IMPORTER_MODELS_NOTIFICATION = L10n.lang("bbs.ui.importer.models-notification");
     public static final IKey IMPORTER_MPEG = L10n.lang("bbs.ui.importer.mpeg");
     public static final IKey IMPORTER_OGG = L10n.lang("bbs.ui.importer.ogg");
     public static final IKey IMPORTER_OLD_SKIN = L10n.lang("bbs.ui.importer.old_skin");

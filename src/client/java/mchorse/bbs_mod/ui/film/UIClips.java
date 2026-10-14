@@ -3,10 +3,15 @@ package mchorse.bbs_mod.ui.film;
 import mchorse.bbs_mod.actions.types.ActionClip;
 import mchorse.bbs_mod.api.client.events.TimelineEvents;
 
+import mchorse.bbs_mod.BBSMod;
+import mchorse.bbs_mod.BBSModClient;
+import mchorse.bbs_mod.BBSResources;
 import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.audio.SoundBuffer;
 import mchorse.bbs_mod.camera.clips.CameraClip;
 import mchorse.bbs_mod.camera.clips.ClipFactoryData;
 import mchorse.bbs_mod.camera.clips.converters.IClipConverter;
+import mchorse.bbs_mod.camera.clips.misc.AudioClip;
 import mchorse.bbs_mod.camera.clips.overwrite.KeyframeClip;
 import mchorse.bbs_mod.camera.utils.TimeUtils;
 import mchorse.bbs_mod.data.types.BaseType;
@@ -18,6 +23,7 @@ import mchorse.bbs_mod.film.markers.FilmMarkers;
 import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.graphics.window.Window;
+import mchorse.bbs_mod.importers.ImporterUtils;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.ui.Keys;
@@ -35,6 +41,7 @@ import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCanvas;
 import mchorse.bbs_mod.ui.utils.Area;
+import mchorse.bbs_mod.ui.utils.IFileDropTarget;
 import mchorse.bbs_mod.ui.utils.Scroll;
 import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.context.ColorfulContextAction;
@@ -44,6 +51,7 @@ import mchorse.bbs_mod.ui.utils.context.MenuVerb;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.presets.UICopyPasteController;
 import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
+import mchorse.bbs_mod.utils.FFMpegUtils;
 import mchorse.bbs_mod.utils.MathUtils;
 import mchorse.bbs_mod.utils.clips.Clip;
 import mchorse.bbs_mod.utils.clips.ClipFactory;
@@ -57,6 +65,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,10 +76,14 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class UIClips extends UITimelineCanvas
+public class UIClips extends UITimelineCanvas implements IFileDropTarget
 {
     /* Constants */
     public static final IKey KEYS_CATEGORY = UIKeys.CAMERA_EDITOR_KEYS_CLIPS_TITLE;
+
+    /** The sounds a drop onto the timeline turns into audio clips: what the importers convert. */
+    private static final String[] AUDIO_EXTENSIONS = {".wav", ".ogg", ".mp3", ".flac", ".aiff"};
+    private static final Link AUDIO_CLIP = Link.bbs("audio");
 
     private static final int MARGIN = 10;
     private static final int LAYER_HEIGHT_MIN = 12;
@@ -407,6 +420,75 @@ public class UIClips extends UITimelineCanvas
 
         this.clips.addClip(clip);
         this.pickClip(clip);
+    }
+
+    /* Dropped files */
+
+    /**
+     * Sounds dragged in from outside the game and dropped onto the timeline become audio clips
+     * right there: converted into the audio folder the way the importers do it, starting at the
+     * tick under the cursor and as long as the sound. A row that is taken there passes the clip up
+     * to the nearest free one, as a paste does, so it keeps both its start and its length; several
+     * sounds dropped together stack up from the same tick.
+     */
+    @Override
+    public boolean dropFiles(UIContext context, List<File> files)
+    {
+        if (this.clips == null || this.hasEmbeddedView() || !this.factory.getKeys().contains(AUDIO_CLIP)
+            || !this.canBeSeen() || !this.area.isInside(context) || UIOverlay.has(context)
+            || !ImporterUtils.checkFileExtension(files, AUDIO_EXTENSIONS))
+        {
+            return false;
+        }
+
+        if (!FFMpegUtils.checkFFMPEG())
+        {
+            context.notifyError(UIKeys.IMPORTER_FFMPEG_NOTIFICATION);
+
+            return true;
+        }
+
+        int tick = Math.max(0, this.fromGraphTick(context.mouseX));
+        int layer = Math.max(0, this.fromLayerY(context.mouseY));
+        List<Clip> added = new ArrayList<>();
+
+        for (File file : files)
+        {
+            File wav = ImporterUtils.toMonoWAV(file, BBSMod.getAudioFolder());
+            Link link = wav == null ? null : Link.assets("audio/" + wav.getName());
+            SoundBuffer sound = link == null ? null : BBSModClient.getSounds().get(link, true);
+
+            if (sound == null || !(this.factory.create(AUDIO_CLIP) instanceof AudioClip clip))
+            {
+                context.notifyError(UIKeys.IMPORTER_AUDIO_CLIP_ERROR.format(file.getName()));
+
+                continue;
+            }
+
+            clip.audio.set(link);
+            clip.tick.set(tick);
+            clip.duration.set(Math.max(1, (int) (sound.getDuration() * 20)));
+            clip.layer.set(layer);
+            clip.layer.set(this.clips.findFreeLayer(clip));
+
+            this.clips.addClip(clip);
+            added.add(clip);
+        }
+
+        if (!added.isEmpty())
+        {
+            this.clearSelection();
+
+            for (Clip clip : added)
+            {
+                this.addSelected(clip);
+            }
+
+            this.pickLastSelectedClip();
+            BBSResources.markAssetsChanged();
+        }
+
+        return true;
     }
 
     private MapType copyClips()
