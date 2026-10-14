@@ -39,6 +39,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.keyframes.overlays.UITrackSty
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIDraggable;
 import mchorse.bbs_mod.ui.utils.Area;
+import mchorse.bbs_mod.ui.utils.DoubleClick;
 import mchorse.bbs_mod.ui.utils.Scroll;
 import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
@@ -82,6 +83,8 @@ public class UIKeyframes extends UITimelineCanvas
 
     private int dragging = -1;
     private boolean scrubbing;
+    /** A second quick click on the same keyframe brings the playhead to it. */
+    private final DoubleClick<Keyframe> keyframeDoubleClick = new DoubleClick<>(true);
     private boolean controlFirst;
     private Pair<Keyframe, KeyframeType> draggingData;
     private boolean scaling;
@@ -1595,6 +1598,14 @@ public class UIKeyframes extends UITimelineCanvas
             this.pickKeyframe(null);
         }
 
+        /* Only the keyframe itself: a handle or a Shift click (adding to the selection) isn't a jump. */
+        boolean jumpable = found != null && !shift && pair.b == KeyframeType.REGULAR;
+
+        if (this.keyframeDoubleClick.hit(jumpable ? found : null))
+        {
+            this.moveCursorToKeyframe(found);
+        }
+
         if (!this.marquee.isPressed())
         {
             this.dragging = 0;
@@ -1861,6 +1872,10 @@ public class UIKeyframes extends UITimelineCanvas
     }
 
     protected void moveNoKeyframes(UIContext context)
+    {}
+
+    /** Put the playhead on a double-clicked keyframe, in a timeline that has one. */
+    protected void moveCursorToKeyframe(Keyframe keyframe)
     {}
 
     protected boolean hasCursor()

@@ -221,6 +221,16 @@ public class UIFilmKeyframes extends UIKeyframes
     }
 
     @Override
+    protected void moveCursorToKeyframe(Keyframe keyframe)
+    {
+        if (this.editor != null)
+        {
+            this.editor.stopPlaybackOnScrub();
+            this.editor.setCursor(keyframe.getTick() + this.getClipOffset());
+        }
+    }
+
+    @Override
     protected void renderOverlay(UIContext context)
     {
         if (this.editor != null)
