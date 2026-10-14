@@ -1423,8 +1423,8 @@ public class UIClips extends UITimelineCanvas
         }
         else
         {
-            this.navigating = true;
             this.setMouse(mouseX, mouseY);
+            this.startNavigating();
 
             return true;
         }
@@ -1952,9 +1952,13 @@ public class UIClips extends UITimelineCanvas
     {
         if (this.navigating)
         {
-            this.dragTimeBy(mouseX - this.lastX);
-            this.vertical.scrollBy(this.lastY - mouseY);
-            this.vertical.clamp();
+            this.navigateTime(mouseX - this.lastX);
+
+            if (!this.zoomNavigating)
+            {
+                this.vertical.scrollBy(this.lastY - mouseY);
+                this.vertical.clamp();
+            }
 
             this.lastX = mouseX;
             this.lastY = mouseY;

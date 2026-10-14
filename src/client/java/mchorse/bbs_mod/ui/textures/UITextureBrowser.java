@@ -311,7 +311,7 @@ public class UITextureBrowser extends UIElement implements IFolderTreeHost
         this.infoHandle.relative(this.info).x(0).y(0.5F).w(6).h(40).anchor(0.5F, 0.5F);
 
         this.bar.relative(this).xy(0, 0).w(1F).h(BAR_HEIGHT);
-        this.bar.add(this.back, this.treeToggle, this.multiToggle, this.search, this.everywhere, this.sort, this.newTexture, picker.close);
+        this.bar.add(this.back, this.treeToggle, this.multiToggle, this.search, this.everywhere, this.sort, this.newTexture);
         /* The grid goes before the tree: it clears the drag's target as its frame begins, and
          * the tree reports a folder of its own while painting after it */
         this.add(this.bar, this.crumbs, this.text, this.grid, this.left, this.info, picker.editor, this.leftHandle, this.infoHandle, this.clearClipboard);
