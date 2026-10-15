@@ -148,6 +148,13 @@ public class Anchor implements IMapSerializable
         return false;
     }
 
+    /** The saved settings, so equal anchors in different copies of a film read the same. */
+    @Override
+    public String toString()
+    {
+        return "Anchor" + this.toData();
+    }
+
     @Override
     public void fromData(MapType data)
     {

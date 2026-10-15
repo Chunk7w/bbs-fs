@@ -807,7 +807,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         if (this.keyframeEditor != null && (lastEditor == null || !this.timelineReplayId.equals(lastReplayId)))
         {
-            this.restoreTimeView(this.keyframeEditor.view);
+            this.restoreTimeView(this.keyframeEditor.view, lastEditor != null);
         }
 
         if (this.keyframeEditor != null && (this.actionsMode || this.useActionViewportForNewKeyframes))
@@ -1037,19 +1037,36 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         view.copy(editor.getXAxis());
     }
 
-    /** Bring back the current replay's own time zoom, or fit its keys if it has none yet. */
-    private void restoreTimeView(UIKeyframes editor)
+    /**
+     * Bring back the current replay's own time zoom, or fit its keys if it has none yet. A replay
+     * without keys (a freshly added one) keeps the view copied from the previous replay, so the
+     * playhead stays where the user was working instead of jumping to the film's start.
+     */
+    private void restoreTimeView(UIKeyframes editor, boolean hasPreviousView)
     {
         Scale view = this.timeViewByReplay.get(this.timelineReplayId);
 
         if (view == null)
         {
-            editor.resetView();
+            if (!hasPreviousView || hasKeyframes(editor.getOperationSheets()))
+            {
+                editor.resetView();
+            }
         }
         else
         {
             editor.getXAxis().copy(view);
         }
+    }
+
+    private static boolean hasKeyframes(List<UIKeyframeSheet> sheets)
+    {
+        for (UIKeyframeSheet sheet : sheets)
+        {
+            if (!sheet.channel.isEmpty()) return true;
+        }
+
+        return false;
     }
 
     private void copyTimeViewport(UITimelineCanvas source, UITimelineCanvas target)

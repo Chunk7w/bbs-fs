@@ -32,6 +32,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.camera.Camera;
 import mchorse.bbs_mod.camera.controller.RunnerCameraController;
+import mchorse.bbs_mod.camera.data.Position;
 import mchorse.bbs_mod.film.BaseFilmController;
 import mchorse.bbs_mod.film.Film;
 import mchorse.bbs_mod.film.FilmTarget;
@@ -927,14 +928,30 @@ public class UIFilmController extends UIElement implements GizmoViewport
     }
 
     /**
-     * Puts the free camera at the player's eyes: the reset that leaving the editor and coming back
-     * used to be, now that the free camera keeps its place. Any other mode gives way to the free
-     * one, as seeing through the player's eyes is what was asked for.
+     * Brings the camera to the player's eyes. Looking through the film's camera with a camera
+     * clip open, it's that clip which moves there (like pasting a position), keeping its FOV and
+     * roll. Otherwise it's the free camera: the reset that leaving the editor and coming back
+     * used to be, now that the free camera keeps its place; other modes give way to it.
      */
     public void cameraToPlayer()
     {
         if (this.isControlling())
         {
+            return;
+        }
+
+        if (this.pov == CAMERA_MODE_CAMERA && this.panel.cameraEditor.isVisible() && this.panel.cameraEditor.getClip() != null)
+        {
+            Camera current = this.panel.getCamera();
+            Camera eyes = this.panel.dashboard.getCurrentEntityCamera();
+
+            eyes.rotation.z = current.rotation.z;
+            eyes.fov = current.fov;
+
+            /* A flight going on would write its old place back into the clip on the next frame */
+            this.panel.dashboard.orbit.setup(eyes);
+            this.panel.cameraEditor.editClip(new Position(eyes));
+
             return;
         }
 
