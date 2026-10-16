@@ -13,7 +13,6 @@ import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.graphics.window.Window;
-import mchorse.bbs_mod.ui.film.replays.UIReplaysEditorUtils;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
@@ -353,7 +352,6 @@ public class FilmStencilPicker
 
                     filmContext
                         .gizmoTarget(target)
-                        .gizmoMask(UIReplaysEditorUtils.getFilmGizmoMask(this.controller.panel, target))
                         .gizmoView(renderContext.matrixStack().peek().getPositionMatrix());
                 }
                 else
@@ -371,15 +369,12 @@ public class FilmStencilPicker
 
             this.stencilMap.setIncrement(true);
 
-            FilmTarget target = this.controller.getEditTarget();
-
             FilmEntityRenderer.renderEntity(FilmControllerContext.instance
                 .setup(this.controller.getEntities(), entity, replay, renderContext)
                 .transition(isPlaying ? renderContext.tickDelta() : 0)
                 .stencil(this.stencilMap)
                 .relative(replay.relative.get())
-                .gizmoTarget(target)
-                .gizmoMask(UIReplaysEditorUtils.getFilmGizmoMask(this.controller.panel, target))
+                .gizmoTarget(this.controller.getEditTarget())
                 .gizmoView(renderContext.matrixStack().peek().getPositionMatrix()));
         }
 

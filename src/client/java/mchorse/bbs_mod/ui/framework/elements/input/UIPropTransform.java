@@ -31,7 +31,6 @@ import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.function.IntSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -83,9 +82,6 @@ public class UIPropTransform extends UITransform implements TransformGesture.Hos
     /** Whether the edited bone's rotation is owned by an enabled IK chain
      *  (wired by hosts that have an IK concept; see {@link #rotationConstrained}). */
     private Supplier<Boolean> rotationConstrainedSupplier;
-
-    /** The edited bones' gizmo locks (wired by hosts that edit bones; see {@link #axisLocks(IntSupplier)}). */
-    private IntSupplier axisLocksSupplier;
 
     /** The edit session this editor's transform is worked through. */
     private final TransformGesture gesture = new TransformGesture(this);
@@ -301,21 +297,6 @@ public class UIPropTransform extends UITransform implements TransformGesture.Hos
         this.rotationConstrainedSupplier = supplier;
 
         return this;
-    }
-
-    /** Wire the gizmo locks of the edited bones ({@link mchorse.bbs_mod.utils.pose.TransformLocks}). */
-    public UIPropTransform axisLocks(IntSupplier supplier)
-    {
-        this.axisLocksSupplier = supplier;
-
-        return this;
-    }
-
-    /** Channels the gizmo and its hotkeys may not move; the value pads stay free. */
-    @Override
-    public int axisLocks()
-    {
-        return this.axisLocksSupplier == null ? 0 : this.axisLocksSupplier.getAsInt();
     }
 
     /**

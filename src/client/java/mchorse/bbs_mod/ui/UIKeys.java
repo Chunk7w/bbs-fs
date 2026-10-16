@@ -601,11 +601,6 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_IK_SETTINGS = L10n.lang("bbs.ui.forms.editors.model.ik.settings");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller_tooltip");
-    public static final IKey FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS = L10n.lang("bbs.ui.forms.editors.model.ik.gizmo_locks");
-    public static final IKey FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_TRANSLATE = L10n.lang("bbs.ui.forms.editors.model.ik.gizmo_locks.translate");
-    public static final IKey FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_ROTATE = L10n.lang("bbs.ui.forms.editors.model.ik.gizmo_locks.rotate");
-    public static final IKey FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_SCALE = L10n.lang("bbs.ui.forms.editors.model.ik.gizmo_locks.scale");
-    public static final IKey FORMS_EDITORS_MODEL_IK_GIZMO_LOCK = L10n.lang("bbs.ui.forms.editors.model.ik.gizmo_lock");
     public static final IKey FORMS_EDITORS_MODEL_IK_ENABLED = L10n.lang("bbs.ui.forms.editors.model.ik.enabled");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET = L10n.lang("bbs.ui.forms.editors.model.ik.target");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET_LABEL = L10n.lang("bbs.ui.forms.editors.model.ik.target_label");

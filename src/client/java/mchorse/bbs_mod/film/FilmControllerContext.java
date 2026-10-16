@@ -3,7 +3,6 @@ package mchorse.bbs_mod.film;
 import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
-import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.framework.elements.utils.StencilMap;
 import mchorse.bbs_mod.utils.colors.Colors;
 import org.joml.Matrix4f;
@@ -37,9 +36,6 @@ public class FilmControllerContext
      *  cannot reach one of them and not the other. {@link FilmTarget#NONE} draws nothing. */
     public FilmTarget gizmoTarget = FilmTarget.NONE;
 
-    /** The handles a bone gizmo may show: what the bone's gizmo locks leave of it. */
-    public Gizmo.HandleMask gizmoMask = Gizmo.HandleMask.ALL;
-
     /** The film camera's world&rarr;camera rotation, used to reorient the gizmo. */
     public Matrix4f gizmoView;
 
@@ -63,7 +59,6 @@ public class FilmControllerContext
         this.shadowRadius = 0F;
         this.color = Colors.WHITE;
         this.gizmoTarget = FilmTarget.NONE;
-        this.gizmoMask = Gizmo.HandleMask.ALL;
         this.gizmoView = null;
         this.gizmoViewportHeight = 0F;
         this.bone2 = null;
@@ -133,13 +128,6 @@ public class FilmControllerContext
     public FilmControllerContext color(int overlayColor)
     {
         this.color = overlayColor;
-
-        return this;
-    }
-
-    public FilmControllerContext gizmoMask(Gizmo.HandleMask mask)
-    {
-        this.gizmoMask = mask == null ? Gizmo.HandleMask.ALL : mask;
 
         return this;
     }

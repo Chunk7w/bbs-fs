@@ -14,7 +14,6 @@ import mchorse.bbs_mod.ui.film.UIFilmPanel;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.utils.GizmoDrag;
-import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.pose.PoseBones;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.data.animation.Animation;
@@ -451,21 +450,6 @@ public class UIReplaysEditorUtils
 
         transform.worldTransform(pose ? new FilmBoneWorldProvider(panel) : null);
         transform.rotationConstrained(pose ? () -> isFilmBoneRotationConstrained(panel) : null);
-        transform.axisLocks(() -> getFilmGizmoLocks(panel));
-    }
-
-    /** The gizmo locks of the bones the film's keyframe editor moves on the current replay. */
-    public static int getFilmGizmoLocks(UIFilmPanel panel)
-    {
-        IEntity entity = panel.getController().getCurrentEntity();
-
-        return entity == null ? 0 : GizmoLocks.of(entity.getForm(), panel.replayEditor.keyframeEditor);
-    }
-
-    /** The handles the film's gizmo may show on {@code target}: a bone's gizmo locks take theirs off. */
-    public static Gizmo.HandleMask getFilmGizmoMask(UIFilmPanel panel, FilmTarget target)
-    {
-        return target.boneOrNull() == null ? Gizmo.HandleMask.ALL : GizmoLocks.mask(getFilmGizmoLocks(panel), target.space());
     }
 
     /**

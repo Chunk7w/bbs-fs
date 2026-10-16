@@ -19,7 +19,6 @@ import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
-import mchorse.bbs_mod.utils.Axis;
 import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
@@ -34,9 +33,7 @@ import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.pose.ModelIKManager;
-import mchorse.bbs_mod.utils.pose.TransformLocks;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -76,9 +73,6 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
     public UISliderTrackpad stiffnessZ;
     public UIToggle stretch;
     public UIToggle squash;
-
-    /** The gizmo locks, translate/rotate/scale rows of X/Y/Z padlocks. */
-    private final List<UIIcon> gizmoLocks = new ArrayList<>();
 
     /* The chain's own parameters, hidden until the chain is switched on: with IK
      * off they describe nothing, and an empty panel says "tick this" far better
@@ -314,90 +308,14 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
             UI.row(this.stiffnessX, this.stiffnessY, this.stiffnessZ)
         );
 
-        /* Which of the bone's channels the gizmo and its hotkeys may not move. Not IK, but rig
-         * setup like the controller marker under it: it travels in the IK preset with the rest. */
-        UISection gizmo = this.section(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS, "ik.gizmo_locks", false);
-
-        gizmo.fields.add(
-            this.gizmoLockHeader(),
-            this.gizmoLockRow(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_TRANSLATE, TransformLocks.TRANSLATE),
-            this.gizmoLockRow(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_ROTATE, TransformLocks.ROTATE),
-            this.gizmoLockRow(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS_SCALE, TransformLocks.SCALE)
-        );
-
         this.options.add(
             this.debugRow(this.debug, BBSSettings.ikDebug),
             this.bonesSearch,
             settings,
             this.advancedSection,
             joint,
-            gizmo,
             this.boneController
         );
-    }
-
-    /** The axis letters over the padlock columns, in the axes' colours. */
-    private UIElement gizmoLockHeader()
-    {
-        UIElement row = new UIElement();
-
-        row.row(UIConstants.MARGIN).preferred(0).height(UIConstants.CONTROL_HEIGHT);
-        row.add(UI.label(IKey.EMPTY, UIConstants.CONTROL_HEIGHT));
-
-        int[] colors = {Colors.RED, Colors.GREEN, Colors.BLUE};
-
-        for (Axis axis : Axis.values())
-        {
-            row.add(UI.label(IKey.constant(axis.name()), UIConstants.CONTROL_HEIGHT, colors[axis.ordinal()]).labelAnchor(0.5F, 0.5F).w(UIConstants.CONTROL_HEIGHT));
-        }
-
-        return row;
-    }
-
-    /** One operation's row: its name, then a padlock per axis under the header's letters. */
-    private UIElement gizmoLockRow(IKey label, int operation)
-    {
-        UIElement row = new UIElement();
-
-        row.row(UIConstants.MARGIN).preferred(0).height(UIConstants.CONTROL_HEIGHT);
-        row.add(UI.label(label, UIConstants.CONTROL_HEIGHT).labelAnchor(0, 0.5F));
-
-        for (Axis axis : Axis.values())
-        {
-            row.add(this.gizmoLock(label, operation, axis));
-        }
-
-        return row;
-    }
-
-    /** A gizmo lock as a padlock, read live from the selected bone like the joint's. */
-    private UIIcon gizmoLock(IKey label, int operation, Axis axis)
-    {
-        UIIcon icon = new UIIcon(() -> this.isGizmoLocked(operation, axis) ? Icons.LOCKED : Icons.UNLOCKED,
-            (b) -> this.editBone((bone) -> bone.gizmoLocks.set(TransformLocks.toggle(bone.gizmoLocks.get(), operation, axis))))
-        {
-            @Override
-            protected void renderSkin(UIContext context)
-            {
-                if (UIModelIKFormPanel.this.isGizmoLocked(operation, axis))
-                {
-                    context.batcher.highlight(this.area, Direction.BOTTOM);
-                }
-
-                super.renderSkin(context);
-            }
-        };
-
-        icon.wh(UIConstants.CONTROL_HEIGHT, UIConstants.CONTROL_HEIGHT);
-        icon.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCK.format(label, axis.name()));
-        this.gizmoLocks.add(icon);
-
-        return icon;
-    }
-
-    private boolean isGizmoLocked(int operation, Axis axis)
-    {
-        return this.readBone((bone) -> TransformLocks.isLocked(bone.gizmoLocks.get(), operation, axis), false);
     }
 
     /**
@@ -512,17 +430,8 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         this.setJointEnabled(enabled);
     }
 
-    private void setGizmoLocksEnabled(boolean enabled)
-    {
-        for (UIIcon icon : this.gizmoLocks)
-        {
-            icon.setEnabled(enabled);
-        }
-    }
-
     private void setJointEnabled(boolean enabled)
     {
-        this.setGizmoLocksEnabled(enabled);
         this.lockX.setEnabled(enabled);
         this.lockY.setEnabled(enabled);
         this.lockZ.setEnabled(enabled);
