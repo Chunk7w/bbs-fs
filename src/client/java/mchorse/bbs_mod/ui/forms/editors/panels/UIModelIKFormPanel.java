@@ -315,7 +315,7 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         );
 
         /* Which of the bone's channels the gizmo and its hotkeys may not move. Not IK, but rig
-         * setup like the controller marker above it: it travels in the IK preset with the rest. */
+         * setup like the controller marker under it: it travels in the IK preset with the rest. */
         UISection gizmo = this.section(UIKeys.FORMS_EDITORS_MODEL_IK_GIZMO_LOCKS, "ik.gizmo_locks", false);
 
         gizmo.fields.add(
@@ -331,8 +331,8 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
             settings,
             this.advancedSection,
             joint,
-            this.boneController,
-            gizmo
+            gizmo,
+            this.boneController
         );
     }
 

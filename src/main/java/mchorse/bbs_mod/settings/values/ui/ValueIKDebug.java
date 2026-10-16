@@ -10,8 +10,8 @@ public class ValueIKDebug extends ValueModelDebug
     public final ValueDebugElement tip = this.element("tip", false, 0x4da3ff, 0.06F, ValueDebugElement.SHAPE_CROSS);
     public final ValueDebugElement target = this.element("target", 0xffffff, 0.09F, ValueDebugElement.SHAPE_DIAMOND);
     public final ValueDebugElement pole = this.element("pole", 0xff8c26, 0.07F, ValueDebugElement.SHAPE_CUBE);
-    /** Bones marked as controllers in the IK panel; defaults to the target's look. */
-    public final ValueDebugElement controller = this.element("controller", 0xffffff, 0.09F, ValueDebugElement.SHAPE_DIAMOND);
+    /** Bones marked as controllers in the IK panel: a gold ring, apart from the goal and pole markers. */
+    public final ValueDebugElement controller = this.element("controller", 0xffd84d, 0.14F, ValueDebugElement.SHAPE_RING);
 
     public ValueIKDebug(String id)
     {
