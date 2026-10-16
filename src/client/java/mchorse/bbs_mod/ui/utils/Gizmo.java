@@ -20,6 +20,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.utils.Axis;
 import mchorse.bbs_mod.utils.MatrixStackUtils;
 import mchorse.bbs_mod.utils.colors.Colors;
+import mchorse.bbs_mod.utils.pose.TransformLocks;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
@@ -596,8 +597,10 @@ public class Gizmo
 
         /* The mask already keeps a forbidden handle out of both draw passes, so a pick
          * can't name one; the hotkey walk and any programmatic start bypass the stencil
-         * though, so the refusal lives here too. */
-        if (handle == null || !this.mask.allows(handle))
+         * though, so the refusal lives here too. An operation the bone's gizmo locks hold
+         * completely still is refused even where the caller drew no mask for them. */
+        if (handle == null || !this.mask.allows(handle)
+            || (transform != null && !HandleMask.ALL.locked(transform.axisLocks(), false).allows(handle)))
         {
             return false;
         }
@@ -1340,6 +1343,12 @@ public class Gizmo
             @Override
             public void box(Handle handle, float x1, float y1, float z1, float x2, float y2, float z2, int color)
             {
+                /* Bars, planes and cubes of a locked axis stay off both passes. */
+                if (!layout.mask.allows(handle))
+                {
+                    return;
+                }
+
                 if (handle.op == Op.MOVE || handle.op == Op.SCALE)
                 {
                     Vector3f signs = Gizmo.this.facingSigns;
@@ -1662,20 +1671,66 @@ public class Gizmo
     public static final class HandleMask
     {
         /** No restriction &mdash; a full {@link mchorse.bbs_mod.utils.pose.Transform} target. */
-        public static final HandleMask ALL = new HandleMask(EnumSet.allOf(Op.class), EnumSet.allOf(Axis.class));
+        public static final HandleMask ALL = new HandleMask(EnumSet.allOf(Op.class), EnumSet.allOf(Axis.class), TransformLocks.ALL_AXES, TransformLocks.ALL_AXES);
 
         private final EnumSet<Op> ops;
         private final EnumSet<Axis> rotateAxes;
 
+        /* XYZ bits of the move and scale bars; a plane needs both of its axes. */
+        private final int moveAxes;
+        private final int scaleAxes;
+
         public static HandleMask of(EnumSet<Op> ops, EnumSet<Axis> rotateAxes)
         {
-            return new HandleMask(ops, rotateAxes);
+            return new HandleMask(ops, rotateAxes, TransformLocks.ALL_AXES, TransformLocks.ALL_AXES);
         }
 
-        private HandleMask(EnumSet<Op> ops, EnumSet<Axis> rotateAxes)
+        private HandleMask(EnumSet<Op> ops, EnumSet<Axis> rotateAxes, int moveAxes, int scaleAxes)
         {
             this.ops = EnumSet.copyOf(ops);
             this.rotateAxes = EnumSet.copyOf(rotateAxes);
+            this.moveAxes = moveAxes;
+            this.scaleAxes = scaleAxes;
+        }
+
+        /**
+         * This mask minus what a bone's gizmo locks ({@link TransformLocks}) take away. A fully
+         * locked operation leaves in any frame, its free handles too. A single locked axis drops
+         * its bar, ring or cube only on the bone's own axes ({@code ownAxes}), as Blender does:
+         * in another frame one handle moves several channels, and the gesture holds the locked
+         * ones still instead.
+         */
+        public HandleMask locked(int locks, boolean ownAxes)
+        {
+            if (locks == 0)
+            {
+                return this;
+            }
+
+            EnumSet<Op> ops = EnumSet.copyOf(this.ops);
+            EnumSet<Axis> rotation = EnumSet.copyOf(this.rotateAxes);
+            int move = this.moveAxes;
+            int scale = this.scaleAxes;
+
+            if (TransformLocks.isLockedFully(locks, TransformLocks.TRANSLATE)) ops.removeAll(EnumSet.of(Op.MOVE, Op.SCREEN));
+            if (TransformLocks.isLockedFully(locks, TransformLocks.ROTATE)) ops.removeAll(EnumSet.of(Op.ROTATE, Op.VIEW, Op.TRACKBALL));
+            if (TransformLocks.isLockedFully(locks, TransformLocks.SCALE)) ops.removeAll(EnumSet.of(Op.SCALE, Op.SCALE_ALL));
+
+            if (ownAxes)
+            {
+                move &= ~TransformLocks.axes(locks, TransformLocks.TRANSLATE);
+                scale &= ~TransformLocks.axes(locks, TransformLocks.SCALE);
+
+                for (Axis axis : Axis.values())
+                {
+                    if (TransformLocks.isLocked(locks, TransformLocks.ROTATE, axis))
+                    {
+                        rotation.remove(axis);
+                    }
+                }
+            }
+
+            return new HandleMask(ops, rotation, move, scale);
         }
 
         public boolean allows(Op op)
@@ -1689,7 +1744,7 @@ public class Gizmo
         }
 
         /** Whether a picked or hotkeyed handle may start a gesture: its operation must be
-         *  allowed, and an axis ring's axis must be too. */
+         *  allowed, and so must an axis ring's axis or a bar's (both of a plane's). */
         public boolean allows(Handle handle)
         {
             if (handle == null || !this.allows(handle.op))
@@ -1697,7 +1752,24 @@ public class Gizmo
                 return false;
             }
 
-            return handle.op != Op.ROTATE || this.allowsRotateAxis(handle.axis);
+            if (handle.op == Op.ROTATE)
+            {
+                return this.allowsRotateAxis(handle.axis);
+            }
+
+            if (handle.op == Op.MOVE || handle.op == Op.SCALE)
+            {
+                int axes = handle.op == Op.MOVE ? this.moveAxes : this.scaleAxes;
+
+                return allowsAxis(axes, handle.axis) && allowsAxis(axes, handle.axis2);
+            }
+
+            return true;
+        }
+
+        private static boolean allowsAxis(int axes, Axis axis)
+        {
+            return axis == null || (axes & 1 << axis.ordinal()) != 0;
         }
     }
 

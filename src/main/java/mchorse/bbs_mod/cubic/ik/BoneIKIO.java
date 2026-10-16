@@ -44,6 +44,7 @@ public final class BoneIKIO
                 }
 
                 bone.boneController.set(false);
+                bone.gizmoLocks.set(0);
 
                 if (bone.hasChain() || !bone.ik.get().isDefault())
                 {
@@ -124,6 +125,13 @@ public final class BoneIKIO
                 if (entry.getBool("controller", false))
                 {
                     bones.getOrCreate(name).boneController.set(true);
+                }
+
+                int locks = entry.getInt("gizmo_locks", 0);
+
+                if (locks != 0)
+                {
+                    bones.getOrCreate(name).gizmoLocks.set(locks);
                 }
 
                 if (!joint.isFree())
@@ -211,7 +219,9 @@ public final class BoneIKIO
 
             JointDoF joint = bone.joint.get();
 
-            if (!joint.isFree() || bone.boneController.get())
+            int locks = bone.gizmoLocks.get();
+
+            if (!joint.isFree() || bone.boneController.get() || locks != 0)
             {
                 MapType map = new MapType();
 
@@ -221,6 +231,12 @@ public final class BoneIKIO
                 {
                     map.putBool("controller", true);
                 }
+
+                if (locks != 0)
+                {
+                    map.putInt("gizmo_locks", locks);
+                }
+
                 joints.put(bone.getId(), map);
             }
         }

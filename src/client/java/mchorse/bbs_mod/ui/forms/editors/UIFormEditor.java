@@ -67,6 +67,7 @@ import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
+import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIUndoKeys;
@@ -79,6 +80,7 @@ import mchorse.bbs_mod.ui.utils.ILivePoseHost;
 import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.utils.SplineOverlay;
 import mchorse.bbs_mod.ui.utils.SplineEditorUtils;
+import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.GizmoDrag;
 import mchorse.bbs_mod.ui.utils.StencilFormFramebuffer;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePicker;
@@ -611,18 +613,28 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         return super.subKeyPressed(context);
     }
 
-    /** Translation-only handles for a spline control; ordinary form tools retain their mask. */
+    /** Translation-only handles for a spline control; a bone's gizmo locks drop the handles they hold still. */
     public Gizmo.HandleMask getGizmoHandleMask()
     {
         if (this.statesEditor.isVisible())
         {
-            return SplineEditorUtils.selectedPath(this.statesKeyframes.keyframeEditor) == null ? Gizmo.HandleMask.ALL : SplineEditorUtils.HANDLES;
+            UIKeyframeEditor keyframes = this.statesKeyframes.keyframeEditor;
+
+            if (SplineEditorUtils.selectedPath(keyframes) != null)
+            {
+                return SplineEditorUtils.HANDLES;
+            }
+
+            return keyframes == null ? Gizmo.HandleMask.ALL : GizmoLocks.mask(this.statesKeyframes.gizmoLocks(), keyframes.getBoneSpace());
         }
         if (this.editor != null && this.editor.view instanceof SplineFormTool panel)
         {
             return panel.getGizmoTransform() == null ? NO_GIZMO_HANDLES : SplineEditorUtils.HANDLES;
         }
-        return Gizmo.HandleMask.ALL;
+
+        UIPropTransform transform = this.editor == null || this.isBodyPartGizmoMode() ? null : this.editor.getEditableTransform();
+
+        return transform == null ? Gizmo.HandleMask.ALL : GizmoLocks.mask(transform.axisLocks(), transform.getSpace());
     }
 
     public void renderSplineOverlay(UIContext context)
