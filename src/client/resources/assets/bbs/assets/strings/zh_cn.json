@@ -1427,6 +1427,7 @@
     "bbs.ui.model_debug.lines": "线条",
     "bbs.ui.model_debug.opacity": "不透明度",
     "bbs.ui.model_debug.pole": "极点",
+    "bbs.ui.model_debug.controller": "骨骼控制器",
     "bbs.ui.model_debug.root": "根节点",
     "bbs.ui.model_debug.shape": "形状（点击循环切换）",
     "bbs.ui.model_debug.target": "目标",

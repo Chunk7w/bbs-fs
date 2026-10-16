@@ -1388,6 +1388,7 @@
 	"bbs.ui.model_debug.tip": "Tip",
 	"bbs.ui.model_debug.target": "Target",
 	"bbs.ui.model_debug.pole": "Pole",
+	"bbs.ui.model_debug.controller": "Bone controller",
 	"bbs.ui.model_debug.root": "Root",
 	"bbs.ui.model_debug.attach": "Attachment",
 	"bbs.ui.model_debug.wind": "Wind",
