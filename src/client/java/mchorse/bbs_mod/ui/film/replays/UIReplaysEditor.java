@@ -166,10 +166,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     private final Map<String, TimelineBodyPartSelection> selectedPartsByReplay = new HashMap<>();
     /**
      * Each replay's own time zoom. A rebuild for the same replay keeps the view as it is, but
-     * switching to another replay brings back the view it was left with (or fits its keys the
-     * first time) instead of dragging the previous replay's zoom along.
+     * switching to another replay brings back the zoom it was left with (or fits its keys the
+     * first time) instead of dragging the previous replay's zoom along. Only the zoom comes back:
+     * the playhead keeps its place on screen, so the view follows wherever the film went meanwhile.
      */
-    private final Map<String, Scale> timeViewByReplay = new HashMap<>();
+    private final Map<String, TimeView> timeViewByReplay = new HashMap<>();
     /** The replay the current keyframe timeline was built for. */
     private String timelineReplayId;
     private TimelineBodyPartSelection partSelection = new TimelineBodyPartSelection();
@@ -1031,20 +1032,25 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     {
         if (replayId == null) return;
 
-        Scale view = this.timeViewByReplay.computeIfAbsent(replayId, (k) -> new Scale(null));
+        TimeView view = this.timeViewByReplay.computeIfAbsent(replayId, (k) -> new TimeView());
 
         editor.getXAxis().updateZoom();
-        view.copy(editor.getXAxis());
+        view.scale.copy(editor.getXAxis());
+        view.tick = editor.getTick();
     }
 
     /**
      * Bring back the current replay's own time zoom, or fit its keys if it has none yet. A replay
      * without keys (a freshly added one) keeps the view copied from the previous replay, so the
      * playhead stays where the user was working instead of jumping to the film's start.
+     *
+     * The zoom is the replay's own, but the playhead stays where it is on screen — where it stood in
+     * the timeline just left, or with none before it, where it stood when this replay was left. The
+     * replay's old position would lag behind a playhead that moved on while another replay was edited.
      */
     private void restoreTimeView(UIKeyframes editor, boolean hasPreviousView)
     {
-        Scale view = this.timeViewByReplay.get(this.timelineReplayId);
+        TimeView view = this.timeViewByReplay.get(this.timelineReplayId);
 
         if (view == null)
         {
@@ -1052,11 +1058,22 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
             {
                 editor.resetView();
             }
+
+            return;
         }
-        else
+
+        Scale axis = editor.getXAxis();
+        double tick = editor.getTick();
+        double playheadX = hasPreviousView ? axis.to(tick) : 0;
+
+        axis.copy(view.scale);
+
+        if (!hasPreviousView)
         {
-            editor.getXAxis().copy(view);
+            playheadX = axis.to(view.tick);
         }
+
+        axis.setShift(axis.getShift() + (axis.to(tick) - playheadX) / axis.getZoom());
     }
 
     private static boolean hasKeyframes(List<UIKeyframeSheet> sheets)
@@ -1475,5 +1492,12 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         SWITCH,
         /** Leave the orbit camera untouched (used when restoring selection during undo/redo). */
         KEEP
+    }
+
+    /** A replay's time zoom as it was left, and where the playhead was at that moment. */
+    private static class TimeView
+    {
+        public final Scale scale = new Scale(null);
+        public float tick;
     }
 }
