@@ -6,8 +6,6 @@ import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
-import mchorse.bbs_mod.ui.utils.icons.Icon;
-import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
 
 import java.util.Set;
@@ -20,30 +18,28 @@ import java.util.Set;
 public enum FormTrackGroup
 {
     /* In the order the headings show. The rig bends the same skeleton the pose keys, so it follows it. */
-    POSE("pose", Icons.POSE, Colors.RED),
-    RIG("rig", Icons.IK, 0xfb7185),
-    TRANSFORM("transform", Icons.ALL_DIRECTIONS, 0x4ade80),
-    LOOK("look", Icons.MATERIAL, 0xfb923c);
+    POSE("pose", Colors.RED),
+    RIG("rig", 0xfb7185),
+    TRANSFORM("transform", 0x4ade80),
+    LOOK("look", 0xfb923c);
 
     private static final Set<String> RIG_PROPERTIES = Set.of("ik", "physics", "spline_ik", "wind", "shake");
 
     public final String id;
     public final IKey label;
-    public final Icon icon;
     public final int color;
 
-    FormTrackGroup(String id, Icon icon, int color)
+    FormTrackGroup(String id, int color)
     {
         this.id = id;
         this.label = L10n.lang("bbs.ui.film.form.sections." + id);
-        this.icon = icon;
         this.color = color;
     }
 
     /** The heading of one part's tracks of this group, inside the part's own heading if it has one. */
     public UIKeyframeSheet.Section section(String path, UIKeyframeSheet.Section part)
     {
-        return new UIKeyframeSheet.Section("form_section/" + path + "/" + this.id, this.label, this.icon, this.color, part);
+        return new UIKeyframeSheet.Section("form_section/" + path + "/" + this.id, this.label, this.color, part);
     }
 
     /** Null for a track another tab claims, an addon's for one: it is not the Form tab's to sort. */

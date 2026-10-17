@@ -54,9 +54,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     private static final int FOLD_DEPTH_STEP = 4;
     private static final float TRACK_BAR_ALPHA = 0.3F;
 
-    /** A heading's colour carried across the timeline, and what the cursor adds over it. */
-    private static final float SECTION_BAND_ALPHA = 0.1F;
+    /** What the cursor lays over a heading's row in the timeline. */
     private static final float SECTION_HOVER_ALPHA = 0.12F;
+
+    /** A heading's bar, twice a track's: the one thing that tells it from the tracks under it. */
+    private static final int SECTION_STRIPE = RowStyle.STRIPE * 2;
 
     /** Width of the fold arrow's slot in the name column, left of the icon. */
     private static final int LABEL_ARROW_SIZE = 10;
@@ -67,6 +69,9 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     private static final int LABEL_ICON_SIZE = 16;
     private static final int LABEL_TEXT_ICON_GAP = 3;
     private static final int LABEL_COMPACT_WIDTH = 60;
+
+    /** Where names start under a heading: past its double bar, so the heading and its tracks share one column. */
+    private static final int SECTION_TEXT_LEFT = LABEL_TEXT_LEFT + SECTION_STRIPE - RowStyle.STRIPE;
 
     /** Horizontal cull slack: wider than any keyframe shape's radius, so edge keyframes draw whole. */
     private static final int CULL_MARGIN = 20;
@@ -280,9 +285,10 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         return this.folds.isExpanded(sheet.id);
     }
 
+    /** A track lines up with its heading's name, the bar telling the two apart; only the tracks it hangs from push it in. */
     private int getSheetIndent(UIKeyframeSheet sheet)
     {
-        return this.getIndent(sheet.getDepth() + (sheet.section == null ? 0 : sheet.section.depth() + 1));
+        return this.getIndent(sheet.getDepth() + (sheet.section == null ? 0 : sheet.section.depth()));
     }
 
     private int getIndent(int depth)
@@ -1310,24 +1316,21 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
 
             boolean hover = area.isInside(context) && (!this.keyframes.isEditing() || context.mouseX < this.keyframes.graphArea.x) && context.mouseY >= sy && context.mouseY < sy + height;
-            this.renderRowBackground(context, area.x, sy, w, height, true);
-            RowStyle.row(context.batcher, area.x, sy, w, height, section.color(), true, hover, false);
-            Icon icon = section.icon();
-            boolean hasIcon = icon != null && height >= 12;
-            int iconX = area.x + w - LABEL_RIGHT_PAD - LABEL_ICON_SIZE;
-            this.renderFoldArrow(context, this.getArrowX(area.x, w, hasIcon) + LABEL_ARROW_SIZE / 2F,
-                sy + height / 2, this.folds.isExpanded(section.id()));
+            boolean expanded = this.folds.isExpanded(section.id());
 
-            if (hasIcon)
-            {
-                context.batcher.icon(icon, iconX, sy + (height - icon.h) / 2);
-            }
+            this.renderRowBackground(context, area.x, sy, w, height, true);
+            /* A heading looks like any track but for its double bar, and wears its wash only while
+             * open — a folded one is then a single quiet row, an open one marks where its tracks begin. */
+            RowStyle.row(context.batcher, area.x, sy, w, height, section.color(), expanded, hover, false, SECTION_STRIPE);
+            /* A heading has no icon of its own: its fold arrow stands where a track's icon would. */
+            int iconX = area.x + w - LABEL_RIGHT_PAD - LABEL_ICON_SIZE;
+            this.renderFoldArrow(context, this.getArrowX(area.x, w, false) + LABEL_ARROW_SIZE / 2F, sy + height / 2, expanded);
 
             if (w > LABEL_COMPACT_WIDTH)
             {
                 FontRenderer font = context.batcher.getFont();
-                int right = (hasIcon ? iconX - LABEL_TEXT_ICON_GAP : area.x + w - LABEL_RIGHT_PAD) - LABEL_ARROW_SIZE;
-                int textX = area.x + LABEL_TEXT_LEFT + this.getIndent(section.depth());
+                int right = iconX - LABEL_TEXT_ICON_GAP;
+                int textX = area.x + SECTION_TEXT_LEFT + this.getIndent(section.depth());
                 String title = font.limitToWidth(section.title().get(), Math.max(0, right - textX));
                 context.batcher.textShadow(title, textX, sy + (height - font.getHeight()) / 2,
                     hover ? Colors.WHITE : Colors.setA(Colors.WHITE, 0.75F));
@@ -1388,7 +1391,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         {
             FontRenderer font = context.batcher.getFont();
             int textColor = hover ? Colors.WHITE : Colors.setA(Colors.WHITE, 0.75F);
-            int textX = lx + LABEL_TEXT_LEFT + this.getSheetIndent(sheet);
+            int textX = lx + (sheet.section == null ? LABEL_TEXT_LEFT : SECTION_TEXT_LEFT) + this.getSheetIndent(sheet);
             int textRight = hasIcon ? iconX - LABEL_TEXT_ICON_GAP : lx + w - LABEL_RIGHT_PAD;
 
             if (foldable)
@@ -1427,16 +1430,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
             if (y + height < area.y || y > area.ey()) continue;
 
-            int color = entry.getKey().color();
-
-            /* The heading's wash runs on across the timeline, so its row reads as a heading over
-             * the tracks and not as one more track to key. */
             this.renderRowBackground(context, area.x, y, area.w, height, false);
-            context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(color, SECTION_BAND_ALPHA));
 
             if (area.isInside(context) && context.mouseY >= y && context.mouseY < y + height)
             {
-                context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(color, SECTION_HOVER_ALPHA));
+                context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(entry.getKey().color(), SECTION_HOVER_ALPHA));
             }
         }
 

@@ -117,7 +117,7 @@ public class TimelineBodyPartSelection
             if (sheet.section == null)
             {
                 UIKeyframeSheet.Section part = shown.size() > 1 ? parts.computeIfAbsent(path, key -> new UIKeyframeSheet.Section(
-                    "body_part/" + key, IKey.constant(names.getOrDefault(key, key)), sheet.descriptor.owner().getIcon(), 0x40bfff)) : null;
+                    "body_part/" + key, IKey.constant(names.getOrDefault(key, key)), 0x40bfff)) : null;
                 sheet.section = group == null ? part : groups.computeIfAbsent(path + "/" + group.id, key -> group.section(path, part));
             }
 
