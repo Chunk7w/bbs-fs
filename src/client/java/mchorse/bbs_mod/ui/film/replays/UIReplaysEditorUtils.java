@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.film.replays;
 
+import mchorse.bbs_mod.api.client.editor.TrackCategory;
 import mchorse.bbs_mod.ui.utils.SplineKeyframeEditor;
 
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
@@ -70,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,13 +94,13 @@ public class UIReplaysEditorUtils
     }
 
     /** Shared read-only search catalog for film and state editors. */
-    public static List<TrackSearchEntry> formSearchEntries(Form root, UIForms parts, boolean animationState)
+    public static List<TrackSearchEntry> formSearchEntries(Form root, boolean animationState)
     {
         List<TrackSearchEntry> entries = new ArrayList<>();
         /* No FormProperties: opening the navigator must not create channels. */
         List<TrackDescriptor> catalog = TrackCatalog.of(root);
         Map<String, String> names = new HashMap<>();
-        for (var part : parts.getList()) names.put(part.getPath(), part.toString());
+        for (var part : UIForms.entries(root)) names.put(part.getPath(), part.toString());
 
         for (TrackDescriptor track : catalog)
         {
@@ -291,6 +293,70 @@ public class UIReplaysEditorUtils
     }
 
     /** Remove links to filtered rows while keeping their surviving children accessible. */
+    /**
+     * A category doesn't filter a timeline, it folds it: every owner and heading without the
+     * category's tracks folds, the owners with them open (the first one brought to the top), and the
+     * headings inside keep their own folds. Nothing leaves the timeline, so whatever folded is one
+     * row away. A category with nothing on the timeline (BBSFP's clip tab shows clips instead)
+     * leaves the folds be.
+     */
+    public static void foldToCategory(UIKeyframeEditor editor, FoldState<String> folds, TrackCategory category)
+    {
+        if (editor == null)
+        {
+            return;
+        }
+
+        Set<UIKeyframeSheet.Section> all = new LinkedHashSet<>();
+        Set<UIKeyframeSheet.Section> with = new HashSet<>();
+
+        for (UIKeyframeSheet sheet : editor.view.getSheets())
+        {
+            boolean ofCategory = UIReplaysEditor.categoryOf(sheet) == category;
+
+            for (UIKeyframeSheet.Section section = sheet.section; section != null; section = section.parent())
+            {
+                all.add(section);
+
+                if (ofCategory)
+                {
+                    with.add(section);
+                }
+            }
+        }
+
+        if (with.isEmpty())
+        {
+            return;
+        }
+
+        UIKeyframeSheet.Section first = null;
+
+        for (UIKeyframeSheet.Section section : all)
+        {
+            if (!with.contains(section))
+            {
+                folds.set(section.id(), false);
+            }
+            else if (section.owner())
+            {
+                folds.set(section.id(), true);
+
+                if (first == null)
+                {
+                    first = section;
+                }
+            }
+        }
+
+        editor.view.getDopeSheet().setExpanded(folds);
+
+        if (first != null)
+        {
+            editor.view.getDopeSheet().revealSection(first.id(), true);
+        }
+    }
+
     public static void pruneTree(List<UIKeyframeSheet> sheets)
     {
         Set<UIKeyframeSheet> present = new HashSet<>(sheets);

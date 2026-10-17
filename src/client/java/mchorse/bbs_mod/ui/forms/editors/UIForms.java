@@ -5,18 +5,14 @@ import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.forms.BodyPart;
 import mchorse.bbs_mod.forms.forms.Form;
-import mchorse.bbs_mod.graphics.window.Window;
-import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIList;
-import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import java.util.function.BiConsumer;
@@ -36,84 +32,53 @@ public class UIForms extends UIList<UIForms.FormEntry>
     /** Where a carried part was let go: the part and its new place among its siblings. */
     public BiConsumer<BodyPart, Integer> onReorder;
 
-    private boolean timelineSelection;
-    private String activePath = "";
-
-    /** Opt-in: ordinary form-editing lists keep their single-object semantics. */
-    public UIForms timelineSelection()
+    /** The form and every part under it, in the tree's order — for what needs the parts without the list. */
+    public static List<FormEntry> entries(Form form)
     {
-        this.timelineSelection = true;
-        this.multi();
-        this.context(menu ->
+        List<FormEntry> entries = new ArrayList<>();
+
+        entries.add(new FormEntry(form, null, 0, 0, true));
+
+        if (form != null)
         {
-            int index = this.getIndexAtCursor(this.getContext());
-            if (index < 0 || index >= this.visible().size()) return;
-            String path = this.visible().get(index).getPath();
-            menu.action(Icons.LIMB, L10n.lang("bbs.ui.timeline.select_branch"), () -> this.selectBranch(path));
-        });
-        return this;
-    }
-
-    private void selectBranch(String path)
-    {
-        this.activePath = path;
-        this.setCurrent(this.list.stream().filter(entry -> path.isEmpty()
-            || entry.getPath().equals(path) || entry.getPath().startsWith(path + "/")).toList());
-        this.fireCallback();
-    }
-
-    public String getActivePath()
-    {
-        List<FormEntry> selected = this.getCurrent();
-        if (selected.stream().noneMatch(entry -> entry.getPath().equals(this.activePath)))
-        {
-            this.activePath = selected.isEmpty() ? "" : selected.get(selected.size() - 1).getPath();
+            collect(entries, form, 1, 0);
         }
-        return this.activePath;
+
+        return entries;
     }
 
-    public void setCurrentPaths(Set<String> paths, String active)
+    private static void collect(List<FormEntry> entries, Form parent, int depth, int lines)
     {
-        this.activePath = active;
-        List<FormEntry> selected = this.list.stream().filter(entry -> paths.contains(entry.getPath())).toList();
-        if (selected.isEmpty() && !this.list.isEmpty()) selected = List.of(this.list.get(0));
-        this.setCurrent(selected);
-        this.getActivePath();
+        List<BodyPart> parts = parent.parts.getAllTyped();
+
+        for (int i = 0; i < parts.size(); i++)
+        {
+            BodyPart part = parts.get(i);
+            boolean last = i == parts.size() - 1;
+
+            entries.add(new FormEntry(parent, part, depth, lines, last));
+
+            if (part.getForm() != null)
+            {
+                collect(entries, part.getForm(), depth + 1, childGuideLines(lines, depth, last));
+            }
+        }
     }
 
-    public Map<String, String> selectedNames(Set<String> paths)
+    /** Each part's name by its path; parts that share a name get their path after it. */
+    public static Map<String, String> names(List<FormEntry> entries)
     {
         Map<String, String> names = new LinkedHashMap<>();
-        for (FormEntry entry : this.list)
+
+        for (FormEntry entry : entries)
         {
-            if (paths.contains(entry.getPath())) names.put(entry.getPath(), entry.toString());
+            names.put(entry.getPath(), entry.toString());
         }
+
         Map<String, Long> counts = names.values().stream().collect(Collectors.groupingBy(v -> v, Collectors.counting()));
         names.replaceAll((path, name) -> counts.get(name) > 1 ? name + " · " + (path.isEmpty() ? "root" : path) : name);
+
         return names;
-    }
-
-    @Override
-    protected boolean pressItem(int index, UIContext context)
-    {
-        if (this.timelineSelection && index >= 0 && index < this.visible().size())
-        {
-            this.activePath = this.visible().get(index).getPath();
-        }
-        return super.pressItem(index, context);
-    }
-
-    @Override
-    protected void applySelectionOnClick(FormEntry item, int index)
-    {
-        if (this.timelineSelection && !Window.isCtrlPressed() && !Window.isShiftPressed())
-        {
-            this.setCurrent(item);
-        }
-        else
-        {
-            super.applySelectionOnClick(item, index);
-        }
     }
 
     public UIForms(Consumer<List<FormEntry>> callback)
@@ -147,12 +112,7 @@ public class UIForms extends UIList<UIForms.FormEntry>
     public void setForm(Form form)
     {
         this.clear();
-
-        this.add(new FormEntry(form, null, 0, 0, true));
-        if (form != null)
-        {
-            this.setupRecursively(form, 1, 0);
-        }
+        this.add(entries(form));
     }
 
     /** Restore a stable selection after a refresh; a removed part returns to the root. */
@@ -180,23 +140,6 @@ public class UIForms extends UIList<UIForms.FormEntry>
         return selected.getPath();
     }
 
-    private void setupRecursively(Form parent, int depth, int lines)
-    {
-        List<BodyPart> parts = parent.parts.getAllTyped();
-
-        for (int i = 0; i < parts.size(); i++)
-        {
-            BodyPart part = parts.get(i);
-            boolean last = i == parts.size() - 1;
-
-            this.add(new FormEntry(parent, part, depth, lines, last));
-
-            if (part.getForm() != null)
-            {
-                this.setupRecursively(part.getForm(), depth + 1, childGuideLines(lines, depth, last));
-            }
-        }
-    }
 
     @Override
     protected void renderElementPart(UIContext context, FormEntry element, int i, int x, int y, boolean hover, boolean selected)
