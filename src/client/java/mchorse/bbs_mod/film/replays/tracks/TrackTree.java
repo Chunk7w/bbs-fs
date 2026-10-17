@@ -28,9 +28,12 @@ public class TrackTree
     /** Headings each timeline's folds have already seen, so only a new one gets its first fold. Folds are kept per replay. */
     private final Map<FoldState<String>, Set<String>> knownGroups = new WeakHashMap<>();
 
+    /** What every form's own heading starts with, its path after it. */
+    public static final String FORM_OWNER = "owner/form/";
+
     public static String ownerId(String path)
     {
-        return "owner/form/" + path;
+        return FORM_OWNER + path;
     }
 
     /**
@@ -147,8 +150,9 @@ public class TrackTree
     /**
      * Whether a heading starts open the first time a timeline shows it. A new heading must not hide
      * tracks that were already in reach: the recording and the form were always shown, and so were
-     * a form's headings. A part was shown only once picked, so its owner starts folded; the
-     * recording's own headings keep the folds they always started with.
+     * a form's headings. A part's owner always starts folded, whenever it turns up, so the list
+     * stays short; its headings inside are open for when it is unfolded. The recording's own
+     * headings keep the folds they always started with.
      */
     private static boolean opensFirst(UIKeyframeSheet.Section section)
     {

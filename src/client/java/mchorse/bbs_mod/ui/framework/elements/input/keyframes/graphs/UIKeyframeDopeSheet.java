@@ -60,6 +60,9 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     /** A heading's bar, twice a track's: the one thing that tells it from the tracks under it. */
     private static final int SECTION_STRIPE = RowStyle.STRIPE * 2;
 
+    /** A heading's summary marks at rest: see-through, they stand for other rows' keys. */
+    private static final float SUMMARY_ALPHA = 0.5F;
+
     /** An owner's filled cell: brighter while open, still there folded. */
     private static final float OWNER_OPEN_ALPHA = 0.14F;
     private static final float OWNER_FOLDED_ALPHA = 0.08F;
@@ -110,10 +113,10 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.dopeSheet.setScroll(y - (this.dopeSheet.area.h - this.getTrackHeight(sheet)) / 2);
     }
     /**
-     * Unfold a heading and the headings it sits in, and bring its row into view: to the top when
-     * asked, otherwise only as far as it takes to show it. Nothing is folded and nothing flashes.
+     * Unfold a heading and the headings it sits in, and scroll it into view with what opened under
+     * it (see {@link #fitSection}). Nothing is folded and nothing flashes.
      */
-    public void revealSection(String id, boolean toTop)
+    public void revealSection(String id)
     {
         UIKeyframeSheet.Section found = null;
 
@@ -137,23 +140,54 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         }
 
         this.updateScrollSize();
+        this.fitSection(found);
+    }
 
-        Integer top = this.sectionYCache.get(found);
+    /**
+     * Scroll as little as it takes to show an open heading with the rows under it: rows coming up
+     * past the bottom edge pull the view down, never past the heading itself, and a heading above
+     * the top edge comes to the top. A heading already in view with all it holds stays put.
+     */
+    private void fitSection(UIKeyframeSheet.Section section)
+    {
+        Integer top = this.sectionYCache.get(section);
 
         if (top == null)
         {
             return;
         }
 
-        int bottom = TOP_MARGIN + top + (int) this.trackHeight - this.dopeSheet.area.h;
+        int height = (int) this.trackHeight;
+        int bottom = top + height;
 
-        if (toTop || this.dopeSheet.getScroll() > top)
+        for (Map.Entry<UIKeyframeSheet, Integer> entry : this.sheetYCache.entrySet())
+        {
+            UIKeyframeSheet sheet = entry.getKey();
+
+            if (sheet.section != null && sheet.section.isIn(section))
+            {
+                bottom = Math.max(bottom, entry.getValue() + this.getTrackHeight(sheet));
+            }
+        }
+
+        for (Map.Entry<UIKeyframeSheet.Section, Integer> entry : this.sectionYCache.entrySet())
+        {
+            if (entry.getKey().isIn(section))
+            {
+                bottom = Math.max(bottom, entry.getValue() + height);
+            }
+        }
+
+        int view = this.dopeSheet.area.h - TOP_MARGIN;
+        double scroll = this.dopeSheet.getScroll();
+
+        if (top < scroll)
         {
             this.dopeSheet.setScroll(top);
         }
-        else if (this.dopeSheet.getScroll() < bottom)
+        else if (bottom > scroll + view)
         {
-            this.dopeSheet.setScroll(bottom);
+            this.dopeSheet.setScroll(Math.min(top, bottom - view));
         }
     }
 
@@ -912,6 +946,12 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 UIKeyframeSheet.Section section = entry.getKey();
                 this.folds.set(section.id(), !this.folds.isExpanded(section.id()));
                 this.updateScrollSize();
+
+                if (this.folds.isExpanded(section.id()))
+                {
+                    this.fitSection(section);
+                }
+
                 return true;
             }
         }
@@ -1794,6 +1834,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
 
             int color = section.color() | Colors.A100;
+            int faded = Colors.setA(section.color(), SUMMARY_ALPHA);
 
             for (SummaryMark mark : this.getSummary(section, area.x - CULL_MARGIN, area.ex() + CULL_MARGIN))
             {
@@ -1801,6 +1842,15 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 boolean toRemove = hover && this.keyframes.isRemovingKeyframe();
 
                 hover = hover || (grabbing != null && grabbing.isInside(mark.x, y));
+
+                /* A heading's marks sum up its tracks' keys, they aren't keys of its own: at rest they
+                 * are see-through, in one layer so the two squares don't stack into a darker core. */
+                if (!hover && !toRemove && !mark.selected)
+                {
+                    shape.renderKeyframe(context, builder, matrix, mark.x, y, 3, faded);
+
+                    continue;
+                }
 
                 int outer = toRemove ? Colors.RED | Colors.A100 : (mark.selected || hover ? Colors.WHITE | Colors.A100 : color);
                 int core = mark.selected ? Colors.ACTIVE | Colors.A100 : color;

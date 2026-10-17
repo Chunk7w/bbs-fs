@@ -25,6 +25,7 @@ import mchorse.bbs_mod.ui.film.replays.overlays.UITrackSearchOverlayPanel;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditor;
 import mchorse.bbs_mod.api.client.editor.TrackCategory;
 import mchorse.bbs_mod.api.client.editor.TrackCategories;
+import mchorse.bbs_mod.ui.film.replays.CategoryFold;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditorUtils;
 import mchorse.bbs_mod.ui.film.replays.overlays.UIAnimationToPoseOverlayPanel;
 import mchorse.bbs_mod.ui.film.replays.overlays.UIKeyframeSheetFilterOverlayPanel;
@@ -162,12 +163,20 @@ public class UIAnimationStateEditor extends UIElement
     private final Map<TrackCategory, UIIcon> categoryButtons = new java.util.LinkedHashMap<>();
     private final List<TrackCategory> visibleCategories = new ArrayList<>();
     private TrackCategory category = TrackCategory.FORM;
-    /** No category asked for. A category only folds, so its tab is lit from the moment it is asked for until everything is unfolded again. */
-    private boolean allMode = true;
+    /**
+     * No category in charge — what unfolding everything leaves. The timeline opens with the first one,
+     * Form, lit without folding anything: a category only folds, so its tab is lit from the moment it
+     * is asked for until everything is unfolded again.
+     */
+    private boolean allMode;
     private Form root;
     /** New with every form edited, like the folds: another form's headings start the way new ones do. */
     private TrackTree trackTree = new TrackTree();
-    /** The part last picked in the viewport or found by search; the track search lists its tracks first. */
+    private final CategoryFold categoryFold = new CategoryFold();
+    /**
+     * The part being worked on: the one last picked in the viewport, found by search, or picked by its
+     * track or a key on the timeline. The Form key arranges it, the track search lists its tracks first.
+     */
     private String activePart = "";
 
     private AnimationState state;
@@ -259,12 +268,12 @@ public class UIAnimationStateEditor extends UIElement
         return this.state;
     }
 
-    /** A category folds the timeline to its tracks: see {@link UIReplaysEditorUtils#foldToCategory}. */
+    /** A category folds the timeline to its tracks, and pages through its headings pressed again: see {@link CategoryFold}. */
     private void setCategory(TrackCategory category)
     {
         this.allMode = false;
         this.category = category;
-        UIReplaysEditorUtils.foldToCategory(this.keyframeEditor, this.expandedTabs, category);
+        this.categoryFold.apply(this.keyframeEditor, this.expandedTabs, category, Window.isShiftPressed(), this.activePart);
     }
 
     /** Everything at once: every owner and heading unfolded, no category in charge. */
@@ -369,7 +378,11 @@ public class UIAnimationStateEditor extends UIElement
          */
         if (!sheets.isEmpty() || hadTracks)
         {
-            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIAnimationStateKeyframes(this.editor, consumer)).target(this.editArea);
+            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIAnimationStateKeyframes(this.editor, () ->
+            {
+                consumer.run();
+                this.focusPicked();
+            })).target(this.editArea);
             this.keyframeEditor.relative(this.timelineArea).x(CATEGORY_BAR_WIDTH).w(1F, -CATEGORY_BAR_WIDTH).h(1F);
             this.keyframeEditor.setUndoId("form_animation_state_keyframe_editor");
             this.keyframeEditor.view.getDopeSheet().setEmptyState(UIKeys.KEYFRAMES_EMPTY_FILTERED, UIKeys.KEYFRAMES_EMPTY_FILTERED_HINT);
@@ -491,6 +504,17 @@ public class UIAnimationStateEditor extends UIElement
             && UIReplaysEditorUtils.revealSearchTrack(this.keyframeEditor, entry, createKeyframe, this.getContext());
     }
 
+    /** A key picked on a part's track puts that part in focus. */
+    private void focusPicked()
+    {
+        UIKeyframeSheet sheet = this.keyframeEditor == null ? null : this.keyframeEditor.view.getPickedSheet();
+
+        if (sheet != null && sheet.descriptor != null)
+        {
+            this.activePart = sheet.descriptor.id().formPath();
+        }
+    }
+
     /** Bring a part's tracks into reach: its owner opens and scrolls into view. Nothing else folds. */
     private void selectPart(String path)
     {
@@ -498,7 +522,7 @@ public class UIAnimationStateEditor extends UIElement
 
         if (this.keyframeEditor != null)
         {
-            this.keyframeEditor.view.getDopeSheet().revealSection(TrackTree.ownerId(path), false);
+            this.keyframeEditor.view.getDopeSheet().revealSection(TrackTree.ownerId(path));
         }
     }
 

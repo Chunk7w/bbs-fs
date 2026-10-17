@@ -108,6 +108,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     public UIReplayPropertiesPanel replayProperties;
 
     private static final int CATEGORY_BAR_WIDTH = 20;
+
+    /** The recording's Position heading: open from the start, and what the 1 key keeps open. */
+    public static final String POSITION_SECTION = "replay_section/position_rotation";
     private final UIElement partHeader = new UIElement()
     {
         @Override
@@ -142,9 +145,10 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     private boolean useActionViewportForNewKeyframes;
     private UIIcon sectionsToggle;
     /**
-     * No category asked for: how the timeline opens, and what unfolding everything goes back to.
-     * A category doesn't filter anything, it only folds, so its tab is lit from the moment it is
-     * asked for until everything is unfolded again. Addons (NPC) light their own tabs by it too.
+     * No category in charge — what unfolding everything leaves. The timeline opens with the first
+     * one, the recording's, lit without folding anything: a category doesn't filter, it only folds,
+     * so its tab is lit from the moment it is asked for until everything is unfolded again. Addons
+     * (NPC) light their own tabs by it too.
      */
     private boolean allMode;
 
@@ -175,7 +179,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     /** The replay the current keyframe timeline was built for. */
     private String timelineReplayId;
     private final TrackTree trackTree = new TrackTree();
-    /** The part last picked in the viewport or found by search; the track search lists its tracks first. */
+    private final CategoryFold categoryFold = new CategoryFold();
+    /**
+     * The part being worked on: the one last picked in the viewport, found by search, or picked by its
+     * track or a key on the timeline. The Form key arranges it, the track search lists its tracks first.
+     */
     private String activePart = "";
     private final Map<String, List<String>> recentTrackSearches = new HashMap<>();
     private TrackSearchEntry revealedSearchTrack;
@@ -356,10 +364,6 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.actionsToggle.highlight(() -> this.actionsMode, Direction.LEFT);
         this.layoutActionsToggle();
 
-        /* Everything at once is the view to open on: a category is a way to fold the rest away, and
-         * folding before the animator has seen what there is hides tracks they came for. */
-        this.setAllTracks();
-
         TrackCategories.registerShortcuts(this.keys(), () -> TrackCategories.values().stream()
             .filter(category -> this.tabButtons.get(category).getParent() != null).toList(), this::setCategory);
 
@@ -395,13 +399,13 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         }
     }
 
-    /** A category folds the timeline to its tracks: see {@link UIReplaysEditorUtils#foldToCategory}. */
+    /** A category folds the timeline to its tracks, and pages through its headings pressed again: see {@link CategoryFold}. */
     private void setCategory(TrackCategory c)
     {
         this.setActionsMode(false);
         this.allMode = false;
         this.category = c;
-        UIReplaysEditorUtils.foldToCategory(this.keyframeEditor, this.getExpandedTracks(), c);
+        this.categoryFold.apply(this.keyframeEditor, this.getExpandedTracks(), c, Window.isShiftPressed(), this.activePart);
     }
 
     /** Unfold a heading and what it sits in, and scroll it into view if it is off screen. Folds nothing. */
@@ -409,7 +413,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     {
         if (this.keyframeEditor != null)
         {
-            this.keyframeEditor.view.getDopeSheet().revealSection(id, false);
+            this.keyframeEditor.view.getDopeSheet().revealSection(id);
         }
     }
 
@@ -428,7 +432,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
             this.category = TrackCategory.REPLAY;
         }
 
-        this.revealSection("replay_section/position_rotation");
+        this.revealSection(POSITION_SECTION);
     }
 
     /** Everything at once: every owner and heading unfolded, no category in charge. */
@@ -494,6 +498,17 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     public Replay getReplay()
     {
         return this.replay;
+    }
+
+    /** A key picked on a form's track puts that form's part in focus; the recording's own tracks leave it be. */
+    private void focusPicked()
+    {
+        UIKeyframeSheet sheet = this.keyframeEditor == null ? null : this.keyframeEditor.view.getPickedSheet();
+
+        if (sheet != null && sheet.descriptor != null)
+        {
+            this.activePart = sheet.descriptor.id().formPath();
+        }
     }
 
     /** Bring a part's tracks into reach: its owner opens and scrolls into view. Nothing else folds. */
@@ -652,7 +667,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         if (!sheets.isEmpty() || filteredOutEverything)
         {
-            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, consumer).absolute())
+            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, () ->
+            {
+                consumer.run();
+                this.focusPicked();
+            }).absolute())
                 .target(this.filmPanel.editArea);
             this.keyframeEditor.relative(this).x(CATEGORY_BAR_WIDTH).y(0).w(1F, -CATEGORY_BAR_WIDTH).h(1F);
             this.keyframeEditor.setUndoId("replay_keyframe_editor");
@@ -939,7 +958,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         return this.expandedTracksByReplay.computeIfAbsent(this.replay == null ? "" : this.replay.getId(), (k) ->
         {
             FoldState<String> folds = new FoldState<>();
-            folds.set("replay_section/position_rotation", true);
+            folds.set(POSITION_SECTION, true);
             return folds;
         });
     }
