@@ -54,6 +54,10 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     private static final int FOLD_DEPTH_STEP = 4;
     private static final float TRACK_BAR_ALPHA = 0.3F;
 
+    /** A heading's colour carried across the timeline, and what the cursor adds over it. */
+    private static final float SECTION_BAND_ALPHA = 0.1F;
+    private static final float SECTION_HOVER_ALPHA = 0.12F;
+
     /** Width of the fold arrow's slot in the name column, left of the icon. */
     private static final int LABEL_ARROW_SIZE = 10;
 
@@ -613,23 +617,15 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     }
 
     /**
-     * Key a heading's whole column as one edit: every animated track inside it, or every track when
-     * none is animated yet. Each keyframe takes what its track already reads there, so nothing moves.
+     * Key a heading's whole column as one edit: every track inside it that is already animated.
+     * A heading only carries on what its tracks started — keying an empty one used to put a key on
+     * every track it holds, when a newcomer meant the one track named after it. Each keyframe takes
+     * what its track already reads there, so nothing moves.
      */
     private boolean addSummaryKeyframes(UIKeyframeSheet.Section section, float tick)
     {
-        List<UIKeyframeSheet> tracks = new ArrayList<>();
-        List<UIKeyframeSheet> animated = new ArrayList<>();
+        List<UIKeyframeSheet> tracks = this.getAnimatedTracks(section);
 
-        for (UIKeyframeSheet sheet : this.sheets)
-        {
-            if (sheet.section == null || !sheet.section.isIn(section)) continue;
-
-            tracks.add(sheet);
-            if (!sheet.channel.isEmpty()) animated.add(sheet);
-        }
-
-        if (!animated.isEmpty()) tracks = animated;
         if (tracks.isEmpty()) return false;
 
         Keyframe first = null;
@@ -638,11 +634,8 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         for (UIKeyframeSheet sheet : tracks) sheet.channel.preNotify(IValueListener.FLAG_UNMERGEABLE);
         for (UIKeyframeSheet sheet : tracks)
         {
-            /* Like a hand-made keyframe: a neighbour's interpolation is inherited, an empty track takes the default. */
-            boolean empty = sheet.channel.isEmpty();
             Keyframe keyframe = sheet.ensureKeyframe(tick);
 
-            if (empty) keyframe.getInterpolation().setInterp(BBSSettings.getDefaultKeyframeInterpolation());
             sheet.selection.add(keyframe);
             if (first == null) first = keyframe;
         }
@@ -651,6 +644,19 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.pickKeyframe(first);
 
         return true;
+    }
+
+    /** The tracks inside a heading that already have keyframes — the ones a key on the heading goes to. */
+    private List<UIKeyframeSheet> getAnimatedTracks(UIKeyframeSheet.Section section)
+    {
+        List<UIKeyframeSheet> tracks = new ArrayList<>();
+
+        for (UIKeyframeSheet sheet : this.sheets)
+        {
+            if (sheet.section != null && sheet.section.isIn(section) && !sheet.channel.isEmpty()) tracks.add(sheet);
+        }
+
+        return tracks;
     }
 
     /** The heading drawn on the row at this height, if any. */
@@ -1146,7 +1152,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             {
                 this.renderPreviewKeyframe(context, sheet, tick, Colors.WHITE);
             }
-            else if (section != null)
+            else if (section != null && !this.getAnimatedTracks(section).isEmpty())
             {
                 int y = this.getDopeSheetY() + this.sectionYCache.get(section) + (int) this.trackHeight / 2;
 
@@ -1421,12 +1427,16 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
             if (y + height < area.y || y > area.ey()) continue;
 
+            int color = entry.getKey().color();
+
+            /* The heading's wash runs on across the timeline, so its row reads as a heading over
+             * the tracks and not as one more track to key. */
             this.renderRowBackground(context, area.x, y, area.w, height, false);
+            context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(color, SECTION_BAND_ALPHA));
 
             if (area.isInside(context) && context.mouseY >= y && context.mouseY < y + height)
             {
-                context.batcher.box(area.x, y, area.ex(), y + height,
-                    Colors.setA(entry.getKey().color(), 0.12F));
+                context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(color, SECTION_HOVER_ALPHA));
             }
         }
 
