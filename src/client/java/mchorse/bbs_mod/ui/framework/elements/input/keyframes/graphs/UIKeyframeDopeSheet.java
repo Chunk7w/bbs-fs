@@ -54,12 +54,8 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     private static final int FOLD_DEPTH_STEP = 4;
     private static final float TRACK_BAR_ALPHA = 0.3F;
 
-    /** A heading's fill across the timeline, and what the cursor lays over it. */
-    private static final float SECTION_BAND_ALPHA = 0.1F;
+    /** What the cursor lays over a heading's row in the timeline. */
     private static final float SECTION_HOVER_ALPHA = 0.12F;
-
-    /** An owner's fill across the timeline: neutral, like its cell in the names column. */
-    private static final float OWNER_BAND_ALPHA = 0.06F;
 
     /** A heading's bar, twice a track's: the one thing that tells it from the tracks under it. */
     private static final int SECTION_STRIPE = RowStyle.STRIPE * 2;
@@ -1497,18 +1493,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
             if (y + height < area.y || y > area.ey()) continue;
 
-            UIKeyframeSheet.Section section = entry.getKey();
-
             this.renderRowBackground(context, area.x, y, area.w, height, false);
-            /* A heading's row carries its own fill across the timeline, so it doesn't read as one more
-             * track of the zebra: an owner's neutral, a heading's tinted with its colour. */
-            context.batcher.box(area.x, y, area.ex(), y + height, section.owner()
-                ? Colors.setA(Colors.WHITE, OWNER_BAND_ALPHA)
-                : Colors.setA(section.color(), SECTION_BAND_ALPHA));
 
             if (area.isInside(context) && context.mouseY >= y && context.mouseY < y + height)
             {
-                context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(section.color(), SECTION_HOVER_ALPHA));
+                context.batcher.box(area.x, y, area.ex(), y + height, Colors.setA(entry.getKey().color(), SECTION_HOVER_ALPHA));
             }
         }
 
