@@ -21,9 +21,9 @@ public enum FormTrackGroup
 {
     /* In the order the headings show. The rig bends the same skeleton the pose keys, so it follows it. */
     POSE("pose", Icons.POSE, Colors.RED),
-    RIG("rig", Icons.IK, 0x9d6cff),
-    TRANSFORM("transform", Icons.ALL_DIRECTIONS, Colors.GREEN),
-    LOOK("look", Icons.MATERIAL, 0xd9b23f);
+    RIG("rig", Icons.IK, 0xfb7185),
+    TRANSFORM("transform", Icons.ALL_DIRECTIONS, 0x4ade80),
+    LOOK("look", Icons.MATERIAL, 0xfb923c);
 
     private static final Set<String> RIG_PROPERTIES = Set.of("ik", "physics", "spline_ik", "wind", "shake");
 
