@@ -35,12 +35,16 @@ public class UIKeyframeSheet
     /**
      * Display-only grouping: never a channel, selection, or entry in the track filters. A section may
      * sit inside another one (a part's Pose inside the part's heading); folding the outer one hides both.
+     *
+     * <p>The timeline no longer draws a heading's icon — its fold arrow stands there — but the icon
+     * stays: addons (BBSFP, physics, IRLights) build their own sections with one, and a constructor
+     * without it would crash them.</p>
      */
-    public record Section(String id, IKey title, int color, Section parent)
+    public record Section(String id, IKey title, Icon icon, int color, Section parent)
     {
-        public Section(String id, IKey title, int color)
+        public Section(String id, IKey title, Icon icon, int color)
         {
-            this(id, title, color, null);
+            this(id, title, icon, color, null);
         }
 
         /** How many headings this one sits under. */
