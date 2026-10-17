@@ -853,14 +853,13 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     private void collectCuratedSheets(List<UIKeyframeSheet> sheets)
     {
         String[] groups = {"position_rotation", "states", "hotbar", "equipment", "controls", "velocity"};
-        Icon[] icons = {Icons.PLAYER, Icons.ACTION, getIcon("hotbar"), Icons.ARMOR_CHESTPLATE, getIcon("stick_lx"), Icons.FORWARD};
-        int[] colors = {0x40bfff, Colors.ORANGE, Colors.YELLOW, Colors.BLUE, 0xb580ff, Colors.GREEN};
+        int[] colors = {0xe2e8f0, 0x3b82f6, 0xfacc15, 0x38bdf8, 0xa855f7, 0x3b82f6};
 
         for (int i = 0; i < groups.length; i++)
         {
             String group = groups[i];
             UIKeyframeSheet.Section section = new UIKeyframeSheet.Section("replay_section/" + group,
-                L10n.lang("bbs.ui.film.replay.sections." + group), icons[i], colors[i]);
+                L10n.lang("bbs.ui.film.replay.sections." + group), colors[i]);
 
             for (String key : ReplayKeyframes.CURATED_CHANNELS)
             {

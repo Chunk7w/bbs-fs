@@ -36,11 +36,11 @@ public class UIKeyframeSheet
      * Display-only grouping: never a channel, selection, or entry in the track filters. A section may
      * sit inside another one (a part's Pose inside the part's heading); folding the outer one hides both.
      */
-    public record Section(String id, IKey title, Icon icon, int color, Section parent)
+    public record Section(String id, IKey title, int color, Section parent)
     {
-        public Section(String id, IKey title, Icon icon, int color)
+        public Section(String id, IKey title, int color)
         {
-            this(id, title, icon, color, null);
+            this(id, title, color, null);
         }
 
         /** How many headings this one sits under. */

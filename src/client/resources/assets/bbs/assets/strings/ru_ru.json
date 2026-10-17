@@ -1383,6 +1383,7 @@
 	"bbs.ui.model_debug.tip": "Кончик",
 	"bbs.ui.model_debug.target": "Цель",
 	"bbs.ui.model_debug.pole": "Полюс",
+	"bbs.ui.model_debug.controller": "Кость-контроллер",
 	"bbs.ui.model_debug.root": "Корень",
 	"bbs.ui.model_debug.attach": "Крепление",
 	"bbs.ui.model_debug.wind": "Ветер",

@@ -129,8 +129,8 @@ public final class ModelIKDebug
 
                 if (point != null)
                 {
-                    DebugOverlay.marker(builder, stack, config.target.shape.get(), point,
-                        unit * config.target.size.get(), DebugOverlay.rgb(config.target.color.get()), config.opacity.get());
+                    DebugOverlay.marker(builder, stack, config.controller.shape.get(), point,
+                        unit * config.controller.size.get(), DebugOverlay.rgb(config.controller.color.get()), config.opacity.get());
                 }
             }
 
@@ -143,13 +143,13 @@ public final class ModelIKDebug
         RenderSystem.enableDepthTest();
     }
 
-    /** Reuse the target style; an existing visible IK marker already selects the same bone. */
+    /** Controllers have their own element; a visible IK marker on the same bone already selects it. */
     private static Set<String> collectControllers(IModel model, ModelForm form,
         List<ModelIKCache.CompiledChain> chains, ValueIKDebug config)
     {
         Set<String> controllers = new HashSet<>();
 
-        if (!config.target.visible.get())
+        if (!config.controller.visible.get())
         {
             return controllers;
         }
@@ -167,7 +167,10 @@ public final class ModelIKDebug
         {
             if (form.ik.get().get(chain.tip()).enabled)
             {
-                controllers.remove(chain.target());
+                if (config.target.visible.get())
+                {
+                    controllers.remove(chain.target());
+                }
 
                 if (config.pole.visible.get())
                 {
@@ -215,7 +218,7 @@ public final class ModelIKDebug
         boolean targets = config.target.visible.get();
         boolean poles = config.pole.visible.get();
 
-        if (!config.enabled.get() || (!targets && !poles) || model == null || modelForm == null || stencilMap == null)
+        if (!config.enabled.get() || (!targets && !poles && !config.controller.visible.get()) || model == null || modelForm == null || stencilMap == null)
         {
             return null;
         }
@@ -296,7 +299,7 @@ public final class ModelIKDebug
 
             if (point != null)
             {
-                pickMarker(builder, stack, stencilMap, form, config.target, point, unit, controller);
+                pickMarker(builder, stack, stencilMap, form, config.controller, point, unit, controller);
             }
         }
 
