@@ -1371,6 +1371,7 @@
 	"bbs.ui.forms.editors.model.shake.context.name": "Name...",
 	"bbs.ui.forms.editors.model.shake.context.copy_amplitude": "Copy amplitude",
 	"bbs.ui.forms.editors.model.shake.context.paste_amplitude": "Paste amplitude",
+	"bbs.ui.forms.editors.model.shake.context.reset_amplitude": "Reset amplitude",
 	"bbs.ui.model_debug.enabled": "Show debug",
 	"bbs.ui.model_debug.xray": "Draw through the model",
 	"bbs.ui.model_debug.dashed": "Dashed chain lines",

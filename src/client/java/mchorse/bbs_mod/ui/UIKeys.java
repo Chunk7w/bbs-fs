@@ -685,6 +685,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_NAME = L10n.lang("bbs.ui.forms.editors.model.shake.context.name");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_COPY_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.copy_amplitude");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_PASTE_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.paste_amplitude");
+    public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_RESET_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.reset_amplitude");
     public static final IKey MODEL_DEBUG_ENABLED = L10n.lang("bbs.ui.model_debug.enabled");
     public static final IKey MODEL_DEBUG_XRAY = L10n.lang("bbs.ui.model_debug.xray");
     public static final IKey MODEL_DEBUG_DASHED = L10n.lang("bbs.ui.model_debug.dashed");

@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 /**
  * Every field of a bone's shake, built the same for the shake tab and the shake track's keyframes.
- * Right clicking an amplitude copies or pastes all nine of them at once.
+ * Right clicking an amplitude copies, pastes or resets all nine of them at once.
  */
 public class UIShakeControlFields
 {
@@ -90,6 +90,7 @@ public class UIShakeControlFields
         menu.icon(MenuVerb.COPY, this::copyAmplitude).label(UIKeys.FORMS_EDITORS_MODEL_SHAKE_CONTEXT_COPY_AMPLITUDE);
         menu.icon(MenuVerb.PASTE, this::pasteAmplitude).label(UIKeys.FORMS_EDITORS_MODEL_SHAKE_CONTEXT_PASTE_AMPLITUDE)
             .enabled(Window.getClipboardMap(AMPLITUDE_CLIPBOARD) != null);
+        menu.icon(MenuVerb.RESET, this::resetAmplitude).label(UIKeys.FORMS_EDITORS_MODEL_SHAKE_CONTEXT_RESET_AMPLITUDE);
     }
 
     private void copyAmplitude()
@@ -122,6 +123,17 @@ public class UIShakeControlFields
             c.rotate.set(rotate);
             c.translate.set(translate);
             c.scale.set(scale);
+        });
+    }
+
+    /** Back to the default tremble, as one edit (one undo entry). */
+    private void resetAmplitude()
+    {
+        this.edit.accept((c) ->
+        {
+            c.rotate.set(ShakeControl.DEFAULT.rotate);
+            c.translate.set(ShakeControl.DEFAULT.translate);
+            c.scale.set(ShakeControl.DEFAULT.scale);
         });
     }
 

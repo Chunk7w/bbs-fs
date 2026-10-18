@@ -89,10 +89,10 @@ public final class ModelShakeRuntime
                 controls = form.shake.get();
             }
 
-            /* No control means nothing set yet: a freshly switched on bone holds still. */
-            ShakeControl control = controls.controls.get(bone.getId());
+            /* No control means nothing set yet: a freshly switched on bone shakes the default way. */
+            ShakeControl control = controls.controls.getOrDefault(bone.getId(), ShakeControl.DEFAULT);
 
-            if (control != null && control.strength != 0F)
+            if (control.strength != 0F)
             {
                 shake(rig, control, ticks / TICKS_PER_SECOND, channels(bone.getId(), control.seed));
             }

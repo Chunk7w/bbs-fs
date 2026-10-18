@@ -82,7 +82,7 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
         this.enabled.setEnabled(enabled);
     }
 
-    /** On starts still: every amplitude is zero until one is set. Off means gone, numbers and all. */
+    /** On starts with the default tremble. Off means gone, numbers and all. */
     private void setShakeEnabled(boolean enabled)
     {
         if (this.form == null || this.selectedBone.isEmpty())
@@ -117,7 +117,7 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
         });
     }
 
-    /** The selected bone's own numbers; a bone that has none yet shows the still defaults. */
+    /** The selected bone's own numbers; a bone that has none yet shows the defaults. */
     private ShakeControl currentControl()
     {
         ShakeControl control = this.form == null ? null : this.form.shake.getOriginalValue().controls.get(this.selectedBone);
