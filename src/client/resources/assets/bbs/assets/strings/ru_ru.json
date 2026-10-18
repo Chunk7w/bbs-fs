@@ -1364,6 +1364,8 @@
 	"bbs.ui.forms.editors.model.shake.context.reset": "Сбросить тряску",
 	"bbs.ui.forms.editors.model.shake.context.save": "Сохранить тряску",
 	"bbs.ui.forms.editors.model.shake.context.name": "Имя...",
+	"bbs.ui.forms.editors.model.shake.context.copy_amplitude": "Скопировать амплитуду",
+	"bbs.ui.forms.editors.model.shake.context.paste_amplitude": "Вставить амплитуду",
 	"bbs.ui.model_debug.enabled": "Показать отладку",
 	"bbs.ui.model_debug.xray": "Рисовать сквозь модель",
 	"bbs.ui.model_debug.dashed": "Пунктирные линии цепочек",
