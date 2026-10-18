@@ -47,11 +47,6 @@ public class ShaderMenuBrowser
         this.pages.put(id, title);
     }
 
-    public boolean isPage(String id)
-    {
-        return this.pages.containsKey(id);
-    }
-
     /* === Where it is === */
 
     /** Id of the screen on show */

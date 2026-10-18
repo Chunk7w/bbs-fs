@@ -73,7 +73,7 @@ public class UICurvePicker extends UIOverlayPanel
     /** Animatable options no screen of the menu shows, in the order they're shown */
     private final List<ShaderMenu.Cell> notInMenu = new ArrayList<>();
 
-    public final UITextbox search;
+    private final UITextbox search;
 
     private final UIElement worldGrid;
     private final Header header;

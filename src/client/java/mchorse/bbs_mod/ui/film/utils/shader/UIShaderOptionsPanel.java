@@ -67,7 +67,7 @@ public class UIShaderOptionsPanel extends UIOverlayPanel
     /** Values of options that need a reload, waiting for the bar's Apply */
     private final Map<String, String> pending = new LinkedHashMap<>();
 
-    public final UITextbox search;
+    private final UITextbox search;
 
     private final UIElement profile;
     private final UIShaderScreenTitle screenTitle;
