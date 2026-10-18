@@ -245,9 +245,15 @@ public class CubicRenderer
             }
 
             Vector3f desiredDirWorld = new Vector3f(positions[i + 1]).sub(positions[i]);
+            Quaternionf base = bone.evaluatedRotation();
 
             if (restDirLocal.lengthSquared() < EPS * EPS || desiredDirWorld.lengthSquared() < EPS * EPS)
             {
+                /* Nothing to aim (a bone on its child's pivot): the bone keeps its evaluated rotation, and
+                 * the next bone hangs in the frame that rotation makes. Leaving the frame as it was aimed the
+                 * next bone as if this one did not turn — a rest-rotated elbow on its hand's pivot threw the
+                 * hand 90°. */
+                parentWorld.mul(base);
                 continue;
             }
 
@@ -260,12 +266,12 @@ public class CubicRenderer
 
             if (desiredDirLocal.lengthSquared() < EPS * EPS)
             {
+                parentWorld.mul(base);
                 continue;
             }
 
             desiredDirLocal.normalize();
 
-            Quaternionf base = bone.evaluatedRotation();
             Quaternionf localRot = Matrices.fromToMirroredX(restDirLocal, desiredDirLocal);
 
             localRot.mul(Matrices.twistAbout(base, restDirLocal));
