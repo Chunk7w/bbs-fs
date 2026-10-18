@@ -96,7 +96,6 @@ public class UITrackValue<T>
         if (targets.isEmpty()) return;
         /* Auto-keyframing lands the edit on each track's key at the playhead. */
         boolean cursor = this.editor.getAutoKeyframeTick() != null;
-        boolean stopped = this.editor.stopPlaybackOnValueChange();
 
         for (UIKeyframeSheet target : targets)
         {
@@ -107,12 +106,6 @@ public class UITrackValue<T>
 
                 for (Keyframe<T> key : keys)
                 {
-                    if (stopped)
-                    {
-                        target.selection.clear();
-                        target.selection.add(key);
-                    }
-
                     if (edit != null) edit.accept(key.getValue());
                     else if (cursor && target == this.sheet) key.setValue(this.getFactory().copy(value), false);
                     else target.setValueOn(key, value, before, false);

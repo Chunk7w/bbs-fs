@@ -166,27 +166,12 @@ public class UIFilmKeyframes extends UIKeyframes
     @Override
     public Float getAutoKeyframeTick()
     {
-        if (this.editor == null || !BBSSettings.autoKeyframe.get() && !this.editor.isRunning())
+        if (this.editor == null || !BBSSettings.autoKeyframe.get())
         {
             return null;
         }
 
         return this.getOffset();
-    }
-
-    @Override
-    public boolean stopPlaybackOnValueChange()
-    {
-        if (this.editor == null || BBSSettings.autoKeyframe.get() || !this.editor.isRunning())
-        {
-            return false;
-        }
-
-        float tick = this.getOffset() + this.getClipOffset();
-        this.editor.togglePlayback();
-        this.editor.setCursor(tick);
-
-        return true;
     }
 
     @Override
