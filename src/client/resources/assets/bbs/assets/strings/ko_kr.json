@@ -353,8 +353,6 @@
     "bbs.ui.ffmpeg.error-guide": "브라우저에서 가이드 열기",
     "bbs.ui.ffmpeg.error-guide_link": "https://github.com/mchorse/bbs-mod-wiki/wiki/Setting-up-ffmpeg",
     "bbs.ui.film.controller.control_mode-tooltip": "제어 모드를 종료하려면 %s를 누르세요...",
-    "bbs.ui.film.controller.insert_frame-description": "삽입할 키프레임 그룹을 선택하세요:",
-    "bbs.ui.film.controller.insert_frame-title": "키프레임 삽입",
     "bbs.ui.film.controller.keys.category": "플레이어 컨트롤러",
     "bbs.ui.film.controller.keys.change_camera_mode": "카메라 모드 변경",
     "bbs.ui.film.controller.keys.cycle_editors": "편집기 순환",

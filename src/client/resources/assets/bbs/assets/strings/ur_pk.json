@@ -417,8 +417,6 @@
     "bbs.ui.film.title": "فلمیں",
     "bbs.ui.film.video_recording": "ریکارڈنگ %s، روکنے کے لیے %s دبائیں...",
     "bbs.ui.film.controller.control_mode-tooltip": "کنٹرول موڈ سے نکلنے کے لیے %s دبائیں...",
-    "bbs.ui.film.controller.insert_frame-description": "وہ کی فریم گروپ منتخب کریں جسے آپ داخل کرنا چاہتے ہیں:",
-    "bbs.ui.film.controller.insert_frame-title": "کی فریم داخل کریں",
     "bbs.ui.film.controller.record-description": "وہ کی فریم گروپ منتخب کریں جسے آپ ریکارڈ کرنا چاہتے ہیں:",
     "bbs.ui.film.controller.record-title": "ریکارڈ",
     "bbs.ui.film.controller.server_warning": "جس سرور پر BBS موڈ نصب نہیں ہے، وہاں پلیئر کنٹرول غیر فعال ہے! پلیئر ریکارڈنگ کے لیے ریکارڈ آؤٹ سائیڈ فیچر استعمال کریں۔",

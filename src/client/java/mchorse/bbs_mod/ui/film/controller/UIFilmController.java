@@ -1110,7 +1110,7 @@ public class UIFilmController extends UIElement implements GizmoViewport
 
         if (this.instantKeyframes)
         {
-            this.keyframes.insertFrame();
+            this.keyframes.insertDrivenFrame();
         }
     }
 

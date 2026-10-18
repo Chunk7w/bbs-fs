@@ -353,8 +353,6 @@
     "bbs.ui.ffmpeg.error-guide": "فتح الدليل في المتصفح",
     "bbs.ui.ffmpeg.error-guide_link": "https://github.com/mchorse/bbs-mod-wiki/wiki/Setting-up-ffmpeg",
     "bbs.ui.film.controller.control_mode-tooltip": "اضغط %s للخروج من وضع التحكم...",
-    "bbs.ui.film.controller.insert_frame-description": "اختر مجموعة الإطارات الرئيسية التي تريد إدخالها:",
-    "bbs.ui.film.controller.insert_frame-title": "إدخال إطار رئيسي",
     "bbs.ui.film.controller.keys.category": "متحكم اللاعب",
     "bbs.ui.film.controller.keys.change_camera_mode": "تغيير وضع الكاميرا",
     "bbs.ui.film.controller.keys.cycle_editors": "تبديل المحررين",

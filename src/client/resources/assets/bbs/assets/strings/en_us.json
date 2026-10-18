@@ -896,8 +896,6 @@
 	"bbs.ui.ffmpeg.pick": "Pick encoder file... (right click for more)",
 	"bbs.ui.film.controller.control_mode-tooltip": "Press %s to exit control mode...",
 	"bbs.ui.film.controller.free_look-tooltip": "Press %s to exit flight mode...",
-	"bbs.ui.film.controller.insert_frame-description": "Pick a keyframe group that you want to insert:",
-	"bbs.ui.film.controller.insert_frame-title": "Insert keyframe",
 	"bbs.ui.film.controller.keys.category": "Player controller",
 	"bbs.ui.film.controller.keys.change_camera_mode": "Change camera mode",
 	"bbs.ui.film.controller.keys.cycle_editors": "Cycle editors",

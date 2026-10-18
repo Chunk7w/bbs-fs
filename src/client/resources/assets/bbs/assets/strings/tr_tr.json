@@ -360,8 +360,6 @@
     "bbs.ui.ffmpeg.error-description": "ffmpeg ayarlanmamış ya da bulunamadı. Ya BBS mod ayarlarından ffmpeg yolunu ayarlayın ya da ? düğmesine tıklayarak kılavuzu okuyun.",
     "bbs.ui.ffmpeg.error-guide": "Rehberi tarayıcıda aç",
     "bbs.ui.film.controller.control_mode-tooltip": "Kontrol modundan çıkmak için %s tuşuna bas...",
-    "bbs.ui.film.controller.insert_frame-description": "Eklemek istediğiniz bir keyframe grubu seçin:",
-    "bbs.ui.film.controller.insert_frame-title": "Keyframe ekle",
     "bbs.ui.film.controller.keys.category": "Oyuncu kontrolcüsü",
     "bbs.ui.film.controller.keys.change_camera_mode": "Kamera modunu değiştir",
     "bbs.ui.film.controller.keys.cycle_editors": "Düzenleyiciyi değiştir",

@@ -891,8 +891,6 @@
 	"bbs.ui.ffmpeg.pick": "Выбрать файл кодировщика... (ПКМ — больше)",
 	"bbs.ui.film.controller.control_mode-tooltip": "Нажмите на %s чтобы отключить контроль...",
 	"bbs.ui.film.controller.free_look-tooltip": "Нажмите на %s чтобы выйти из полёта...",
-	"bbs.ui.film.controller.insert_frame-description": "Выберите ключевую группу которую Вы хотите вставить:",
-	"bbs.ui.film.controller.insert_frame-title": "Вставить ключевой кадр",
 	"bbs.ui.film.controller.keys.category": "Контролер игрока",
 	"bbs.ui.film.controller.keys.change_camera_mode": "Изменить режим камеры",
 	"bbs.ui.film.controller.keys.cycle_editors": "Переключить редакторы",

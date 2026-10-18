@@ -383,8 +383,6 @@
     "bbs.ui.ffmpeg.error-guide": "Otwórz przewodnik w przeglądarce",
     "bbs.ui.ffmpeg.find": "Znajdź ffmpeg.exe...",
     "bbs.ui.film.controller.control_mode-tooltip": "Naciśnij %s aby wyjść z trybu kontroli...",
-    "bbs.ui.film.controller.insert_frame-description": "Wybierz grupę klatek, którą chcesz wstawić:",
-    "bbs.ui.film.controller.insert_frame-title": "Wstaw klatkę",
     "bbs.ui.film.controller.keys.category": "Kontroler gracza",
     "bbs.ui.film.controller.keys.change_camera_mode": "Zmień tryb kamery",
     "bbs.ui.film.controller.keys.cycle_editors": "Edytory cyklów",

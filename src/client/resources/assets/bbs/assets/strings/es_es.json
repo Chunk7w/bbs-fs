@@ -376,8 +376,6 @@
     "bbs.ui.ffmpeg.error-guide": "Abrir guía en el navegador",
     "bbs.ui.ffmpeg.find": "Buscar ffmpeg.exe...",
     "bbs.ui.film.controller.control_mode-tooltip": "Presiona %s para salir del modo de control...",
-    "bbs.ui.film.controller.insert_frame-description": "Elije un grupo de fotogramas clave que desees insertar:",
-    "bbs.ui.film.controller.insert_frame-title": "Insertar fotograma clave",
     "bbs.ui.film.controller.keys.category": "Controlador del jugador",
     "bbs.ui.film.controller.keys.change_camera_mode": "Cambiar el modo de la cámara",
     "bbs.ui.film.controller.keys.cycle_editors": "Alternar editores",

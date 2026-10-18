@@ -291,8 +291,6 @@
     "bbs.ui.ffmpeg.error-description": "ffmpeg tidak diatur, atau tidak ditemukan. Atur jalur ke ffmpeg di pengaturan mod BBS atau baca panduan dengan mengklik tombol ?.",
     "bbs.ui.ffmpeg.error-guide": "Buka panduan di browser",
     "bbs.ui.ffmpeg.error-guide_link": "https://github.com/mchorse/bbs-mod-wiki/wiki/Setting-up-ffmpeg",
-    "bbs.ui.film.controller.insert_frame-description": "Pilih grup keyframe yang ingin Anda sisipkan:",
-    "bbs.ui.film.controller.insert_frame-title": "Sisipkan keyframe",
     "bbs.ui.film.controller.keys.category": "Pengontrol pemain",
     "bbs.ui.film.controller.keys.cycle_editors": "Siklus editor",
     "bbs.ui.film.controller.keys.insert_frame": "Sisipkan keyframe",

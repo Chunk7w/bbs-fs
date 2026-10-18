@@ -371,8 +371,6 @@
     "bbs.ui.ffmpeg.error-guide": "Öffne Anleitung im Browser",
     "bbs.ui.ffmpeg.find": "Finde ffmpeg.exe...",
     "bbs.ui.film.controller.control_mode-tooltip": "Drücke %s um den Kontroll-Modus zu verlassen...",
-    "bbs.ui.film.controller.insert_frame-description": "Wähle eine Keyframe-Gruppe die du einfügen möchtest:",
-    "bbs.ui.film.controller.insert_frame-title": "Keyframe einfügen",
     "bbs.ui.film.controller.keys.category": "Player Controller",
     "bbs.ui.film.controller.keys.change_camera_mode": "Kamera-Modus ändern",
     "bbs.ui.film.controller.keys.cycle_editors": "Editoren durchzyklen",

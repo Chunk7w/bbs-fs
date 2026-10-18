@@ -963,12 +963,6 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         });
     }
 
-    /** Pose tracks unfolded right now — what {@code insertFrame} keys by, per limb or as a whole pose. */
-    public FoldState<String> getExpandedPoseTabIds()
-    {
-        return this.getExpandedTracks();
-    }
-
     public void setTimelineVisible(boolean visible)
     {
         this.timelineVisible = visible;

@@ -430,8 +430,6 @@
     "bbs.ui.film.title": "Filmes",
     "bbs.ui.film.video_recording": "Gravando %s, pressione %s para parar.",
     "bbs.ui.film.controller.control_mode-tooltip": "Pressionar %s para sair do modo de controle",
-    "bbs.ui.film.controller.insert_frame-description": "Escolha um grupo de quadros-chave que você deseja inserir:",
-    "bbs.ui.film.controller.insert_frame-title": "Inserir quadro-chave",
     "bbs.ui.film.controller.record-description": "Escolha um grupo de quadros-chave que você deseja gravar:",
     "bbs.ui.film.controller.record-title": "Gravar",
     "bbs.ui.film.controller.server_warning": "O controle do jogador está desabilitado nos servidores que não possuem o mod BBS instalado! Use o recurso de gravação externa para gravação do jogador.",

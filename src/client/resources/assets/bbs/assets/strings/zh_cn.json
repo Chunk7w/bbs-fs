@@ -752,8 +752,6 @@
     "bbs.ui.film.backups.title": "备份",
     "bbs.ui.film.controller.control_mode-tooltip": "按下 %s 退出控制模式...",
     "bbs.ui.film.controller.free_look-tooltip": "按 %s 退出飞行模式...",
-    "bbs.ui.film.controller.insert_frame-description": "选择要插入的关键帧组：",
-    "bbs.ui.film.controller.insert_frame-title": "插入关键帧",
     "bbs.ui.film.controller.record-description": "选择要录制的关键帧组：",
     "bbs.ui.film.controller.record-title": "录制",
     "bbs.ui.film.controller.server_warning": "在未安装 BBS mod 的服务器中将禁用玩家控制！请使用外部录制功能进行玩家录制。",

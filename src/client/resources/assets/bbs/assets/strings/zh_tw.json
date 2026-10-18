@@ -406,8 +406,6 @@
     "bbs.ui.ffmpeg.error-guide_link": "https://www.yuque.com/mhmzh/bbs-mod/ffmpeg",
     "bbs.ui.ffmpeg.find": "搜索 ffmpeg.exe...",
     "bbs.ui.film.controller.control_mode-tooltip": "按下 %s 退出控制模式...",
-    "bbs.ui.film.controller.insert_frame-description": "選擇要插入的關鍵幀組：",
-    "bbs.ui.film.controller.insert_frame-title": "插入關鍵幀",
     "bbs.ui.film.controller.keys.category": "玩家控制器",
     "bbs.ui.film.controller.keys.change_camera_mode": "更改相機模式",
     "bbs.ui.film.controller.keys.cycle_editors": "循環切換編輯器",

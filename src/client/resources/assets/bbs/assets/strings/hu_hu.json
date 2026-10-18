@@ -389,8 +389,6 @@
     "bbs.ui.ffmpeg.error-guide": "Útmutató megnyitása a böngészőben",
     "bbs.ui.ffmpeg.find": "ffmpeg.exe keresése...",
     "bbs.ui.film.controller.control_mode-tooltip": "Nyomd meg a %s gombot, hogy kilépj a vezérlési módból…",
-    "bbs.ui.film.controller.insert_frame-description": "Válassz egy kulcsképkocka-csoportot, amit be szeretnél illeszteni: ",
-    "bbs.ui.film.controller.insert_frame-title": "Képkocka beillesztés",
     "bbs.ui.film.controller.keys.category": "Játékosvezérlő",
     "bbs.ui.film.controller.keys.change_camera_mode": "Kamera mód váltása",
     "bbs.ui.film.controller.keys.cycle_editors": "Ciklus szerkesztők",
