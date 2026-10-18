@@ -170,10 +170,9 @@ public class TrackStyle
         putIcons(Icons.Y, "y", "vY", "offsetY", "offset_y", "anchorY");
         putIcons(Icons.Z, "z", "vZ", "offset_z");
 
-        /* Rotations, by the plane they turn in */
-        /* Two pairs, each pair alike: the actor's own yaw and pitch, then the head's and the body's. */
-        putIcons(Icons.VERTICAL, "yaw", "pitch", "scattering_pitch");
-        putIcons(Icons.HORIZONTAL, "headYaw", "bodyYaw", "scattering_yaw", "max");
+        /* Rotations, by the plane they turn in: every yaw turns sideways, every pitch up and down. */
+        putIcons(Icons.VERTICAL, "pitch", "scattering_pitch");
+        putIcons(Icons.HORIZONTAL, "yaw", "headYaw", "bodyYaw", "scattering_yaw", "max");
         ICONS.put("rotation", Icons.ORBIT);
 
         /* Movement and state of the actor */
@@ -186,6 +185,10 @@ public class TrackStyle
         ICONS.put("velocity", Icons.ARROW_RIGHT);
         ICONS.put("leaning", Icons.ARC);
         ICONS.put("roll", Icons.ORBIT);
+
+        /* The camera: its view cone, and how far it backs off from the point it looks at */
+        ICONS.put("fov", Icons.FRUSTUM);
+        ICONS.put("distance", Icons.MOVE_TO);
 
         /* The form itself */
         ICONS.put("visible", Icons.VISIBLE);

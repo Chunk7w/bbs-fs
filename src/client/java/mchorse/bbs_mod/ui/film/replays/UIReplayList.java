@@ -1728,7 +1728,7 @@ public class UIReplayList extends UIList<ReplayListEntry>
 
     private void fromModelBlock(ModelBlockEntity modelBlock)
     {
-        this.showNewReplay(ReplayFactory.fromModelBlock(this.panel.getData(), modelBlock));
+        this.showNewReplay(ReplayFactory.fromModelBlock(this.panel.getData(), this.panel.getCursor(), modelBlock));
 
         /* The replay now shows the form at the same spot, so the block is switched off
          * rather than left drawing a second copy on top of it. */
@@ -1783,7 +1783,7 @@ public class UIReplayList extends UIList<ReplayListEntry>
             return;
         }
 
-        this.showNewReplay(ReplayFactory.fromStructure(film, id, min, size));
+        this.showNewReplay(ReplayFactory.fromStructure(film, this.panel.getCursor(), id, min, size));
     }
 
     public void addReplay(Vector3d position, float pitch, float yaw)
@@ -1795,7 +1795,7 @@ public class UIReplayList extends UIList<ReplayListEntry>
             return;
         }
 
-        Replay replay = ReplayFactory.atPosition(film, position, pitch, yaw, !Window.isShiftPressed());
+        Replay replay = ReplayFactory.atPosition(film, this.panel.getCursor(), position, pitch, yaw, !Window.isShiftPressed());
 
         this.showNewReplay(replay);
         this.openFormEditor(replay.form, false, null);
@@ -1804,6 +1804,7 @@ public class UIReplayList extends UIList<ReplayListEntry>
     /** The tail every way of adding a replay shares: rebuild the rows, focus the newcomer. */
     private void showNewReplay(Replay replay)
     {
+        this.panel.replayEditor.keepTimeViewFor(replay);
         this.refreshReplayList();
         this.update();
         this.panel.replayEditor.setReplay(replay);

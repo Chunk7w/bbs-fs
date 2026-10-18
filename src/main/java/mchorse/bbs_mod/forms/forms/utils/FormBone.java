@@ -4,11 +4,9 @@ import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.ik.IKControl;
 import mchorse.bbs_mod.cubic.ik.JointDoF;
 import mchorse.bbs_mod.cubic.physics.PhysicsControl;
-import mchorse.bbs_mod.cubic.shake.BoneShake;
 import mchorse.bbs_mod.settings.values.core.ValueBoneConstraint;
 import mchorse.bbs_mod.settings.values.core.ValueBoneIK;
 import mchorse.bbs_mod.settings.values.core.ValueBonePhysics;
-import mchorse.bbs_mod.settings.values.core.ValueBoneShake;
 import mchorse.bbs_mod.settings.values.core.ValueGroup;
 import mchorse.bbs_mod.settings.values.core.ValueJointDoF;
 import mchorse.bbs_mod.settings.values.core.ValueString;
@@ -79,9 +77,9 @@ public class FormBone extends ValueGroup
     public final ValueFloat physicsGravityRotateZ = new ValueFloat("physics_gravity_rotate_z", 0F);
     public final ValueBonePhysics physics = new ValueBonePhysics("physics", new PhysicsControl());
 
-    /* The bone's shake: its character is a static setting here, its animatable strength lives
-     * in the form's shake track, keyed by this bone. */
-    public final ValueBoneShake shake = new ValueBoneShake("shake", new BoneShake());
+    /* Whether the bone shakes. How it shakes lives in the form's shake controls, keyed by this
+     * bone, so a keyframe of the shake track can change every number of it. */
+    public final ValueBoolean shake = new ValueBoolean("shake", false);
 
     public FormBone(String id)
     {
@@ -137,7 +135,7 @@ public class FormBone extends ValueGroup
     /** Whether this bone's shake is switched on. */
     public boolean hasShake()
     {
-        return this.shake.get().enabled;
+        return this.shake.get();
     }
 
     /** Whether this bone is the root of a configured physics chain. */
@@ -177,6 +175,6 @@ public class FormBone extends ValueGroup
             && this.physicsGravityRotateY.get() == 0F
             && this.physicsGravityRotateZ.get() == 0F
             && this.physics.get().isDefault()
-            && this.shake.get().isDefault();
+            && !this.shake.get();
     }
 }

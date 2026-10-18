@@ -110,14 +110,12 @@ public class UIKeys
     public static final IKey CAMERA_PANELS_CURVES_CHROMA_SKY_COLOR = L10n.lang("bbs.ui.camera.panels.curves.chroma_sky_color");
     public static final IKey CAMERA_PANELS_CURVES_WORLD = L10n.lang("bbs.ui.camera.panels.curves.world");
     public static final IKey CAMERA_PANELS_CURVES_SHADER = L10n.lang("bbs.ui.camera.panels.curves.shader");
-    public static final IKey CAMERA_PANELS_CURVES_SHADER_SECTION = L10n.lang("bbs.ui.camera.panels.curves.shader_section");
     public static final IKey CAMERA_PANELS_CURVES_NOT_IN_MENU = L10n.lang("bbs.ui.camera.panels.curves.not_in_menu");
     public static final IKey CAMERA_PANELS_CURVES_NO_SHADERS = L10n.lang("bbs.ui.camera.panels.curves.no_shaders");
     public static final IKey CAMERA_PANELS_CURVES_FOUND = L10n.lang("bbs.ui.camera.panels.curves.found");
     public static final IKey CAMERA_PANELS_CURVES_NOT_FOUND = L10n.lang("bbs.ui.camera.panels.curves.not_found");
     public static final IKey CAMERA_PANELS_CURVE_ADD = L10n.lang("bbs.ui.camera.panels.curve.add");
     public static final IKey CAMERA_PANELS_CURVE_REMOVE = L10n.lang("bbs.ui.camera.panels.curve.remove");
-    public static final IKey CAMERA_PANELS_CURVE_CREATE = L10n.lang("bbs.ui.camera.panels.curve.create");
     public static final IKey CAMERA_PANELS_DETERMINISTIC = L10n.lang("bbs.ui.camera.panels.deterministic");
     public static final IKey CAMERA_PANELS_DETERMINISTIC_TOOLTIP = L10n.lang("bbs.ui.camera.panels.deterministic_tooltip");
     public static final IKey CAMERA_PANELS_DISTANCE = L10n.lang("bbs.ui.camera.panels.distance");
@@ -285,8 +283,6 @@ public class UIKeys
 
     public static final IKey FILM_CONTROLLER_CONTROL_MODE_TOOLTIP = L10n.lang("bbs.ui.film.controller.control_mode-tooltip");
     public static final IKey FILM_CONTROLLER_FREE_LOOK_TOOLTIP = L10n.lang("bbs.ui.film.controller.free_look-tooltip");
-    public static final IKey FILM_CONTROLLER_INSERT_FRAME_DESCRIPTION = L10n.lang("bbs.ui.film.controller.insert_frame-description");
-    public static final IKey FILM_CONTROLLER_INSERT_FRAME_TITLE = L10n.lang("bbs.ui.film.controller.insert_frame-title");
     public static final IKey FILM_CONTROLLER_KEYS_CATEGORY = L10n.lang("bbs.ui.film.controller.keys.category");
     public static final IKey FILM_CONTROLLER_KEYS_CHANGE_CAMERA_MODE = L10n.lang("bbs.ui.film.controller.keys.change_camera_mode");
     public static final IKey FILM_CONTROLLER_KEYS_CYCLE_EDITORS = L10n.lang("bbs.ui.film.controller.keys.cycle_editors");
@@ -373,7 +369,6 @@ public class UIKeys
     public static final IKey FILM_SHADER_APPLY = L10n.lang("bbs.ui.film.shader.apply");
     public static final IKey FILM_SHADER_DISCARD = L10n.lang("bbs.ui.film.shader.discard");
     public static final IKey FILM_SHADER_RELOAD = L10n.lang("bbs.ui.film.shader.reload");
-    public static final IKey FILM_SHADER_CURVE = L10n.lang("bbs.ui.film.shader.curve");
     public static final IKey SNOWSTORM_PANELS_GENERAL = L10n.lang("bbs.ui.snowstorm.panels.general");
     public static final IKey SNOWSTORM_PANELS_EMITTER = L10n.lang("bbs.ui.snowstorm.panels.emitter");
     public static final IKey SNOWSTORM_PANELS_PARTICLE = L10n.lang("bbs.ui.snowstorm.panels.particle");
@@ -685,6 +680,9 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_RESET = L10n.lang("bbs.ui.forms.editors.model.shake.context.reset");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_SAVE = L10n.lang("bbs.ui.forms.editors.model.shake.context.save");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_NAME = L10n.lang("bbs.ui.forms.editors.model.shake.context.name");
+    public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_COPY_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.copy_amplitude");
+    public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_PASTE_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.paste_amplitude");
+    public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_RESET_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.reset_amplitude");
     public static final IKey MODEL_DEBUG_ENABLED = L10n.lang("bbs.ui.model_debug.enabled");
     public static final IKey MODEL_DEBUG_XRAY = L10n.lang("bbs.ui.model_debug.xray");
     public static final IKey MODEL_DEBUG_DASHED = L10n.lang("bbs.ui.model_debug.dashed");
@@ -1860,6 +1858,7 @@ public class UIKeys
     public static final IKey UTILITY_WORLD_UNAVAILABLE = L10n.lang("bbs.ui.utility.world_unavailable");
     public static final IKey UTILITY_SHADERS = L10n.lang("bbs.ui.utility.shaders");
     public static final IKey UTILITY_SHADERS_OFF = L10n.lang("bbs.ui.utility.shaders_off");
+    public static final IKey UTILITY_SHADER_OPTIONS = L10n.lang("bbs.ui.utility.shader_options");
     public static final IKey UTILITY_OPEN_SHADERS = L10n.lang("bbs.ui.utility.open_shaders");
     public static final IKey UTILITY_IRIS_REQUIRED = L10n.lang("bbs.ui.utility.iris_required");
     public static final IKey UTILITY_SHADER_ERROR = L10n.lang("bbs.ui.utility.shader_error");
@@ -1873,20 +1872,13 @@ public class UIKeys
     public static final IKey UTILITY_EXECUTE_DEFAULT_COMMANDS = L10n.lang("studio.ui.utility.execute_default_commands");
     public static final IKey UTILITY_LANG_EDITOR = L10n.lang("studio.ui.utility.lang_editor");
     public static final IKey UTILITY_LANG_LABEL = L10n.lang("studio.ui.utility.lang");
-    public static final IKey UTILITY_OPEN_AUDIO_EDITOR = L10n.lang("studio.ui.utility.open_audio_editor");
-    public static final IKey UTILITY_OPEN_AUDIO_FOLDER = L10n.lang("studio.ui.utility.open_audio_folder");
-    public static final IKey UTILITY_OPEN_VIDEO_FOLDER = L10n.lang("studio.ui.utility.open_video_folder");
-    public static final IKey UTILITY_OPEN_FOLDER = L10n.lang("studio.ui.utility.open_folder");
-    public static final IKey UTILITY_OPEN_FONTS_FOLDER = L10n.lang("studio.ui.utility.open_fonts_folder");
     public static final IKey UTILITY_OPEN_GAME_FOLDER = L10n.lang("studio.ui.utility.open_game_folder");
-    public static final IKey UTILITY_OPEN_MODELS_FOLDER = L10n.lang("studio.ui.utility.open_models_folder");
     public static final IKey UTILITY_RELOAD_LABEL = L10n.lang("studio.ui.utility.reload");
     public static final IKey UTILITY_RELOAD_LANG = L10n.lang("studio.ui.utility.reload_lang");
     public static final IKey UTILITY_RELOAD_MODELS = L10n.lang("studio.ui.utility.reload_models");
     public static final IKey UTILITY_RELOAD_SOUNDS = L10n.lang("studio.ui.utility.reload_sounds");
     public static final IKey UTILITY_RELOAD_TERRAIN = L10n.lang("studio.ui.utility.reload_terrain");
     public static final IKey UTILITY_RELOAD_TEXTURES = L10n.lang("studio.ui.utility.reload_textures");
-    public static final IKey UTILITY_RESIZE_WINDOW = L10n.lang("studio.ui.utility.resize");
     public static final IKey UTILITY_TITLE = L10n.lang("studio.ui.utility.title");
     public static final IKey CONFIG_PREVIEW_ICONS = L10n.lang("bbs.config.viewport.preview_icons");
     public static final IKey FILM_OPEN_SCREENSHOTS = L10n.lang("bbs.ui.film.open_screenshots");

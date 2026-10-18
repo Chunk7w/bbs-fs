@@ -699,12 +699,14 @@ final class ModelIKApplier
     }
 
     /**
-     * Loads a chain's rest geometry. Cubic rest geometry lives in the
-     * authored pivots (absolute model coordinates), and the lift is the DELTA
-     * of the chain root's current parent frame from its rest orientation;
-     * BOBJ rest geometry lives in the bind matrices, and the lift subtracts
-     * the bind frame the same way (BOBJ ancestors carry authored rest
-     * rotations, so the raw parent frame alone would double-count them).
+     * Loads a chain's rest geometry. Cubic rest geometry is the authored
+     * pivots where the renderer draws them in rest pose (see {@link
+     * #cubicRestPosition} — a pivot is authored before the rest rotations
+     * above it, the chain's own included), and the lift is the DELTA of the
+     * chain root's current parent frame from its rest orientation; BOBJ rest
+     * geometry lives in the bind matrices, and the lift subtracts the bind
+     * frame the same way (BOBJ ancestors carry authored rest rotations, so
+     * the raw parent frame alone would double-count them).
      * {@code null} when the chain is too short or a bone is missing. A chain of
      * one directed bone has no interior joint, so it loads with a null elbow
      * rather than not at all: the elbow is what a virtual pole needs (which side
@@ -723,9 +725,9 @@ final class ModelIKApplier
 
         if (model instanceof Model cubic)
         {
-            ModelGroup root = cubic.getGroup(workIds.get(0));
-            ModelGroup elbow = bent ? cubic.getGroup(workIds.get(1)) : null;
-            ModelGroup effector = cubic.getGroup(workIds.get(workIds.size() - 1));
+            Vector3f root = cubicRestPosition(cubic, workIds.get(0));
+            Vector3f elbow = bent ? cubicRestPosition(cubic, workIds.get(1)) : null;
+            Vector3f effector = cubicRestPosition(cubic, workIds.get(workIds.size() - 1));
 
             if (root == null || effector == null || (bent && elbow == null))
             {
@@ -739,7 +741,7 @@ final class ModelIKApplier
              * chain's ancestors carry, tilting the result even in rest pose. */
             Quaternionf restParent = cubicRestParentRotation(cubic, workIds.get(0));
 
-            return new RestChain(root.initial.translate, elbow == null ? null : elbow.initial.translate, effector.initial.translate, new Quaternionf(rootParentRotation).mul(restParent.conjugate()));
+            return new RestChain(root, elbow, effector, new Quaternionf(rootParentRotation).mul(restParent.conjugate()));
         }
         else if (model instanceof BOBJModel bobj)
         {
@@ -873,7 +875,11 @@ final class ModelIKApplier
         return new Quaternionf(rootStartWorldRotation).conjugate().transform(side);
     }
 
-    /** A bone's authored rest position in model rest space; {@code null} when absent. */
+    /**
+     * A bone's rest position in model rest space — a cubic pivot where the
+     * renderer draws it in rest pose (see {@link #cubicRestPosition}), a BOBJ
+     * bone's bind position; {@code null} when absent.
+     */
     private static Vector3f restPosition(IModel model, String id)
     {
         if (id == null || id.isEmpty())
@@ -881,9 +887,51 @@ final class ModelIKApplier
             return null;
         }
 
+        if (model instanceof Model cubic)
+        {
+            return cubicRestPosition(cubic, id);
+        }
+
         RigBone bone = model.getBone(id);
 
         return bone == null ? null : bone.getRestTranslation();
+    }
+
+    /**
+     * Where the renderer draws a cubic bone's pivot in rest pose, in model rest
+     * space: the authored pivot ({@code initial.translate}) carried through the
+     * authored rest rotation ({@code initial.rotate}) of every bone above it,
+     * each turning about its own pivot. A chain's own rest rotations count too —
+     * a wrist under a rest-rotated elbow is drawn elsewhere than its authored
+     * pivot, and reading the pivot raw twisted the chain when IK switched on.
+     * A copy of the authored pivot when nothing above carries a rest rotation
+     * (the common case). {@code null} when the bone does not exist.
+     */
+    private static Vector3f cubicRestPosition(Model cubic, String id)
+    {
+        ModelGroup bone = cubic.getGroup(id);
+
+        if (bone == null)
+        {
+            return null;
+        }
+
+        Vector3f position = new Vector3f(bone.initial.translate);
+
+        /* Nearest ancestor first — the renderer's matrix stack read inside out. */
+        for (ModelGroup parent = bone.parent; parent != null; parent = parent.parent)
+        {
+            Vector3f rotate = parent.initial.rotate;
+
+            if (rotate.x != 0F || rotate.y != 0F || rotate.z != 0F)
+            {
+                Vector3f pivot = parent.initial.translate;
+
+                Matrices.toLocalRotationZYXDegrees(rotate).transform(position.sub(pivot)).add(pivot);
+            }
+        }
+
+        return position;
     }
 
     /**

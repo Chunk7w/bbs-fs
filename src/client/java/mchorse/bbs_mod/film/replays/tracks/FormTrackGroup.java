@@ -43,7 +43,13 @@ public enum FormTrackGroup
     /** The heading of one part's tracks of this group, inside the part's own heading if it has one. */
     public UIKeyframeSheet.Section section(String path, UIKeyframeSheet.Section part)
     {
-        return new UIKeyframeSheet.Section("form_section/" + path + "/" + this.id, this.label, this.icon, this.color, part);
+        return new UIKeyframeSheet.Section(this.sectionId(path), this.label, this.icon, this.color, part);
+    }
+
+    /** The id of one part's heading of this group — what its fold is kept under. */
+    public String sectionId(String path)
+    {
+        return "form_section/" + path + "/" + this.id;
     }
 
     /** Null for a track another tab claims, an addon's for one: it is not the Form tab's to sort. */

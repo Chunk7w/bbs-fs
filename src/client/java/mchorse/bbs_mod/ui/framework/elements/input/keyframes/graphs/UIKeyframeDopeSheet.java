@@ -60,6 +60,13 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     /** A heading's bar, twice a track's: the one thing that tells it from the tracks under it. */
     private static final int SECTION_STRIPE = RowStyle.STRIPE * 2;
 
+    /** A heading's summary marks at rest: see-through, they stand for other rows' keys. */
+    private static final float SUMMARY_ALPHA = 0.5F;
+
+    /** An owner's filled cell: brighter while open, still there folded. */
+    private static final float OWNER_OPEN_ALPHA = 0.14F;
+    private static final float OWNER_FOLDED_ALPHA = 0.08F;
+
     /** Width of the fold arrow's slot in the name column, left of the icon. */
     private static final int LABEL_ARROW_SIZE = 10;
 
@@ -102,9 +109,88 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.lastSheet = sheet;
         this.revealedSheet = sheet;
         this.revealUntil = System.currentTimeMillis() + 1400;
-        int y = this.sheetYCache.getOrDefault(sheet, 0) + TOP_MARGIN;
+        int y = this.sheetYCache.getOrDefault(sheet, 0) + this.keyframes.getTopMargin();
         this.dopeSheet.setScroll(y - (this.dopeSheet.area.h - this.getTrackHeight(sheet)) / 2);
     }
+    /**
+     * Unfold a heading and the headings it sits in, and scroll it into view with what opened under
+     * it (see {@link #fitSection}). Nothing is folded and nothing flashes.
+     */
+    public void revealSection(String id)
+    {
+        UIKeyframeSheet.Section found = null;
+
+        for (UIKeyframeSheet.Section section : this.sections)
+        {
+            if (section.id().equals(id))
+            {
+                found = section;
+                break;
+            }
+        }
+
+        if (found == null)
+        {
+            return;
+        }
+
+        for (UIKeyframeSheet.Section section = found; section != null; section = section.parent())
+        {
+            this.folds.set(section.id(), true);
+        }
+
+        this.updateScrollSize();
+        this.fitSection(found);
+    }
+
+    /**
+     * Scroll as little as it takes to show an open heading with the rows under it: rows coming up
+     * past the bottom edge pull the view down, never past the heading itself, and a heading above
+     * the top edge comes to the top. A heading already in view with all it holds stays put.
+     */
+    private void fitSection(UIKeyframeSheet.Section section)
+    {
+        Integer top = this.sectionYCache.get(section);
+
+        if (top == null)
+        {
+            return;
+        }
+
+        int height = (int) this.trackHeight;
+        int bottom = top + height;
+
+        for (Map.Entry<UIKeyframeSheet, Integer> entry : this.sheetYCache.entrySet())
+        {
+            UIKeyframeSheet sheet = entry.getKey();
+
+            if (sheet.section != null && sheet.section.isIn(section))
+            {
+                bottom = Math.max(bottom, entry.getValue() + this.getTrackHeight(sheet));
+            }
+        }
+
+        for (Map.Entry<UIKeyframeSheet.Section, Integer> entry : this.sectionYCache.entrySet())
+        {
+            if (entry.getKey().isIn(section))
+            {
+                bottom = Math.max(bottom, entry.getValue() + height);
+            }
+        }
+
+        int view = this.dopeSheet.area.h - this.keyframes.getTopMargin();
+        double scroll = this.dopeSheet.getScroll();
+
+        if (top < scroll)
+        {
+            this.dopeSheet.setScroll(top);
+        }
+        else if (bottom > scroll + view)
+        {
+            this.dopeSheet.setScroll(Math.min(top, bottom - view));
+        }
+    }
+
     /** Headings drawn right now, by row. One folded inside a folded heading has no row. */
     private final Map<UIKeyframeSheet.Section, Integer> sectionYCache = new LinkedHashMap<>();
 
@@ -192,7 +278,8 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.updateScrollSize();
     }
 
-    private void updateScrollSize()
+    /** Lays the rows out again, after anything that changes their heights or where they start. */
+    public void updateScrollSize()
     {
         this.sheetYCache.clear();
         this.sectionYCache.clear();
@@ -212,7 +299,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
         }
 
-        this.dopeSheet.scrollSize = y + TOP_MARGIN;
+        this.dopeSheet.scrollSize = y + this.keyframes.getTopMargin();
 
         /* The content just changed height, so where the view sits may no longer exist — folding the
          * rows away while scrolled to the bottom used to leave the timeline parked below every
@@ -335,7 +422,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
     public int getDopeSheetY()
     {
-        return this.keyframes.area.y + TOP_MARGIN - (int) this.dopeSheet.getScroll();
+        return this.keyframes.area.y + this.keyframes.getTopMargin() - (int) this.dopeSheet.getScroll();
     }
 
     public int getDopeSheetY(int sheet)
@@ -808,7 +895,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
             double x = keyframe.getTick();
             Integer sheetY = this.sheetYCache.get(sheet);
-            int y = (sheetY == null ? 0 : sheetY) + TOP_MARGIN;
+            int y = (sheetY == null ? 0 : sheetY) + this.keyframes.getTopMargin();
 
             this.keyframes.getXAxis().shiftIntoMiddle(x);
             this.dopeSheet.scrollTo((int) (y - (this.dopeSheet.area.h - this.trackHeight) / 2));
@@ -860,6 +947,12 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 UIKeyframeSheet.Section section = entry.getKey();
                 this.folds.set(section.id(), !this.folds.isExpanded(section.id()));
                 this.updateScrollSize();
+
+                if (this.folds.isExpanded(section.id()))
+                {
+                    this.fitSection(section);
+                }
+
                 return true;
             }
         }
@@ -1068,7 +1161,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         TimelineRulerRenderer.renderGrid(
             context,
             area,
-            TimelineRulerRenderer.getRulerBottom(area),
+            this.keyframes.getRulerBottom(),
             Math.max(ht, 0),
             this.keyframes.getDuration(),
             this.keyframes::toGraphX,
@@ -1081,6 +1174,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
      */
     protected void renderGrid(UIContext context)
     {
+        if (this.keyframes.getTopMargin() <= 0)
+        {
+            return;
+        }
+
         Area area = this.keyframes.graphArea;
         int ht = (int) this.keyframes.fromGraphX(area.x);
         int duration = this.keyframes.getDuration();
@@ -1259,7 +1357,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
          * calls updateScrollSize() itself, and resize() re-clamps the scroll. */
 
         Area area = this.keyframes.graphArea;
-        int rulerBottom = TimelineRulerRenderer.getRulerBottom(area);
+        int rulerBottom = this.keyframes.getRulerBottom();
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
         Matrix4f matrix = context.batcher.getContext().getMatrices().peek().getPositionMatrix();
 
@@ -1272,8 +1370,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     /** Fill the area outside the film with the darkest tonal surface. */
     private void renderOutOfRangeShading(UIContext context, Area area)
     {
-        int timelineBottom = TimelineRulerRenderer.getTimelineBottom(area);
-        int contentY = Math.min(area.ey(), timelineBottom);
+        int contentY = this.keyframes.getRulerBottom();
 
         if (contentY >= area.ey())
         {
@@ -1319,9 +1416,20 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             boolean expanded = this.folds.isExpanded(section.id());
 
             this.renderRowBackground(context, area.x, sy, w, height, true);
-            /* A heading looks like any track but for its double bar, and wears its wash only while
-             * open — a folded one is then a single quiet row, an open one marks where its tracks begin. */
-            RowStyle.row(context.batcher, area.x, sy, w, height, section.color(), expanded, hover, false, SECTION_STRIPE);
+
+            if (section.owner())
+            {
+                /* An owner fills its whole cell — the bar grown to the full width — and stays lit folded
+                 * or not: it is what the headings and tracks under it belong to, not one more of them. */
+                context.batcher.box(area.x, sy, area.x + w, sy + height, Colors.setA(Colors.WHITE, expanded ? OWNER_OPEN_ALPHA : OWNER_FOLDED_ALPHA));
+                RowStyle.row(context.batcher, area.x, sy, w, height, section.color(), false, hover, false, 0);
+            }
+            else
+            {
+                /* A heading looks like any track but for its double bar, and wears its wash only while
+                 * open — a folded one is then a single quiet row, an open one marks where its tracks begin. */
+                RowStyle.row(context.batcher, area.x, sy, w, height, section.color(), expanded, hover, false, SECTION_STRIPE);
+            }
             /* A heading has no icon of its own: its fold arrow stands where a track's icon would. */
             int iconX = area.x + w - LABEL_RIGHT_PAD - LABEL_ICON_SIZE;
             this.renderFoldArrow(context, this.getArrowX(area.x, w, false) + LABEL_ARROW_SIZE / 2F, sy + height / 2, expanded);
@@ -1333,7 +1441,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 int textX = area.x + SECTION_TEXT_LEFT + this.getIndent(section.depth());
                 String title = font.limitToWidth(section.title().get(), Math.max(0, right - textX));
                 context.batcher.textShadow(title, textX, sy + (height - font.getHeight()) / 2,
-                    hover ? Colors.WHITE : Colors.setA(Colors.WHITE, 0.75F));
+                    hover || section.owner() ? Colors.WHITE : Colors.setA(Colors.WHITE, 0.75F));
             }
         }
 
@@ -1731,6 +1839,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
 
             int color = section.color() | Colors.A100;
+            int faded = Colors.setA(section.color(), SUMMARY_ALPHA);
 
             for (SummaryMark mark : this.getSummary(section, area.x - CULL_MARGIN, area.ex() + CULL_MARGIN))
             {
@@ -1738,6 +1847,15 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 boolean toRemove = hover && this.keyframes.isRemovingKeyframe();
 
                 hover = hover || (grabbing != null && grabbing.isInside(mark.x, y));
+
+                /* A heading's marks sum up its tracks' keys, they aren't keys of its own: at rest they
+                 * are see-through, in one layer so the two squares don't stack into a darker core. */
+                if (!hover && !toRemove && !mark.selected)
+                {
+                    shape.renderKeyframe(context, builder, matrix, mark.x, y, 3, faded);
+
+                    continue;
+                }
 
                 int outer = toRemove ? Colors.RED | Colors.A100 : (mark.selected || hover ? Colors.WHITE | Colors.A100 : color);
                 int core = mark.selected ? Colors.ACTIVE | Colors.A100 : color;
@@ -1771,7 +1889,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         }
 
         Area area = this.keyframes.graphArea;
-        int rulerBottom = TimelineRulerRenderer.getRulerBottom(area);
+        int rulerBottom = this.keyframes.getRulerBottom();
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
         Matrix4f matrix = context.batcher.getContext().getMatrices().peek().getPositionMatrix();
 

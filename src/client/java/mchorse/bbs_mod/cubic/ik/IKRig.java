@@ -31,6 +31,12 @@ interface IKRig
     Vector3f restDirection(List<String> chainIds, int i);
 
     /**
+     * The side the chain was modelled bent towards: the normal of its rest bend plane, in the frame
+     * its root's parent rotation lifts into the pose, or null when the rest pose is dead straight.
+     */
+    Vector3f restBendNormal(List<String> chainIds);
+
+    /**
      * Writes the solved chain back onto the bones as orientations, blended by {@code weight}.
      *
      * @param stretchGap how far the effector fell short of its goal, to distribute along the
@@ -71,6 +77,12 @@ interface IKRig
         }
 
         @Override
+        public Vector3f restBendNormal(List<String> chainIds)
+        {
+            return ClassicLimbSolver.cubicRestBendNormal(this.model, chainIds);
+        }
+
+        @Override
         public void buildChainOrientations(List<String> chainIds, List<Vector3f> solved, Quaternionf rootParentRotation, float weight, Quaternionf tipTarget, Vector3f stretchGap, Vector3f bendSeed)
         {
             ClassicLimbSolver.buildChainOrientations(this.model, chainIds, solved, rootParentRotation, weight, tipTarget, stretchGap, bendSeed);
@@ -90,6 +102,12 @@ interface IKRig
         public Vector3f restDirection(List<String> chainIds, int i)
         {
             return ClassicLimbSolver.bobjRestDirection(this.model, chainIds, i);
+        }
+
+        @Override
+        public Vector3f restBendNormal(List<String> chainIds)
+        {
+            return ClassicLimbSolver.bobjRestBendNormal(this.model, chainIds);
         }
 
         @Override

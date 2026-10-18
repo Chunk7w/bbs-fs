@@ -522,9 +522,10 @@ final class ChainSolver
 
     /**
      * Seeds the chain at the current animated pose with zero velocity: every joint on its posed position
-     * plus the virtual tip one rest-length past the last bone. Used on first sight of a chain and when a
-     * scrub or long jump leaves no history to replay. This is a starting point, not a result — the pose is
-     * not a shape the sim can hold, so {@link #step} always settles it before anything renders it.
+     * plus the virtual tip on its pose target, one rest-length past the last bone. Used on first sight of a
+     * chain and when a scrub or long jump leaves no history to replay. This is a starting point, not a
+     * result — the pose is not a shape the sim can hold, so {@link #step} always settles it before anything
+     * renders it.
      */
     private static void seedFromPose(ChainState state, List<PivotFrame> chainFrames, float[] lengths, Vector3f anchor, Quaternionf anchorRotation)
     {
@@ -541,28 +542,37 @@ final class ChainSolver
             state.prev[i].set(p);
         }
 
+        int last = chainFrames.size() - 1;
+        int tip = state.pos.length - 1;
         Vector3f tipDir = new Vector3f();
 
-        if (chainFrames.size() >= 2)
+        if (last >= 1)
         {
-            tipDir.set(state.pos[chainFrames.size() - 1]).sub(state.pos[chainFrames.size() - 2]);
+            /* Toward the tip's pose target, which computePoseTargets has just built along the last bone's
+             * own rotation. The last segment points the way the bone's parent does, so once the last bone
+             * turns off it — a rest rotation, an animated pose — a seed along the segment started the chain
+             * off its pose and threw that turn away at every switch-on and scrub. With no pose target for
+             * the tip (a hard target leaves its slot on the last joint), continue the last segment. */
+            tipDir.set(state.poseLocal[tip]).sub(state.poseLocal[last]);
+            anchorRotation.transform(tipDir);
 
             if (tipDir.lengthSquared() < EPS * EPS)
             {
-                tipDir.set(0F, -1F, 0F);
-            }
-            else
-            {
-                tipDir.normalize();
+                tipDir.set(state.pos[last]).sub(state.pos[last - 1]);
             }
         }
-        else
+
+        if (tipDir.lengthSquared() < EPS * EPS)
         {
             tipDir.set(0F, -1F, 0F);
         }
+        else
+        {
+            tipDir.normalize();
+        }
 
-        state.pos[state.pos.length - 1].set(state.pos[chainFrames.size() - 1]).add(tipDir.mul(lengths[lengths.length - 1]));
-        state.prev[state.prev.length - 1].set(state.pos[state.pos.length - 1]);
+        state.pos[tip].set(state.pos[last]).add(tipDir.mul(lengths[lengths.length - 1]));
+        state.prev[tip].set(state.pos[tip]);
 
         snapshotLocal(state.pos, anchor, anchorRotation, state.settledLocal);
         copyPositions(state.settledLocal, state.settledPrevLocal);

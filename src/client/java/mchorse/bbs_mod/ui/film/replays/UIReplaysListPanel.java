@@ -2,18 +2,13 @@ package mchorse.bbs_mod.ui.film.replays;
 
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.film.replays.Replay;
-import mchorse.bbs_mod.film.replays.tracks.TimelineBodyPartSelection;
 import mchorse.bbs_mod.forms.forms.Form;
-import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.film.UIFilmPanel;
-import mchorse.bbs_mod.ui.forms.editors.UIForms;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.text.UITextbox;
-import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 
 import java.util.List;
@@ -38,15 +33,11 @@ public class UIReplaysListPanel extends UIElement
     public final UITextbox search;
 
     public final UIReplayList replays;
-    public final UIForms bodyParts;
-    private Replay bodyPartsReplay;
-    private final UISection bodyPartsSection = new UISection(L10n.lang("bbs.ui.film.replays.body_parts"));
 
-    public UIReplaysListPanel(UIFilmPanel panel, Consumer<List<Replay>> callback, Consumer<Form> formConsumer, Consumer<List<UIForms.FormEntry>> partConsumer)
+    public UIReplaysListPanel(UIFilmPanel panel, Consumer<List<Replay>> callback, Consumer<Form> formConsumer)
     {
         this.filmPanel = panel;
         this.replays = new UIReplayList(callback, formConsumer, panel);
-        this.bodyParts = new UIForms(partConsumer).timelineSelection();
 
         this.addReplay = new UIIcon(Icons.ADD, (b) -> this.replays.addReplay());
         this.addReplay.tooltip(UIKeys.SCENE_REPLAYS_CONTEXT_ADD);
@@ -62,47 +53,10 @@ public class UIReplaysListPanel extends UIElement
         this.bar.add(this.addReplay, this.search);
 
         this.replays.relative(this.content).x(0).y(0, BAR_HEIGHT).w(1F).h(1F, -BAR_HEIGHT);
-        int padding = UIConstants.MARGIN;
-
-        this.bodyPartsSection.relative(this.content).x(padding).y(1F, -padding).w(1F, -padding * 2).anchorY(1F);
-        this.bodyPartsSection.fields.add(this.bodyParts);
-        /* Lay out the section first: its natural height sets the bottom of the replay list. */
-        this.content.add(this.bar, this.bodyPartsSection, this.replays);
+        this.content.add(this.bar, this.replays);
 
         this.content.relative(this).x(0).y(0).w(1F).h(1F);
         this.add(this.content);
-    }
-
-    public void setBodyPartsReplay(Replay replay, TimelineBodyPartSelection selection)
-    {
-        double scroll = this.bodyPartsReplay == replay ? this.bodyParts.scroll.getScroll() : 0;
-        this.bodyPartsReplay = replay;
-
-        if (replay == null)
-        {
-            this.bodyParts.clear();
-
-            return;
-        }
-
-        this.bodyParts.setForm(replay.form.get());
-        this.bodyParts.scroll.setScroll(scroll);
-
-        selection.restore(this.bodyParts);
-    }
-
-    @Override
-    public void resize()
-    {
-        boolean visible = !TimelineBodyPartSelection.allParts() && this.bodyPartsReplay != null && this.bodyParts.getList().size() > 1;
-        int rowsHeight = this.bodyParts.getList().size() * this.bodyParts.scroll.scrollItemSize;
-        int maxHeight = Math.min(160, this.getFlex().getH() / 2);
-
-        this.bodyParts.h(Math.max(1, Math.min(rowsHeight, maxHeight)));
-        this.bodyPartsSection.setVisible(visible);
-        this.replays.hTo(visible ? this.bodyPartsSection.area : this.content.area, visible ? 0F : 1F);
-
-        super.resize();
     }
 
     @Override
