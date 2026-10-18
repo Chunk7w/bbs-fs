@@ -2093,6 +2093,7 @@
 	"bbs.ui.snowstorm.general.facing.rotate_xyz": "Вращение XYZ",
 	"bbs.ui.snowstorm.general.facing.rotate_y": "Вращение Y",
 	"bbs.ui.snowstorm.general.identifier": "Отображаемое имя этой частицы видимое в списке форм",
+	"bbs.ui.snowstorm.general.particles_add": "Свечение (сложение)",
 	"bbs.ui.snowstorm.general.particles_alpha": "Альфа",
 	"bbs.ui.snowstorm.general.particles_blend": "Смешать",
 	"bbs.ui.snowstorm.general.particles_opaque": "Непрозрачность",
