@@ -342,7 +342,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.replaysList = new UIReplaysListPanel(filmPanel, (l) -> this.setReplay(l.isEmpty() ? null : l.get(0), false, OrbitReaction.SWITCH), this.replayProperties.getFormConsumer());
         this.replayProperties.attachReplayList(this.replaysList.replays);
 
-        this.iconBar = new UITimelineCategoryBar(CATEGORY_BAR_WIDTH * 2);
+        this.iconBar = new UITimelineCategoryBar(CATEGORY_BAR_WIDTH * 2).noSeparator();
         this.iconBar.relative(this);
 
         for (TrackCategory category : TrackCategories.values())
