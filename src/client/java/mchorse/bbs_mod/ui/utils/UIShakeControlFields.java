@@ -117,27 +117,37 @@ public class UIShakeControlFields
             return;
         }
 
-        Vector3f rotate = read(data, "rotate");
-        Vector3f translate = read(data, "translate");
-        Vector3f scale = read(data, "scale");
+        this.setAmplitude(read(data, "rotate"), read(data, "translate"), read(data, "scale"));
+    }
 
+    /** All nine to zero, the bone holding still, as one edit (one undo entry). */
+    private void resetAmplitude()
+    {
+        this.setAmplitude(new Vector3f(), new Vector3f(), new Vector3f());
+    }
+
+    /**
+     * Writes all nine as one edit (one undo entry) and shows them: the shake tab doesn't refill
+     * its fields after an edit, since a typed value already stands in the field it was typed into.
+     */
+    private void setAmplitude(Vector3f rotate, Vector3f translate, Vector3f scale)
+    {
         this.edit.accept((c) ->
         {
             c.rotate.set(rotate);
             c.translate.set(translate);
             c.scale.set(scale);
         });
-    }
 
-    /** All nine to zero, the bone holding still, as one edit (one undo entry). */
-    private void resetAmplitude()
-    {
-        this.edit.accept((c) ->
-        {
-            c.rotate.set(0F);
-            c.translate.set(0F);
-            c.scale.set(0F);
-        });
+        this.rotateX.setValue(rotate.x);
+        this.rotateY.setValue(rotate.y);
+        this.rotateZ.setValue(rotate.z);
+        this.translateX.setValue(translate.x);
+        this.translateY.setValue(translate.y);
+        this.translateZ.setValue(translate.z);
+        this.scaleX.setValue(scale.x);
+        this.scaleY.setValue(scale.y);
+        this.scaleZ.setValue(scale.z);
     }
 
     private static Vector3f vector(UITrackpad x, UITrackpad y, UITrackpad z)
