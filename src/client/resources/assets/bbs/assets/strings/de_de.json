@@ -1038,15 +1038,11 @@
     "studio.ui.utility.execute_default_commands": "Standard-Befehle ausführen",
     "studio.ui.utility.lang": "Sprachen Strings",
     "studio.ui.utility.lang_editor": "Öffne Sprachen-Editor...",
-    "studio.ui.utility.open_audio_editor": "Öffne Audio Editor...",
-    "studio.ui.utility.open_folder": "Öffne Ordner...",
     "studio.ui.utility.open_game_folder": "Spiel",
-    "studio.ui.utility.open_models_folder": "Modelle",
     "studio.ui.utility.reload": "Neu Laden",
     "studio.ui.utility.reload_lang": "Sprache",
     "studio.ui.utility.reload_models": "Modelle",
     "studio.ui.utility.reload_sounds": "Geräusche",
     "studio.ui.utility.reload_textures": "Texturen",
-    "studio.ui.utility.resize": "Fenstergröße ändern",
     "studio.ui.utility.title": "Funktions Panel"
 }

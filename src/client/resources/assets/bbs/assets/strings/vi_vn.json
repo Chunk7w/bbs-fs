@@ -1110,17 +1110,12 @@
     "studio.ui.utility.execute_default_commands": "Thực hiện lệnh mặc định",
     "studio.ui.utility.lang": "Chuỗi ngôn ngữ",
     "studio.ui.utility.lang_editor": "Mở trình chỉnh sửa ngôn ngữ...",
-    "studio.ui.utility.open_audio_editor": "Mở trình chỉnh sửa âm thanh...",
-    "studio.ui.utility.open_audio_folder": "Âm thanh",
-    "studio.ui.utility.open_folder": "Mở thư mục...",
     "studio.ui.utility.open_game_folder": "Trò chơi",
-    "studio.ui.utility.open_models_folder": "Model",
     "studio.ui.utility.reload": "Tải lại",
     "studio.ui.utility.reload_lang": "Ngôn ngữ",
     "studio.ui.utility.reload_models": "Model",
     "studio.ui.utility.reload_sounds": "Âm thanh",
     "studio.ui.utility.reload_terrain": "Địa hình",
     "studio.ui.utility.reload_textures": "texture",
-    "studio.ui.utility.resize": "Thay đổi kích thước cửa sổ",
     "studio.ui.utility.title": "Bảng tiện ích"
 }

@@ -1075,17 +1075,12 @@
     "studio.ui.utility.execute_default_commands": "Wykonaj domyślne komendy",
     "studio.ui.utility.lang": "Język tekstu",
     "studio.ui.utility.lang_editor": "Otwórz edytor języka...",
-    "studio.ui.utility.open_audio_editor": "Otwórz edytor dźwięku...",
-    "studio.ui.utility.open_audio_folder": "Dźwięku",
-    "studio.ui.utility.open_folder": "Otwórz folder...",
     "studio.ui.utility.open_game_folder": "Gry",
-    "studio.ui.utility.open_models_folder": "Modeli",
     "studio.ui.utility.reload": "Odświerz",
     "studio.ui.utility.reload_lang": "Język",
     "studio.ui.utility.reload_models": "Modele",
     "studio.ui.utility.reload_sounds": "Dźwięki",
     "studio.ui.utility.reload_terrain": "Teren",
     "studio.ui.utility.reload_textures": "Tekstury",
-    "studio.ui.utility.resize": "Zmiana rozmiaru okna",
     "studio.ui.utility.title": "Panel użytkowy"
 }

@@ -1001,14 +1001,10 @@
     "studio.ui.utility.execute_default_commands": "Exécuter les commandes par défaut",
     "studio.ui.utility.lang": "Lignes de langue",
     "studio.ui.utility.lang_editor": "Ouvrir l'éditeur de language...",
-    "studio.ui.utility.open_audio_editor": "Ouvrir l'éditeur audio",
-    "studio.ui.utility.open_folder": "Ouvrir le dossier...",
     "studio.ui.utility.open_game_folder": "Jeu",
-    "studio.ui.utility.open_models_folder": "Modèles",
     "studio.ui.utility.reload": "Recharger",
     "studio.ui.utility.reload_lang": "Langage",
     "studio.ui.utility.reload_models": "Modèles",
     "studio.ui.utility.reload_sounds": "Sons",
-    "studio.ui.utility.resize": "Redimentionner la fenêtre",
     "studio.ui.utility.title": "Panneau d'utilitée"
 }

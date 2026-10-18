@@ -782,17 +782,12 @@
     "studio.ui.utility.compile_lang-description": "File bahasa telah dikompilasi ke folder ekspor. Apakah Anda ingin membukanya?",
     "studio.ui.utility.lang": "String bahasa",
     "studio.ui.utility.lang_editor": "Buka editor bahasa...",
-    "studio.ui.utility.open_audio_editor": "Buka editor audio...",
-    "studio.ui.utility.open_audio_folder": "Audio",
-    "studio.ui.utility.open_folder": "Buka folder...",
     "studio.ui.utility.open_game_folder": "Game",
-    "studio.ui.utility.open_models_folder": "Model",
     "studio.ui.utility.reload": "Muat ulang",
     "studio.ui.utility.reload_lang": "Bahasa",
     "studio.ui.utility.reload_models": "Model",
     "studio.ui.utility.reload_sounds": "Suara",
     "studio.ui.utility.reload_terrain": "Medan",
     "studio.ui.utility.reload_textures": "Tekstur",
-    "studio.ui.utility.resize": "Ubah ukuran jendela",
     "studio.ui.utility.title": "Panel utilitas"
 }

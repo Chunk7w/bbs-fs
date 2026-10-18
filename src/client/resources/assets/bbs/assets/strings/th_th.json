@@ -1113,17 +1113,12 @@
     "studio.ui.utility.execute_default_commands": "ดำเนินการคำสั่งเริ่มต้น",
     "studio.ui.utility.lang": "สตริงภาษา",
     "studio.ui.utility.lang_editor": "เปิดตัวแก้ไขภาษา...",
-    "studio.ui.utility.open_audio_editor": "เปิดตัวแก้ไขเสียง...",
-    "studio.ui.utility.open_audio_folder": "เสียง",
-    "studio.ui.utility.open_folder": "เปิดโฟลเดอร์...",
     "studio.ui.utility.open_game_folder": "เกม",
-    "studio.ui.utility.open_models_folder": "โมเดล",
     "studio.ui.utility.reload": "โหลดซ้ำ",
     "studio.ui.utility.reload_lang": "ภาษา",
     "studio.ui.utility.reload_models": "โมเดล",
     "studio.ui.utility.reload_sounds": "เสียง",
     "studio.ui.utility.reload_terrain": "ภูมิประเทศ",
     "studio.ui.utility.reload_textures": "พื้นผิว",
-    "studio.ui.utility.resize": "ปรับขนาดหน้าต่าง",
     "studio.ui.utility.title": "แผงเครื่องมือ"
 }

@@ -1041,17 +1041,12 @@
     "studio.ui.utility.execute_default_commands": "تنفيذ الأوامر الافتراضية",
     "studio.ui.utility.lang": "تسلسل اللغة",
     "studio.ui.utility.lang_editor": "فتح محرر اللغة",
-    "studio.ui.utility.open_audio_editor": "فتح محرر الصوت",
-    "studio.ui.utility.open_audio_folder": "مجلد الصوت",
-    "studio.ui.utility.open_folder": "فتح مجلد الفيلم",
     "studio.ui.utility.open_game_folder": "مجلد اللعبة",
-    "studio.ui.utility.open_models_folder": "مجلد النماذج",
     "studio.ui.utility.reload": "إعادة تحميل",
     "studio.ui.utility.reload_lang": "ﺔﻐﻠﻟﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺇ",
     "studio.ui.utility.reload_models": "ﺝﺫﺎﻤﻨﻟﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺇ",
     "studio.ui.utility.reload_sounds": "ﺕﺍﻮﺻﻷﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺇ",
     "studio.ui.utility.reload_terrain": "ﺲﻳﺭﺎﻀﺘﻟﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺇ",
     "studio.ui.utility.reload_textures": "إعادة تحميل القوام",
-    "studio.ui.utility.resize": "تغيير حجم النافذة",
     "studio.ui.utility.title": "أدوات مساعدة"
 }

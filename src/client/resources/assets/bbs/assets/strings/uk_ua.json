@@ -1095,17 +1095,12 @@
     "studio.ui.utility.execute_default_commands": "Виконати команди за замовчуванням",
     "studio.ui.utility.lang": "Мовні рядки",
     "studio.ui.utility.lang_editor": "Відкрити редактор мов...",
-    "studio.ui.utility.open_audio_editor": "Відкрити редактор аудіо...",
-    "studio.ui.utility.open_audio_folder": "Аудіо",
-    "studio.ui.utility.open_folder": "Відкрити теку...",
     "studio.ui.utility.open_game_folder": "Гра",
-    "studio.ui.utility.open_models_folder": "Моделі",
     "studio.ui.utility.reload": "Перезавантажити",
     "studio.ui.utility.reload_lang": "Мова",
     "studio.ui.utility.reload_models": "Моделі",
     "studio.ui.utility.reload_sounds": "Звуки",
     "studio.ui.utility.reload_terrain": "Місцевість",
     "studio.ui.utility.reload_textures": "Текстури",
-    "studio.ui.utility.resize": "Змінити розмір вікна",
     "studio.ui.utility.title": "Панель утиліт"
 }

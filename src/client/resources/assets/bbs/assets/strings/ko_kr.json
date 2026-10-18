@@ -1048,17 +1048,12 @@
     "studio.ui.utility.execute_default_commands": "기본 명령 실행",
     "studio.ui.utility.lang": "언어 문자열",
     "studio.ui.utility.lang_editor": "언어 편집기 열기...",
-    "studio.ui.utility.open_audio_editor": "오디오 편집기 열기...",
-    "studio.ui.utility.open_audio_folder": "오디오",
-    "studio.ui.utility.open_folder": "폴더 열기...",
     "studio.ui.utility.open_game_folder": "게임",
-    "studio.ui.utility.open_models_folder": "모델",
     "studio.ui.utility.reload": "새로 고침",
     "studio.ui.utility.reload_lang": "언어",
     "studio.ui.utility.reload_models": "모델",
     "studio.ui.utility.reload_sounds": "사운드",
     "studio.ui.utility.reload_terrain": "지형",
     "bbs.ui.utility.reload_textures": "텍스처",
-    "studio.ui.utility.resize": "창 크기 조절",
     "studio.ui.utility.title": "유틸리티 패널"
 }

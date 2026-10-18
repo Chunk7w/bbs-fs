@@ -1028,17 +1028,12 @@
     "studio.ui.utility.execute_default_commands": "Varsayulan komutları çalıştır",
     "studio.ui.utility.lang": "Dil dizeleri",
     "studio.ui.utility.lang_editor": "Dil düzenleyicisini aç...",
-    "studio.ui.utility.open_audio_editor": "Ses düzenleyicisini aç...",
-    "studio.ui.utility.open_audio_folder": "Ses",
-    "studio.ui.utility.open_folder": "Klasörü aç...",
     "studio.ui.utility.open_game_folder": "Oyun",
-    "studio.ui.utility.open_models_folder": "Modeller",
     "studio.ui.utility.reload": "Yenile",
     "studio.ui.utility.reload_lang": "Dil",
     "studio.ui.utility.reload_models": "Modeller",
     "studio.ui.utility.reload_sounds": "Sesler",
     "studio.ui.utility.reload_terrain": "Arazi",
     "studio.ui.utility.reload_textures": "Dokular",
-    "studio.ui.utility.resize": "Pencereyi yeniden boyutlandır",
     "studio.ui.utility.title": "Yardımcı öğeler paneli"
 }

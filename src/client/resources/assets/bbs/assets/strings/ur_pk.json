@@ -1050,17 +1050,12 @@
     "studio.ui.utility.execute_default_commands": "ڈیفالٹ کمانڈز چلائیں",
     "studio.ui.utility.lang": "زبان سٹرنگز",
     "studio.ui.utility.lang_editor": "زبان ایڈیٹر کھولیں...",
-    "studio.ui.utility.open_audio_editor": "آڈیو ایڈیٹر کھولیں...",
-    "studio.ui.utility.open_audio_folder": "آڈیو",
-    "studio.ui.utility.open_folder": "فولڈر کھولیں...",
     "studio.ui.utility.open_game_folder": "گیم",
-    "studio.ui.utility.open_models_folder": "ماڈلز",
     "studio.ui.utility.reload": "ری لوڈ",
     "studio.ui.utility.reload_lang": "زبان",
     "studio.ui.utility.reload_models": "ماڈلز",
     "studio.ui.utility.reload_sounds": "آوازیں",
     "studio.ui.utility.reload_terrain": "ٹیرین",
     "studio.ui.utility.reload_textures": "ٹیکسچرز",
-    "studio.ui.utility.resize": "ونڈو کا سائز تبدیل کریں",
     "studio.ui.utility.title": "یوٹیلٹی پینل"
 }

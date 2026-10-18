@@ -1127,17 +1127,12 @@
     "studio.ui.utility.execute_default_commands": "執行默認命令",
     "studio.ui.utility.lang": "語言字符串",
     "studio.ui.utility.lang_editor": "打開語言編輯器...",
-    "studio.ui.utility.open_audio_editor": "打開音頻編輯器...",
-    "studio.ui.utility.open_audio_folder": "音頻",
-    "studio.ui.utility.open_folder": "打開文件夾...",
     "studio.ui.utility.open_game_folder": "遊戲",
-    "studio.ui.utility.open_models_folder": "模型",
     "studio.ui.utility.reload": "重新加載",
     "studio.ui.utility.reload_lang": "語言",
     "studio.ui.utility.reload_models": "模型",
     "studio.ui.utility.reload_sounds": "聲音",
     "studio.ui.utility.reload_terrain": "地形",
     "studio.ui.utility.reload_textures": "紋理",
-    "studio.ui.utility.resize": "調整窗口大小",
     "studio.ui.utility.title": "實用工具面板"
 }
