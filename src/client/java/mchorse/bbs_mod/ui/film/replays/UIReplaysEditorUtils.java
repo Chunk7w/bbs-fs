@@ -612,8 +612,11 @@ public class UIReplaysEditorUtils
         UIKeyframeSheet sheet = editor.editor.getSheet();
         if (sheet == null) return sampler;
 
+        boolean cursor = editor.view.getAutoKeyframeTick() != null;
+        /* Without auto-keyframing an edit lands only on selected keys; with none there is nothing to probe. */
+        if (!cursor && !sheet.selection.hasAny()) return sampler;
+
         List<Transform> targets = new ArrayList<>();
-        boolean cursor = editor.view.getAutoKeyframeTick() != null || !sheet.selection.hasAny();
         KeyframeChannel draft = new KeyframeChannel(sheet.id, sheet.channel.getFactory());
         draft.fromData(sheet.channel.toData());
         UIKeyframeSheet draftSheet = new UIKeyframeSheet(sheet.id, sheet.title, sheet.color, draft, sheet.property, sheet.isBoneTrack);

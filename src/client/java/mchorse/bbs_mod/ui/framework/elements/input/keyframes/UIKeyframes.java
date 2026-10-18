@@ -132,6 +132,9 @@ public class UIKeyframes extends UITimelineCanvas
     /** The picked key's track: the value panel edits it and the graph draws it on top. */
     public UIKeyframeSheet getPickedSheet() { return this.dopeSheet.getSheet(this.pickedKeyframe); }
 
+    /** The key the value panel was opened for, even once it is no longer selected. */
+    public Keyframe getPickedKeyframe() { return this.pickedKeyframe; }
+
     public boolean isGraphTrack(UIKeyframeSheet sheet) { return this.graphTracks.contains(sheet); }
 
     /** All available tracks, independent of the current presentation and key operation scope. */
