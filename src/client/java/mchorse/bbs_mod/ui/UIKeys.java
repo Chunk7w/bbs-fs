@@ -1480,6 +1480,7 @@ public class UIKeys
     public static final IKey SNOWSTORM_GENERAL_DIRECTION_THRESHOLD = L10n.lang("bbs.ui.snowstorm.general.direction_threshold");
     public static final IKey SNOWSTORM_GENERAL_FACING = L10n.lang("bbs.ui.snowstorm.general.facing");
     public static final IKey SNOWSTORM_GENERAL_IDENTIFIER = L10n.lang("bbs.ui.snowstorm.general.identifier");
+    public static final IKey SNOWSTORM_GENERAL_PARTICLES_ADD = L10n.lang("bbs.ui.snowstorm.general.particles_add");
     public static final IKey SNOWSTORM_GENERAL_PARTICLES_ALPHA = L10n.lang("bbs.ui.snowstorm.general.particles_alpha");
     public static final IKey SNOWSTORM_GENERAL_PARTICLES_BLEND = L10n.lang("bbs.ui.snowstorm.general.particles_blend");
     public static final IKey SNOWSTORM_GENERAL_PARTICLES_OPAQUE = L10n.lang("bbs.ui.snowstorm.general.particles_opaque");

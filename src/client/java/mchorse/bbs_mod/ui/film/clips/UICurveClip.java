@@ -16,7 +16,6 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.KeyframeState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
-import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
 import mchorse.bbs_mod.utils.clips.Clip;
 import mchorse.bbs_mod.utils.clips.Clips;
@@ -200,7 +199,7 @@ public class UICurveClip extends UIClip<CurveClip>
     {
         super.registerPanels();
 
-        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:curve"), UI.row(this.edit, this.add), this.keyFields(this.keyframes)));
+        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:curve"), this.edit, this.add, this.keyFields(this.keyframes)));
     }
 
     @Override

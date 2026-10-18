@@ -21,6 +21,7 @@ import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlayPanel;
 import mchorse.bbs_mod.ui.framework.elements.utils.RowStyle;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIText;
 import mchorse.bbs_mod.ui.utils.UI;
+import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.UIUtils;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
@@ -110,7 +111,7 @@ public class UIUtilityOverlayPanel extends UIOverlayPanel
                 return element.isEmpty() ? UIKeys.UTILITY_SHADERS_OFF.get() : element;
             }
         };
-        this.shaders.relative(right).xy(10, 35).w(1F, -20).h(1F, -70);
+        this.shaders.relative(right).xy(10, 35).w(1F, -20).h(1F, -45 - UIConstants.CONTROL_HEIGHT - UIConstants.MARGIN);
         this.shaders.scroll.scrollItemSize = 18;
         this.shaders.background(BBSSettings.inputSurface());
         this.shaderStatus = new UIText().text(UIKeys.UTILITY_IRIS_REQUIRED);
@@ -118,7 +119,7 @@ public class UIUtilityOverlayPanel extends UIOverlayPanel
         this.shaderStatus.setVisible(!this.iris);
         this.shaders.setEnabled(this.iris);
         this.shaderOptions = new UIButton(UIKeys.UTILITY_SHADER_OPTIONS, b -> UIOverlay.addOverlay(this.getContext(), new UIShaderOptionsPanel(), 300, 0.8F));
-        this.shaderOptions.relative(right).x(10).y(1F, -30).w(1F, -20).h(20);
+        this.shaderOptions.relative(right).x(10).y(1F, -10 - UIConstants.CONTROL_HEIGHT).w(1F, -20).h(UIConstants.CONTROL_HEIGHT);
         this.shaderOptions.setEnabled(false);
         right.add(header, this.shaders, this.shaderStatus, this.shaderOptions);
         this.content.add(this.view, right);

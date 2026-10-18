@@ -2101,6 +2101,7 @@
 	"bbs.ui.snowstorm.general.facing.rotate_xyz": "Rotate XYZ",
 	"bbs.ui.snowstorm.general.facing.rotate_y": "Rotate Y",
 	"bbs.ui.snowstorm.general.identifier": "This particle effect's display name which is displayed in the form list menu",
+	"bbs.ui.snowstorm.general.particles_add": "Glow (additive)",
 	"bbs.ui.snowstorm.general.particles_alpha": "Alpha",
 	"bbs.ui.snowstorm.general.particles_blend": "Blend",
 	"bbs.ui.snowstorm.general.particles_opaque": "Opaque",
