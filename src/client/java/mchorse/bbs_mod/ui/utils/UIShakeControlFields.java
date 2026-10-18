@@ -129,14 +129,14 @@ public class UIShakeControlFields
         });
     }
 
-    /** Back to the default tremble, as one edit (one undo entry). */
+    /** All nine to zero, the bone holding still, as one edit (one undo entry). */
     private void resetAmplitude()
     {
         this.edit.accept((c) ->
         {
-            c.rotate.set(ShakeControl.DEFAULT.rotate);
-            c.translate.set(ShakeControl.DEFAULT.translate);
-            c.scale.set(ShakeControl.DEFAULT.scale);
+            c.rotate.set(0F);
+            c.translate.set(0F);
+            c.scale.set(0F);
         });
     }
 
