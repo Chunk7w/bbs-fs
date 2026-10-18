@@ -25,7 +25,7 @@ public class TrackTree
     /** The recording's own heading: the replay's channels, an addon's among them. */
     public static final String RECORD = "owner/record";
 
-    /** Headings each timeline's folds have already seen, so only a new one gets its first fold. Folds are kept per replay. */
+    /** Headings each timeline's folds have already seen, so only a new one is handed out to be laid out. Folds are kept per replay. */
     private final Map<FoldState<String>, Set<String>> knownGroups = new WeakHashMap<>();
 
     /** What every form's own heading starts with, its path after it. */
@@ -43,8 +43,10 @@ public class TrackTree
      *
      * @param parts  the form and its parts, root first — see {@link UIForms#entries}
      * @param record whether the rows of no form, a replay's own channels, go under the recording
+     * @return the headings these folds see for the first time; how they start folded is up to the
+     *         caller, which lays them out by its category — see {@code CategoryFold#settle}
      */
-    public void groupSheets(List<UIKeyframeSheet> sheets, List<UIForms.FormEntry> parts, FoldState<String> folds, boolean record)
+    public Set<String> groupSheets(List<UIKeyframeSheet> sheets, List<UIForms.FormEntry> parts, FoldState<String> folds, boolean record)
     {
         Map<String, String> names = UIForms.names(parts);
         Map<String, Integer> partOrder = new HashMap<>();
@@ -106,20 +108,23 @@ public class TrackTree
         }
 
         Set<String> known = this.knownGroups.computeIfAbsent(folds, k -> new HashSet<>());
+        Set<String> fresh = new HashSet<>();
 
         for (UIKeyframeSheet sheet : sheets)
         {
             for (UIKeyframeSheet.Section section = sheet.section; section != null; section = section.parent())
             {
-                if (known.add(section.id()) && opensFirst(section))
+                if (known.add(section.id()))
                 {
-                    folds.set(section.id(), true);
+                    fresh.add(section.id());
                 }
             }
         }
 
         /* Stable, so a heading keeps its rows' order and a tree its shape. Rows of no form stay in front. */
         sheets.sort(Comparator.comparingInt(sheet -> rank.getOrDefault(sheet, -1)));
+
+        return fresh;
     }
 
     /** A heading built by someone else, hung under the owner it belongs to; owners and what already hangs there stay. */
@@ -145,30 +150,5 @@ public class TrackTree
         }
 
         return hung;
-    }
-
-    /**
-     * Whether a heading starts open the first time a timeline shows it. A new heading must not hide
-     * tracks that were already in reach: the recording and the form were always shown, and so were
-     * a form's headings. A part's owner always starts folded, whenever it turns up, so the list
-     * stays short; its headings inside are open for when it is unfolded. The recording's own
-     * headings keep the folds they always started with.
-     */
-    private static boolean opensFirst(UIKeyframeSheet.Section section)
-    {
-        if (section.owner())
-        {
-            return section.id().equals(RECORD) || section.id().equals(ownerId(""));
-        }
-
-        for (UIKeyframeSheet.Section parent = section.parent(); parent != null; parent = parent.parent())
-        {
-            if (parent.id().equals(RECORD))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

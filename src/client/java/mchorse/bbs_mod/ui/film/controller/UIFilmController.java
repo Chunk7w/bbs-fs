@@ -598,7 +598,7 @@ public class UIFilmController extends UIElement implements GizmoViewport
 
         if (this.panel.replayEditor.isVisible())
         {
-            this.panel.replayEditor.pickReplayCategory();
+            this.panel.replayEditor.showReplayTracks();
         }
 
         boolean replacePlayer = ClientNetwork.isIsBBSModOnServer();

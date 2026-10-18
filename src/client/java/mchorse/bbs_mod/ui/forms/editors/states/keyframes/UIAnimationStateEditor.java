@@ -19,7 +19,6 @@ import mchorse.bbs_mod.forms.renderers.utils.MatrixCache;
 import mchorse.bbs_mod.forms.states.AnimationState;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.Keys;
-import mchorse.bbs_mod.film.replays.tracks.TrackId;
 import mchorse.bbs_mod.film.replays.tracks.TrackSearchEntry;
 import mchorse.bbs_mod.ui.film.replays.overlays.UITrackSearchOverlayPanel;
 import mchorse.bbs_mod.ui.film.replays.UIReplaysEditor;
@@ -163,12 +162,6 @@ public class UIAnimationStateEditor extends UIElement
     private final Map<TrackCategory, UIIcon> categoryButtons = new java.util.LinkedHashMap<>();
     private final List<TrackCategory> visibleCategories = new ArrayList<>();
     private TrackCategory category = TrackCategory.FORM;
-    /**
-     * No category in charge — what unfolding everything leaves. The timeline opens with the first one,
-     * Form, lit without folding anything: a category only folds, so its tab is lit from the moment it
-     * is asked for until everything is unfolded again.
-     */
-    private boolean allMode;
     private Form root;
     /** New with every form edited, like the folds: another form's headings start the way new ones do. */
     private TrackTree trackTree = new TrackTree();
@@ -200,7 +193,6 @@ public class UIAnimationStateEditor extends UIElement
         this.categoryBar.relative(this.timelineArea);
         UIIcon all = new UIIcon(Icons.LIST, button -> this.setAllTracks());
         all.tooltip(UIKeys.FILM_REPLAY_ALL_TRACKS, Direction.RIGHT);
-        all.highlight(() -> this.allMode, Direction.LEFT);
         this.categoryBar.add(all);
 
         for (TrackCategory category : TrackCategories.values())
@@ -208,7 +200,7 @@ public class UIAnimationStateEditor extends UIElement
             if (category == TrackCategory.REPLAY) continue;
             UIIcon button = new UIIcon(category.icon, b -> this.setCategory(category));
             button.tooltip(category.tooltip, Direction.RIGHT);
-            button.highlight(() -> !this.allMode && this.category == category, Direction.LEFT);
+            button.highlight(() -> this.category == category, Direction.LEFT);
             this.categoryButtons.put(category, button);
         }
 
@@ -271,16 +263,13 @@ public class UIAnimationStateEditor extends UIElement
     /** A category folds the timeline to its tracks, and pages through its headings pressed again: see {@link CategoryFold}. */
     private void setCategory(TrackCategory category)
     {
-        this.allMode = false;
         this.category = category;
         this.categoryFold.apply(this.keyframeEditor, this.expandedTabs, category, Window.isShiftPressed(), this.activePart);
     }
 
-    /** Everything at once: every owner and heading unfolded, no category in charge. */
+    /** Unfold every owner and heading at once. An action, not a mode: the tab lit stays. */
     private void setAllTracks()
     {
-        this.allMode = true;
-
         if (this.keyframeEditor != null)
         {
             this.keyframeEditor.view.getDopeSheet().setAllSectionsExpanded(true);
@@ -369,7 +358,9 @@ public class UIAnimationStateEditor extends UIElement
             && UIReplaysEditorUtils.isTrackHidden(sheet.id, UIReplaysEditor.getSheetFilterKey(sheet), UIReplaysEditor.getSheetForm(sheet)));
 
         UIReplaysEditorUtils.pruneTree(sheets);
-        this.trackTree.groupSheets(sheets, this.parts, this.expandedTabs, false);
+        Set<String> fresh = this.trackTree.groupSheets(sheets, this.parts, this.expandedTabs, false);
+
+        CategoryFold.settle(sheets, this.expandedTabs, this.category, this.activePart, fresh);
 
         /*
          * Filtering every track off used to drop the timeline itself, and the track filter lives in its
@@ -497,8 +488,6 @@ public class UIAnimationStateEditor extends UIElement
     {
         this.activePart = entry.path();
         this.revealedSearchTrack = entry;
-        this.allMode = false;
-        this.category = UIReplaysEditor.categoryOf(TrackId.parse(entry.key()), true);
         this.setState(this.state);
         return this.keyframeEditor != null
             && UIReplaysEditorUtils.revealSearchTrack(this.keyframeEditor, entry, createKeyframe, this.getContext());
@@ -598,12 +587,6 @@ public class UIAnimationStateEditor extends UIElement
     private void pickFormBone(Form form, String bone, boolean insert)
     {
         this.selectForm(form);
-
-        /* With a category in charge its tab follows the pick to Form; only the tab, what is open stays open. */
-        if (!this.allMode && form != null && (!(form instanceof IPosedForm) || (bone != null && !bone.isEmpty())))
-        {
-            this.category = TrackCategory.FORM;
-        }
         UIReplaysEditorUtils.pickForm(this.keyframeEditor, this.editor, form, bone, insert);
     }
 
