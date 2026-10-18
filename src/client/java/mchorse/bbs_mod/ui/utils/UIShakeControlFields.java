@@ -183,15 +183,15 @@ public class UIShakeControlFields
     }
 
     /**
-     * The amplitude rows, rotation first: it is what a bone shakes with most of the time. Each row
-     * is marked with the transform editor's icon for its kind rather than a label.
+     * The amplitude rows in the transform editor's order (position, scale, rotation), each marked
+     * with its icon rather than a label.
      */
     public UIElement[] amplitudes()
     {
         return new UIElement[] {
-            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.REFRESH, UIKeys.TRANSFORMS_ROTATE), this.rotateX, this.rotateY, this.rotateZ),
             UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.ALL_DIRECTIONS, UIKeys.TRANSFORMS_TRANSLATE), this.translateX, this.translateY, this.translateZ),
-            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.SCALE, UIKeys.TRANSFORMS_SCALE), this.scaleX, this.scaleY, this.scaleZ)
+            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.SCALE, UIKeys.TRANSFORMS_SCALE), this.scaleX, this.scaleY, this.scaleZ),
+            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.REFRESH, UIKeys.TRANSFORMS_ROTATE), this.rotateX, this.rotateY, this.rotateZ)
         };
     }
 
