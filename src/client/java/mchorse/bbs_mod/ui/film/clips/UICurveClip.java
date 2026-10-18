@@ -142,7 +142,7 @@ public class UICurveClip extends UIClip<CurveClip>
     {
         super.registerPanels();
 
-        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:curve"), this.edit));
+        this.panels.add(this.section(UIKeys.C_CLIP.get("bbs:curve"), this.edit, this.keyFields(this.keyframes)));
         this.panels.add(this.shader.world, this.shader);
     }
 

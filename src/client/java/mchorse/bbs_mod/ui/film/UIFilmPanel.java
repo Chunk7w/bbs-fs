@@ -192,7 +192,7 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
         this.shader = new UIShaderPanel(this);
 
         /* Editors */
-        this.cameraEditor = new UIClipsPanel(this, BBSMod.getCameraClipPalette()).target(this.editArea);
+        this.cameraEditor = new UIClipsPanel(this, BBSMod.getCameraClipPalette()).target(this.editArea).withKeys();
         this.cameraEditor.full(this.main);
 
         this.cameraEditor.clips.context((menu) ->

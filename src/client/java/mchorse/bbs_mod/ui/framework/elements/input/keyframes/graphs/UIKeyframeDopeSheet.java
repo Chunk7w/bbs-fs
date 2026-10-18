@@ -109,7 +109,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.lastSheet = sheet;
         this.revealedSheet = sheet;
         this.revealUntil = System.currentTimeMillis() + 1400;
-        int y = this.sheetYCache.getOrDefault(sheet, 0) + TOP_MARGIN;
+        int y = this.sheetYCache.getOrDefault(sheet, 0) + this.keyframes.getTopMargin();
         this.dopeSheet.setScroll(y - (this.dopeSheet.area.h - this.getTrackHeight(sheet)) / 2);
     }
     /**
@@ -178,7 +178,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
         }
 
-        int view = this.dopeSheet.area.h - TOP_MARGIN;
+        int view = this.dopeSheet.area.h - this.keyframes.getTopMargin();
         double scroll = this.dopeSheet.getScroll();
 
         if (top < scroll)
@@ -278,7 +278,8 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         this.updateScrollSize();
     }
 
-    private void updateScrollSize()
+    /** Lays the rows out again, after anything that changes their heights or where they start. */
+    public void updateScrollSize()
     {
         this.sheetYCache.clear();
         this.sectionYCache.clear();
@@ -298,7 +299,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
             }
         }
 
-        this.dopeSheet.scrollSize = y + TOP_MARGIN;
+        this.dopeSheet.scrollSize = y + this.keyframes.getTopMargin();
 
         /* The content just changed height, so where the view sits may no longer exist — folding the
          * rows away while scrolled to the bottom used to leave the timeline parked below every
@@ -421,7 +422,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
     public int getDopeSheetY()
     {
-        return this.keyframes.area.y + TOP_MARGIN - (int) this.dopeSheet.getScroll();
+        return this.keyframes.area.y + this.keyframes.getTopMargin() - (int) this.dopeSheet.getScroll();
     }
 
     public int getDopeSheetY(int sheet)
@@ -894,7 +895,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
 
             double x = keyframe.getTick();
             Integer sheetY = this.sheetYCache.get(sheet);
-            int y = (sheetY == null ? 0 : sheetY) + TOP_MARGIN;
+            int y = (sheetY == null ? 0 : sheetY) + this.keyframes.getTopMargin();
 
             this.keyframes.getXAxis().shiftIntoMiddle(x);
             this.dopeSheet.scrollTo((int) (y - (this.dopeSheet.area.h - this.trackHeight) / 2));
@@ -1160,7 +1161,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         TimelineRulerRenderer.renderGrid(
             context,
             area,
-            TimelineRulerRenderer.getRulerBottom(area),
+            this.keyframes.getRulerBottom(),
             Math.max(ht, 0),
             this.keyframes.getDuration(),
             this.keyframes::toGraphX,
@@ -1173,6 +1174,11 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
      */
     protected void renderGrid(UIContext context)
     {
+        if (this.keyframes.getTopMargin() <= 0)
+        {
+            return;
+        }
+
         Area area = this.keyframes.graphArea;
         int ht = (int) this.keyframes.fromGraphX(area.x);
         int duration = this.keyframes.getDuration();
@@ -1351,7 +1357,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
          * calls updateScrollSize() itself, and resize() re-clamps the scroll. */
 
         Area area = this.keyframes.graphArea;
-        int rulerBottom = TimelineRulerRenderer.getRulerBottom(area);
+        int rulerBottom = this.keyframes.getRulerBottom();
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
         Matrix4f matrix = context.batcher.getContext().getMatrices().peek().getPositionMatrix();
 
@@ -1364,8 +1370,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     /** Fill the area outside the film with the darkest tonal surface. */
     private void renderOutOfRangeShading(UIContext context, Area area)
     {
-        int timelineBottom = TimelineRulerRenderer.getTimelineBottom(area);
-        int contentY = Math.min(area.ey(), timelineBottom);
+        int contentY = this.keyframes.getRulerBottom();
 
         if (contentY >= area.ey())
         {
@@ -1884,7 +1889,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         }
 
         Area area = this.keyframes.graphArea;
-        int rulerBottom = TimelineRulerRenderer.getRulerBottom(area);
+        int rulerBottom = this.keyframes.getRulerBottom();
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
         Matrix4f matrix = context.batcher.getContext().getMatrices().peek().getPositionMatrix();
 

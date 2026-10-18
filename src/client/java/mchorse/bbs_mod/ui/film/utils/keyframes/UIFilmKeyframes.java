@@ -239,7 +239,11 @@ public class UIFilmKeyframes extends UIKeyframes
             int cx = this.toGraphX(cursor);
             String label = TimeUtils.formatCursorTime(cursor) + "/" + TimeUtils.formatTime(this.getDuration());
 
-            this.markers.render(context, this.graphArea, this.getXAxis(), (int) this.getClipOffset());
+            /* Without a ruler of their own the markers are read off the timeline right above */
+            if (this.getTopMargin() > 0)
+            {
+                this.markers.render(context, this.graphArea, this.getXAxis(), (int) this.getClipOffset());
+            }
 
             context.batcher.clip(this.graphArea, context);
             UITimelineCanvas.renderCursor(context, label, this.area, cx - 1);
