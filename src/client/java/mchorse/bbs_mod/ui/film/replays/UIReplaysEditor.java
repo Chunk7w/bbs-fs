@@ -1042,9 +1042,20 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     }
 
     /**
-     * Bring back the current replay's own time zoom, or fit its keys if it has none yet. A replay
-     * without keys (a freshly added one) keeps the view copied from the previous replay, so the
-     * playhead stays where the user was working instead of jumping to the film's start.
+     * A replay that is being added opens with the view of the timeline it was added from, so the
+     * playhead stays where the user was working. Without this its first visit would fit its keys —
+     * the one spot it was put at — and jump the view away. Call before the replay is shown.
+     */
+    public void keepTimeViewFor(Replay replay)
+    {
+        if (this.keyframeEditor != null && replay != null)
+        {
+            this.rememberTimeView(replay.getId(), this.keyframeEditor.view);
+        }
+    }
+
+    /**
+     * Bring back the current replay's own time zoom, or fit its keys if it has none yet.
      *
      * The zoom is the replay's own, but the playhead stays where it is on screen — where it stood in
      * the timeline just left, or with none before it, where it stood when this replay was left. The
@@ -1056,10 +1067,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         if (view == null)
         {
-            if (!hasPreviousView || hasKeyframes(editor.getOperationSheets()))
-            {
-                editor.resetView();
-            }
+            editor.resetView();
 
             return;
         }
@@ -1076,16 +1084,6 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         }
 
         axis.setShift(axis.getShift() + (axis.to(tick) - playheadX) / axis.getZoom());
-    }
-
-    private static boolean hasKeyframes(List<UIKeyframeSheet> sheets)
-    {
-        for (UIKeyframeSheet sheet : sheets)
-        {
-            if (!sheet.channel.isEmpty()) return true;
-        }
-
-        return false;
     }
 
     private void copyTimeViewport(UITimelineCanvas source, UITimelineCanvas target)
