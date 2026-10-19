@@ -18,6 +18,7 @@ import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.Film;
 import mchorse.bbs_mod.film.IKBake;
 import mchorse.bbs_mod.film.replays.tracks.TrackCatalog;
+import mchorse.bbs_mod.film.replays.tracks.TimelineBodyPartSelection;
 import mchorse.bbs_mod.film.replays.tracks.TrackTree;
 import mchorse.bbs_mod.film.replays.tracks.TrackDescriptor;
 import mchorse.bbs_mod.film.replays.tracks.TrackId;
@@ -109,7 +110,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
     private static final int CATEGORY_BAR_WIDTH = 20;
 
-    /** The recording's Position heading: open from the start, and what the 1 key keeps open. */
+    /** The recording's Position heading: the one of its headings open from the start. */
     public static final String POSITION_SECTION = "replay_section/position_rotation";
     private final UIElement partHeader = new UIElement()
     {
@@ -168,6 +169,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
      * state is handed to each new sheet, which folds in it directly rather than keeping a copy.
      */
     private final Map<String, FoldState<String>> expandedTracksByReplay = new HashMap<>();
+    private final Map<String, TimelineBodyPartSelection> selectedPartsByReplay = new HashMap<>();
     /**
      * Each replay's own time zoom. A rebuild for the same replay keeps the view as it is, but
      * switching to another replay brings back the zoom it was left with (or fits its keys the
@@ -178,12 +180,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     /** The replay the current keyframe timeline was built for. */
     private String timelineReplayId;
     private final TrackTree trackTree = new TrackTree();
-    private final CategoryFold categoryFold = new CategoryFold();
-    /**
-     * The part being worked on: the one last picked in the viewport, found by search, or picked by its
-     * track or a key on the timeline. The Form key arranges it, the track search lists its tracks first.
-     */
-    private String activePart = "";
+    /** The parts the timeline shows and the one in focus, which the track search lists first. */
+    private TimelineBodyPartSelection partSelection = new TimelineBodyPartSelection();
+    private boolean allBodyPartsSetting;
     private final Map<String, List<String>> recentTrackSearches = new HashMap<>();
     private TrackSearchEntry revealedSearchTrack;
 
@@ -338,7 +337,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     {
         this.filmPanel = filmPanel;
         this.replayProperties = new UIReplayPropertiesPanel(filmPanel);
-        this.replaysList = new UIReplaysListPanel(filmPanel, (l) -> this.setReplay(l.isEmpty() ? null : l.get(0), false, OrbitReaction.SWITCH), this.replayProperties.getFormConsumer());
+        this.replaysList = new UIReplaysListPanel(filmPanel, (l) -> this.setReplay(l.isEmpty() ? null : l.get(0), false, OrbitReaction.SWITCH), this.replayProperties.getFormConsumer(), this::selectBodyParts);
         this.replayProperties.attachReplayList(this.replaysList.replays);
 
         this.iconBar = new UITimelineCategoryBar(CATEGORY_BAR_WIDTH * 2).noSeparator();
@@ -398,15 +397,15 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         }
     }
 
-    /** A category folds the timeline to its tracks, and pages through its headings pressed again: see {@link CategoryFold}. */
+    /** A category opens its owners on the timeline and folds the others: see {@link CategoryFold}. */
     private void setCategory(TrackCategory c)
     {
         this.setActionsMode(false);
         this.category = c;
-        this.categoryFold.apply(this.keyframeEditor, this.getExpandedTracks(), c, Window.isShiftPressed(), this.activePart);
+        CategoryFold.apply(this.keyframeEditor, this.getExpandedTracks(), c);
     }
 
-    /** Unfold a heading and what it sits in, and scroll it into view if it is off screen. Folds nothing. */
+    /** Unfold a heading and what it sits in. Folds nothing and scrolls nothing. */
     private void revealSection(String id)
     {
         if (this.keyframeEditor != null)
@@ -450,9 +449,13 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.revealedSearchTrack = null;
         this.useActionViewportForNewKeyframes = false;
         this.expandedTracksByReplay.clear();
+        this.selectedPartsByReplay.clear();
         this.timeViewByReplay.clear();
         /* The timeline still shows the old film's replay; its view doesn't belong in the new film's map. */
         this.timelineReplayId = null;
+        this.replaysList.setBodyPartsReplay(null, this.partSelection);
+        /* A film opens on the recording, its folds starting over with it: the form is a 2 away. */
+        this.category = TrackCategory.REPLAY;
         this.film = film;
         this.filmPanel.getController().orbit.reset();
 
@@ -480,18 +483,26 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         return this.replay;
     }
 
-    /** A key picked on a form's track puts that form's part in focus; the recording's own tracks leave it be. */
-    private void focusPicked()
+    /** The parts list picked the parts the timeline shows; the one clicked opens. */
+    private void selectBodyParts(List<UIForms.FormEntry> parts)
     {
-        UIKeyframeSheet sheet = this.keyframeEditor == null ? null : this.keyframeEditor.view.getPickedSheet();
-
-        if (sheet != null && sheet.descriptor != null)
+        if (this.replay == null)
         {
-            this.activePart = sheet.descriptor.id().formPath();
+            return;
         }
+
+        this.partSelection.select(parts, this.replaysList.bodyParts.getActivePath());
+        this.setActionsMode(false);
+        this.revealedSearchTrack = null;
+        this.pendingPick = null;
+        this.updateChannelsList();
+        this.revealSection(TrackTree.ownerId(this.partSelection.activePart));
     }
 
-    /** Bring a part's tracks into reach: its owner opens and scrolls into view. Nothing else folds. */
+    /**
+     * Bring a part's tracks into reach: a part off the timeline becomes the one the parts list
+     * shows, and its owner opens. Nothing else folds, and the view stays where it is.
+     */
     public void selectBodyPart(String path)
     {
         if (this.replay == null)
@@ -500,8 +511,15 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         }
 
         this.setActionsMode(false);
-        this.activePart = path;
         this.pendingPick = null;
+
+        if (!this.partSelection.activePart.equals(path))
+        {
+            this.partSelection.focus(path);
+            this.revealedSearchTrack = null;
+            this.updateChannelsList();
+        }
+
         this.revealSection(TrackTree.ownerId(path));
     }
 
@@ -527,13 +545,10 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         {
             this.pendingPick = null;
 
-            if (this.replay != replay)
-            {
-                this.revealedSearchTrack = null;
-                this.activePart = "";
-            }
-
+            if (this.replay != replay) this.revealedSearchTrack = null;
             this.replay = replay;
+            this.partSelection = replay == null ? new TimelineBodyPartSelection()
+                : this.selectedPartsByReplay.computeIfAbsent(replay.getId(), key -> new TimelineBodyPartSelection());
 
             if (orbit == OrbitReaction.RESET)
             {
@@ -576,6 +591,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     {
         this.poseOverlayCount = BBSSettings.recordingPoseOverlays.get();
         this.transformOverlayCount = BBSSettings.recordingTransformOverlays.get();
+        this.allBodyPartsSetting = TimelineBodyPartSelection.allParts();
+        this.replaysList.setBodyPartsReplay(this.replay, this.partSelection);
+        this.replaysList.resize();
 
         UIKeyframes lastEditor = this.keyframeEditor != null ? this.keyframeEditor.view : null;
         String lastReplayId = this.timelineReplayId;
@@ -594,10 +612,13 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
             return;
         }
 
-        List<TrackDescriptor> catalog = TrackCatalog.ordered(TrackCatalog.of(this.replay.form.get(), this.replay.properties));
+        List<TrackDescriptor> catalog = TrackCatalog.of(this.replay.form.get(), this.replay.properties);
+        catalog.removeIf(track -> !this.partSelection.includes(track.id().formPath()));
+        catalog = TrackCatalog.ordered(catalog);
 
         List<UIKeyframeSheet> sheets = new ArrayList<>();
 
+        /* Replay channels remain accessible alongside any selected part's own properties. */
         this.collectCuratedSheets(sheets);
         UIReplaysEditorUtils.buildSheets(catalog, sheets, this.replay.properties);
 
@@ -645,15 +666,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         UIReplaysEditorUtils.pruneTree(sheets);
         Set<String> fresh = this.trackTree.groupSheets(sheets, UIForms.entries(this.replay.form.get()), this.getExpandedTracks(), true);
 
-        CategoryFold.settle(sheets, this.getExpandedTracks(), this.category, this.activePart, fresh);
+        CategoryFold.settle(sheets, this.getExpandedTracks(), this.category, fresh, this.trackTree.seen(this.getExpandedTracks()));
 
         if (!sheets.isEmpty() || filteredOutEverything)
         {
-            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, () ->
-            {
-                consumer.run();
-                this.focusPicked();
-            }).absolute())
+            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, consumer).absolute())
                 .target(this.filmPanel.editArea);
             this.keyframeEditor.relative(this).x(CATEGORY_BAR_WIDTH).y(0).w(1F, -CATEGORY_BAR_WIDTH).h(1F);
             this.keyframeEditor.setUndoId("replay_keyframe_editor");
@@ -823,7 +840,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         }
 
         List<String> recent = this.recentTrackSearches.computeIfAbsent(replayId, id -> new ArrayList<>());
-        UITrackSearchOverlayPanel.open(this.getContext(), entries, this.activePart, recent,
+        UITrackSearchOverlayPanel.open(this.getContext(), entries, this.partSelection.activePart, recent,
             (entry, createKeyframe) -> this.replay == source && this.revealTrack(entry, createKeyframe));
     }
 
@@ -832,7 +849,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         this.setActionsMode(false);
         this.pendingPick = null;
         this.revealedSearchTrack = entry;
-        if (entry.owned()) this.activePart = entry.path();
+        if (entry.owned()) this.partSelection.focus(entry.path());
         this.updateChannelsList();
         if (this.keyframeEditor == null) return false;
 
@@ -931,7 +948,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
      * Rows the user has unfolded in this replay's timeline. Handed to the dope sheet as-is, so folding
      * a row there lands here directly — there is nothing to read back out when the timeline is rebuilt,
      * which is what the old save-and-restore step existed for (and it had to know which tracks the
-     * current category could even answer for). A heading starts the way the tab lit lays it out, see
+     * current category could even answer for). How a heading starts the first time it shows: see
      * {@link CategoryFold#settle}.
      */
     public FoldState<String> getExpandedTracks()
@@ -1179,10 +1196,9 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     }
 
     /**
-     * Picking a model bone in the viewport is a pose edit. Every part's tracks are on the timeline,
-     * so the pick opens the part's owner (out of actions mode) and the shared pick logic reveals the
-     * bone's row. With a category in charge its tab follows the pick to Form; only the tab — what is
-     * open stays open.
+     * Picking a model bone in the viewport is a pose edit: the parts list moves to the bone's part if
+     * the timeline doesn't show it, its owner opens (out of actions mode) and the shared pick logic
+     * reveals the bone's row. The tab lit stays, and what is open stays open.
      */
     private void pickFormBone(Form form, String bone, boolean insert)
     {
@@ -1336,7 +1352,8 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     public void render(UIContext context)
     {
         /* Settings can change while this timeline remains open behind another panel. */
-        if (this.replay != null && (this.poseOverlayCount != BBSSettings.recordingPoseOverlays.get()
+        if (this.replay != null && (this.allBodyPartsSetting != TimelineBodyPartSelection.allParts()
+            || this.poseOverlayCount != BBSSettings.recordingPoseOverlays.get()
             || this.transformOverlayCount != BBSSettings.recordingTransformOverlays.get()))
         {
             this.updateChannelsList();
@@ -1417,6 +1434,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
         Replay replay = CollectionUtils.getSafe(this.film.replays.getList(), data.getInt("replay"));
 
+        if (replay != null)
+        {
+            this.selectedPartsByReplay.computeIfAbsent(replay.getId(), key -> new TimelineBodyPartSelection()).read(data);
+        }
+
         this.setReplay(replay, true, OrbitReaction.KEEP);
 
         currentIndices.clear();
@@ -1432,6 +1454,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         int index = this.film.replays.getList().indexOf(this.getReplay());
 
         data.putInt("replay", index);
+        this.partSelection.write(data);
         data.put("selection", DataStorageUtils.intListToData(this.replaysList.replays.getCurrentIndices()));
     }
 

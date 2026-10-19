@@ -5,14 +5,18 @@ import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.forms.BodyPart;
 import mchorse.bbs_mod.forms.forms.Form;
+import mchorse.bbs_mod.graphics.window.Window;
+import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIList;
+import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import java.util.function.BiConsumer;
@@ -31,6 +35,74 @@ public class UIForms extends UIList<UIForms.FormEntry>
 
     /** Where a carried part was let go: the part and its new place among its siblings. */
     public BiConsumer<BodyPart, Integer> onReorder;
+
+    private boolean timelineSelection;
+    private String activePath = "";
+
+    /** Opt-in: ordinary form-editing lists keep their single-object semantics. */
+    public UIForms timelineSelection()
+    {
+        this.timelineSelection = true;
+        this.multi();
+        this.context(menu ->
+        {
+            int index = this.getIndexAtCursor(this.getContext());
+            if (index < 0 || index >= this.visible().size()) return;
+            String path = this.visible().get(index).getPath();
+            menu.action(Icons.LIMB, L10n.lang("bbs.ui.timeline.select_branch"), () -> this.selectBranch(path));
+        });
+        return this;
+    }
+
+    private void selectBranch(String path)
+    {
+        this.activePath = path;
+        this.setCurrent(this.list.stream().filter(entry -> path.isEmpty()
+            || entry.getPath().equals(path) || entry.getPath().startsWith(path + "/")).toList());
+        this.fireCallback();
+    }
+
+    public String getActivePath()
+    {
+        List<FormEntry> selected = this.getCurrent();
+        if (selected.stream().noneMatch(entry -> entry.getPath().equals(this.activePath)))
+        {
+            this.activePath = selected.isEmpty() ? "" : selected.get(selected.size() - 1).getPath();
+        }
+        return this.activePath;
+    }
+
+    public void setCurrentPaths(Set<String> paths, String active)
+    {
+        this.activePath = active;
+        List<FormEntry> selected = this.list.stream().filter(entry -> paths.contains(entry.getPath())).toList();
+        if (selected.isEmpty() && !this.list.isEmpty()) selected = List.of(this.list.get(0));
+        this.setCurrent(selected);
+        this.getActivePath();
+    }
+
+    @Override
+    protected boolean pressItem(int index, UIContext context)
+    {
+        if (this.timelineSelection && index >= 0 && index < this.visible().size())
+        {
+            this.activePath = this.visible().get(index).getPath();
+        }
+        return super.pressItem(index, context);
+    }
+
+    @Override
+    protected void applySelectionOnClick(FormEntry item, int index)
+    {
+        if (this.timelineSelection && !Window.isCtrlPressed() && !Window.isShiftPressed())
+        {
+            this.setCurrent(item);
+        }
+        else
+        {
+            super.applySelectionOnClick(item, index);
+        }
+    }
 
     /** The form and every part under it, in the tree's order — for what needs the parts without the list. */
     public static List<FormEntry> entries(Form form)
