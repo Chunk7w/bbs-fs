@@ -1,13 +1,13 @@
 package mchorse.bbs_mod.ui.film.replays;
 
 import mchorse.bbs_mod.api.client.editor.TrackCategory;
-import mchorse.bbs_mod.film.replays.tracks.FormTrackGroup;
 import mchorse.bbs_mod.film.replays.tracks.TrackTree;
 import mchorse.bbs_mod.ui.framework.elements.input.items.FoldState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,39 +17,27 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * What a category's key does to a timeline. A category doesn't filter, it arranges what is being
- * worked on and folds every other owner away:
+ * What a category's key does to a timeline. A category doesn't filter, it switches the owners —
+ * the recording, the parts on the timeline, an addon's — and leaves what is inside them alone:
  * <ul>
- *   <li>The recording: its Position opens, its other headings fold.</li>
- *   <li>Form: the part in focus — the one last picked in the viewport, by its track or by a key, the
- *       form itself when none — opens at its Pose, or its Transform when it has no pose, its other
- *       headings fold.</li>
- *   <li>An addon's: the owners with its tracks open, their headings without its tracks fold.</li>
+ *   <li>The recording's key opens the recording and folds every other owner.</li>
+ *   <li>Form's opens every part on the timeline (the ones picked in the parts list) and folds the recording.</li>
+ *   <li>An addon's opens the owners with its tracks, and its own headings in them, and folds the rest.</li>
  * </ul>
- * Only the other owners' own rows fold: what is inside them stays as it was left, so unfolding one
- * brings back its headings the way they were. Pressed again, the recording's and Form's keys page
- * on through the headings in the order they stand; with Shift, back. Anything folded or unfolded by
- * hand in what the key arranged starts the paging over. The view scrolls as little as it takes to
- * show what was arranged. Bones folded inside a pose stay as they were, and a category with nothing
- * on the timeline (BBSFP's clip tab shows clips instead) leaves the folds be.
+ * The headings inside an owner keep their folds, so unfolding one brings them back the way they
+ * were. Pressed again, a key changes nothing, and the view doesn't scroll. A category with
+ * nothing on the timeline (BBSFP's clip tab shows clips instead) leaves the folds be.
  *
- * <p>The same layout is how a heading starts the first time a timeline shows it — a new replay, a
- * part that turns up, a form just picked: see {@link #settle}. There are no other first folds.
+ * <p>The tab lit also decides how an owner starts the first time a timeline shows it — and lays
+ * the whole timeline out the first time it has owners there — and the headings inside start open
+ * but for the recording's: see {@link #settle}.
  */
-public class CategoryFold
+public final class CategoryFold
 {
-    private TrackCategory category;
-    private Set<String> targets = new HashSet<>();
-    private int step;
+    private CategoryFold()
+    {}
 
-    /** The folds of what the last press arranged, right after it; still matching, it hasn't been touched since. */
-    private final Map<String, Boolean> left = new HashMap<>();
-
-    /**
-     * @param back  Shift: page back
-     * @param focus the path of the part being worked on, "" for the form itself
-     */
-    public void apply(UIKeyframeEditor editor, FoldState<String> folds, TrackCategory category, boolean back, String focus)
+    public static void apply(UIKeyframeEditor editor, FoldState<String> folds, TrackCategory category)
     {
         if (editor == null)
         {
@@ -59,44 +47,34 @@ public class CategoryFold
         List<UIKeyframeSheet> sheets = editor.view.getSheets();
         Set<UIKeyframeSheet.Section> all = sections(sheets);
         Set<UIKeyframeSheet.Section> with = sectionsOf(sheets, category);
-        List<UIKeyframeSheet.Section> targets = targets(all, with, category, focus);
+        List<UIKeyframeSheet.Section> targets = targets(all, with, category);
 
         if (targets.isEmpty())
         {
             return;
         }
 
-        Set<String> targetIds = ids(targets);
-        boolean again = builtin(category) && category == this.category && targetIds.equals(this.targets) && this.untouched(all, targets, folds);
-        int step = again ? this.step + (back ? -1 : 1) : 0;
-
-        layout(all, with, targets, category, step).forEach(folds::set);
+        layout(all, with, targets, category).forEach(folds::set);
 
         editor.view.getDopeSheet().setExpanded(folds);
-        editor.view.getDopeSheet().revealSection(targets.get(0).id());
-
-        this.category = category;
-        this.targets = targetIds;
-        this.step = step;
-        this.left.clear();
-
-        for (UIKeyframeSheet.Section section : arranged(all, targets))
-        {
-            this.left.put(section.id(), folds.isExpanded(section.id()));
-        }
     }
 
     /**
-     * Fold the headings a timeline shows for the first time the way the category's key would lay
-     * them out, as if it had just been pressed — for those headings only, the rest stays as it was.
-     * What the key leaves alone, the insides of the owners it folds, starts the way that owner's own
-     * key would lay it out: the recording at its Position, a part at its Pose. With nothing of the
-     * category on the timeline, every new owner starts folded.
+     * Fold the headings a timeline shows for the first time. An owner starts the way the key of the
+     * tab lit would switch it, as if just pressed; with nothing of that category on the timeline it
+     * starts open. A heading inside starts open — what a part has is in reach once it is unfolded —
+     * but for the recording's, which start folded but for its Position, and an addon's own headings
+     * open with its tab lit.
+     *
+     * <p>The first time the key has owners of its own on a timeline, it lays the whole timeline out,
+     * the owners already there too: a replay is added before its form is picked, and the recording
+     * that opened while Form's key had nothing to open folds once the form turns up. After that only
+     * what is new follows the key — a part picked later in the parts list doesn't fold what is open.
      *
      * @param fresh the headings shown for the first time, see {@link TrackTree#groupSheets}
-     * @param focus the path of the part being worked on, "" for the form itself
+     * @param seen  every heading these folds have shown so far, the fresh ones among them, see {@link TrackTree#seen}
      */
-    public static void settle(List<UIKeyframeSheet> sheets, FoldState<String> folds, TrackCategory category, String focus, Set<String> fresh)
+    public static void settle(List<UIKeyframeSheet> sheets, FoldState<String> folds, TrackCategory category, Set<String> fresh, Set<String> seen)
     {
         if (fresh.isEmpty())
         {
@@ -105,105 +83,68 @@ public class CategoryFold
 
         Set<UIKeyframeSheet.Section> all = sections(sheets);
         Set<UIKeyframeSheet.Section> with = sectionsOf(sheets, category);
-        Map<String, Boolean> laid = layout(all, with, targets(all, with, category, focus), category, 0);
+        List<UIKeyframeSheet.Section> targets = targets(all, with, category);
+        Map<String, Boolean> laid = targets.isEmpty() ? Collections.emptyMap() : layout(all, with, targets, category);
+        Set<String> targetIds = ids(targets);
+        boolean first = !targets.isEmpty();
+
+        for (String id : seen)
+        {
+            if (!fresh.contains(id) && opens(id, category, targetIds))
+            {
+                first = false;
+                break;
+            }
+        }
 
         for (UIKeyframeSheet.Section section : all)
         {
-            if (!fresh.contains(section.id()))
-            {
-                continue;
-            }
-
             Boolean expanded = laid.get(section.id());
 
-            if (expanded == null)
+            if (fresh.contains(section.id()))
             {
-                /* An addon's key leaves its own headings as they were: new, they are what it is there for */
-                expanded = !builtin(category) && with.contains(section) || ownLayout(sheets, all, section);
+                folds.set(section.id(), expanded == null ? opensFirst(section) : expanded);
             }
-
-            folds.set(section.id(), expanded);
+            else if (first && expanded != null)
+            {
+                folds.set(section.id(), expanded);
+            }
         }
     }
 
-    /** How the key of the owner a heading sits in would lay it out: the recording's or Form's. */
-    private static boolean ownLayout(List<UIKeyframeSheet> sheets, Set<UIKeyframeSheet.Section> all, UIKeyframeSheet.Section section)
+    /** How a heading starts when no key has a say in it: open, but for the recording's own, folded but for its Position. */
+    private static boolean opensFirst(UIKeyframeSheet.Section section)
     {
-        UIKeyframeSheet.Section owner = section;
-
-        while (owner != null && !owner.owner())
+        for (UIKeyframeSheet.Section parent = section.parent(); parent != null; parent = parent.parent())
         {
-            owner = owner.parent();
+            if (parent.id().equals(TrackTree.RECORD))
+            {
+                return section.id().equals(UIReplaysEditor.POSITION_SECTION);
+            }
         }
 
-        if (owner == null)
-        {
-            return true;
-        }
-
-        TrackCategory category = owner.id().equals(TrackTree.RECORD) ? TrackCategory.REPLAY : TrackCategory.FORM;
-
-        return layout(all, sectionsOf(sheets, category), Collections.singletonList(owner), category, 0).getOrDefault(section.id(), true);
+        return true;
     }
 
-    /**
-     * What a key sets, heading by heading: the owners it arranges open at the heading it has paged
-     * to, every other owner folded. What is inside the owners it folds isn't in it — that stays.
-     */
-    private static Map<String, Boolean> layout(Set<UIKeyframeSheet.Section> all, Set<UIKeyframeSheet.Section> with, List<UIKeyframeSheet.Section> targets, TrackCategory category, int step)
+    /** What a key sets: its owners open, every other owner folded; an addon's own headings open too. */
+    private static Map<String, Boolean> layout(Set<UIKeyframeSheet.Section> all, Set<UIKeyframeSheet.Section> with, List<UIKeyframeSheet.Section> targets, TrackCategory category)
     {
         Map<String, Boolean> layout = new HashMap<>();
-        Set<String> targetIds = ids(targets);
-
-        for (UIKeyframeSheet.Section owner : targets)
-        {
-            String page = null;
-
-            if (category == TrackCategory.REPLAY)
-            {
-                page = page(headings(all, with, owner), step, UIReplaysEditor.POSITION_SECTION, null);
-            }
-            else if (category == TrackCategory.FORM)
-            {
-                String path = owner.id().substring(TrackTree.FORM_OWNER.length());
-
-                page = page(headings(all, with, owner), step, FormTrackGroup.POSE.sectionId(path), FormTrackGroup.TRANSFORM.sectionId(path));
-            }
-
-            layout.put(owner.id(), true);
-
-            for (UIKeyframeSheet.Section section : all)
-            {
-                if (section.equals(owner) || !section.isIn(owner))
-                {
-                    continue;
-                }
-
-                if (builtin(category))
-                {
-                    layout.put(section.id(), section.id().equals(page));
-                }
-                else if (!with.contains(section))
-                {
-                    layout.put(section.id(), false);
-                }
-            }
-        }
+        boolean builtin = category == TrackCategory.REPLAY || category == TrackCategory.FORM;
 
         for (UIKeyframeSheet.Section section : all)
         {
-            if (section.owner() && !targetIds.contains(section.id()))
+            if (section.owner())
             {
-                layout.put(section.id(), false);
+                layout.put(section.id(), targets.contains(section));
+            }
+            else if (!builtin && with.contains(section))
+            {
+                layout.put(section.id(), true);
             }
         }
 
         return layout;
-    }
-
-    private static boolean builtin(TrackCategory category)
-    {
-        return category == TrackCategory.REPLAY || category == TrackCategory.FORM;
     }
 
     /** Every heading the rows sit under, and the headings those sit in, in the order they stand. */
@@ -243,7 +184,44 @@ public class CategoryFold
         return sections;
     }
 
-    private static Set<String> ids(List<UIKeyframeSheet.Section> sections)
+    /** The owners a key opens: the recording, every part on the timeline, or every owner with an addon's tracks. */
+    private static List<UIKeyframeSheet.Section> targets(Set<UIKeyframeSheet.Section> all, Set<UIKeyframeSheet.Section> with, TrackCategory category)
+    {
+        List<UIKeyframeSheet.Section> targets = new ArrayList<>();
+        Set<String> withIds = ids(with);
+
+        for (UIKeyframeSheet.Section section : all)
+        {
+            if (section.owner() && opens(section.id(), category, withIds))
+            {
+                targets.add(section);
+            }
+        }
+
+        return targets;
+    }
+
+    /**
+     * Whether a key opens the owner of this id: the recording's key the recording, Form's every part,
+     * an addon's the owners with its tracks — which only the timeline shown now can tell, so they are
+     * handed in. An id of a heading inside an owner is never opened.
+     */
+    private static boolean opens(String id, TrackCategory category, Set<String> withTracks)
+    {
+        if (category == TrackCategory.REPLAY)
+        {
+            return id.equals(TrackTree.RECORD);
+        }
+
+        if (category == TrackCategory.FORM)
+        {
+            return id.startsWith(TrackTree.FORM_OWNER);
+        }
+
+        return withTracks.contains(id);
+    }
+
+    private static Set<String> ids(Collection<UIKeyframeSheet.Section> sections)
     {
         Set<String> ids = new HashSet<>();
 
@@ -253,145 +231,5 @@ public class CategoryFold
         }
 
         return ids;
-    }
-
-    /** The owners a key arranges: the recording, the form part in focus, or every owner with an addon's tracks. */
-    private static List<UIKeyframeSheet.Section> targets(Set<UIKeyframeSheet.Section> all, Set<UIKeyframeSheet.Section> with, TrackCategory category, String focus)
-    {
-        List<UIKeyframeSheet.Section> targets = new ArrayList<>();
-        String focused = TrackTree.ownerId(focus == null ? "" : focus);
-        UIKeyframeSheet.Section root = null;
-        UIKeyframeSheet.Section firstForm = null;
-
-        for (UIKeyframeSheet.Section section : all)
-        {
-            if (!section.owner())
-            {
-                continue;
-            }
-
-            if (category == TrackCategory.REPLAY)
-            {
-                if (section.id().equals(TrackTree.RECORD))
-                {
-                    targets.add(section);
-                }
-            }
-            else if (category == TrackCategory.FORM)
-            {
-                if (!section.id().startsWith(TrackTree.FORM_OWNER))
-                {
-                    continue;
-                }
-
-                if (section.id().equals(focused))
-                {
-                    targets.add(section);
-                }
-
-                if (section.id().equals(TrackTree.ownerId("")))
-                {
-                    root = section;
-                }
-
-                if (firstForm == null)
-                {
-                    firstForm = section;
-                }
-            }
-            else if (with.contains(section))
-            {
-                targets.add(section);
-            }
-        }
-
-        /* A part in focus that is gone (removed, or another actor's) leaves the form itself in focus. */
-        if (category == TrackCategory.FORM && targets.isEmpty())
-        {
-            UIKeyframeSheet.Section fallback = root != null ? root : firstForm;
-
-            if (fallback != null)
-            {
-                targets.add(fallback);
-            }
-        }
-
-        return targets;
-    }
-
-    /** An owner's own headings with the category's tracks, in the order they stand on the timeline. */
-    private static List<String> headings(Set<UIKeyframeSheet.Section> all, Set<UIKeyframeSheet.Section> with, UIKeyframeSheet.Section owner)
-    {
-        List<String> headings = new ArrayList<>();
-
-        for (UIKeyframeSheet.Section section : all)
-        {
-            if (owner.equals(section.parent()) && with.contains(section))
-            {
-                headings.add(section.id());
-            }
-        }
-
-        return headings;
-    }
-
-    /** The heading the paging has reached: counted from the preferred one, or the fallback when there is none. */
-    private static String page(List<String> headings, int step, String preferred, String fallback)
-    {
-        if (headings.isEmpty())
-        {
-            return null;
-        }
-
-        int start = headings.indexOf(preferred);
-
-        if (start < 0 && fallback != null)
-        {
-            start = headings.indexOf(fallback);
-        }
-
-        return headings.get(Math.floorMod(Math.max(start, 0) + step, headings.size()));
-    }
-
-    /** The arranged owners and every heading inside them. */
-    private static List<UIKeyframeSheet.Section> arranged(Set<UIKeyframeSheet.Section> all, List<UIKeyframeSheet.Section> targets)
-    {
-        List<UIKeyframeSheet.Section> arranged = new ArrayList<>();
-
-        for (UIKeyframeSheet.Section section : all)
-        {
-            for (UIKeyframeSheet.Section owner : targets)
-            {
-                if (section.isIn(owner))
-                {
-                    arranged.add(section);
-                    break;
-                }
-            }
-        }
-
-        return arranged;
-    }
-
-    private boolean untouched(Set<UIKeyframeSheet.Section> all, List<UIKeyframeSheet.Section> targets, FoldState<String> folds)
-    {
-        List<UIKeyframeSheet.Section> arranged = arranged(all, targets);
-
-        if (arranged.size() != this.left.size())
-        {
-            return false;
-        }
-
-        for (UIKeyframeSheet.Section section : arranged)
-        {
-            Boolean expanded = this.left.get(section.id());
-
-            if (expanded == null || expanded != folds.isExpanded(section.id()))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

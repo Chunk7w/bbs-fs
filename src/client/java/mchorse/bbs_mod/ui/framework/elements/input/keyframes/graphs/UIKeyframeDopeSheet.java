@@ -112,10 +112,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         int y = this.sheetYCache.getOrDefault(sheet, 0) + this.keyframes.getTopMargin();
         this.dopeSheet.setScroll(y - (this.dopeSheet.area.h - this.getTrackHeight(sheet)) / 2);
     }
-    /**
-     * Unfold a heading and the headings it sits in, and scroll it into view with what opened under
-     * it (see {@link #fitSection}). Nothing is folded and nothing flashes.
-     */
+    /** Unfold a heading and the headings it sits in. Nothing is folded, nothing scrolls and nothing flashes. */
     public void revealSection(String id)
     {
         UIKeyframeSheet.Section found = null;
@@ -140,55 +137,6 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         }
 
         this.updateScrollSize();
-        this.fitSection(found);
-    }
-
-    /**
-     * Scroll as little as it takes to show an open heading with the rows under it: rows coming up
-     * past the bottom edge pull the view down, never past the heading itself, and a heading above
-     * the top edge comes to the top. A heading already in view with all it holds stays put.
-     */
-    private void fitSection(UIKeyframeSheet.Section section)
-    {
-        Integer top = this.sectionYCache.get(section);
-
-        if (top == null)
-        {
-            return;
-        }
-
-        int height = (int) this.trackHeight;
-        int bottom = top + height;
-
-        for (Map.Entry<UIKeyframeSheet, Integer> entry : this.sheetYCache.entrySet())
-        {
-            UIKeyframeSheet sheet = entry.getKey();
-
-            if (sheet.section != null && sheet.section.isIn(section))
-            {
-                bottom = Math.max(bottom, entry.getValue() + this.getTrackHeight(sheet));
-            }
-        }
-
-        for (Map.Entry<UIKeyframeSheet.Section, Integer> entry : this.sectionYCache.entrySet())
-        {
-            if (entry.getKey().isIn(section))
-            {
-                bottom = Math.max(bottom, entry.getValue() + height);
-            }
-        }
-
-        int view = this.dopeSheet.area.h - this.keyframes.getTopMargin();
-        double scroll = this.dopeSheet.getScroll();
-
-        if (top < scroll)
-        {
-            this.dopeSheet.setScroll(top);
-        }
-        else if (bottom > scroll + view)
-        {
-            this.dopeSheet.setScroll(Math.min(top, bottom - view));
-        }
     }
 
     /** Headings drawn right now, by row. One folded inside a folded heading has no row. */
@@ -947,11 +895,6 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
                 UIKeyframeSheet.Section section = entry.getKey();
                 this.folds.set(section.id(), !this.folds.isExpanded(section.id()));
                 this.updateScrollSize();
-
-                if (this.folds.isExpanded(section.id()))
-                {
-                    this.fitSection(section);
-                }
 
                 return true;
             }

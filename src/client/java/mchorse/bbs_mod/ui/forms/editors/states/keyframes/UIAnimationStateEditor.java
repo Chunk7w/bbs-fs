@@ -5,6 +5,7 @@ import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.replays.tracks.TrackCatalog;
+import mchorse.bbs_mod.film.replays.tracks.TimelineBodyPartSelection;
 import mchorse.bbs_mod.film.replays.tracks.TrackTree;
 import mchorse.bbs_mod.film.replays.tracks.TrackDescriptor;
 import mchorse.bbs_mod.forms.FormUtils;
@@ -17,6 +18,7 @@ import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.forms.renderers.utils.MatrixCache;
 import mchorse.bbs_mod.forms.states.AnimationState;
+import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.film.replays.tracks.TrackSearchEntry;
@@ -32,6 +34,7 @@ import mchorse.bbs_mod.ui.forms.editors.UIFormEditor;
 import mchorse.bbs_mod.ui.forms.editors.UIForms;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
+import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.items.FoldState;
@@ -81,7 +84,7 @@ public class UIAnimationStateEditor extends UIElement
         var renderer = this.editor.renderer;
         var camera = renderer.camera;
         Matrix4f view = new Matrix4f(camera.view).translate((float) -camera.position.x, (float) -camera.position.y, (float) -camera.position.z);
-        for (var entry : this.parts)
+        for (var entry : this.bodyParts.getList())
         {
             Form model = entry.getForm();
             for (var chain : SplineEditorUtils.sources(model))
@@ -138,8 +141,7 @@ public class UIAnimationStateEditor extends UIElement
 
     public UIFormEditor editor;
     public UIElement editArea;
-    /** The form and its parts, root first: whose owners the timeline shows. */
-    private List<UIForms.FormEntry> parts = new ArrayList<>();
+    public final UIForms bodyParts;
 
     private final UIElement sidebar = new UIElement();
     private final UIElement timelineArea = new UIElement()
@@ -162,15 +164,13 @@ public class UIAnimationStateEditor extends UIElement
     private final Map<TrackCategory, UIIcon> categoryButtons = new java.util.LinkedHashMap<>();
     private final List<TrackCategory> visibleCategories = new ArrayList<>();
     private TrackCategory category = TrackCategory.FORM;
+    private final UISection bodyPartsSection = new UISection(L10n.lang("bbs.ui.film.replays.body_parts"));
     private Form root;
     /** New with every form edited, like the folds: another form's headings start the way new ones do. */
     private TrackTree trackTree = new TrackTree();
-    private final CategoryFold categoryFold = new CategoryFold();
-    /**
-     * The part being worked on: the one last picked in the viewport, found by search, or picked by its
-     * track or a key on the timeline. The Form key arranges it, the track search lists its tracks first.
-     */
-    private String activePart = "";
+    /** The parts the timeline shows and the one in focus, which the track search lists first. */
+    private TimelineBodyPartSelection partSelection = new TimelineBodyPartSelection();
+    private boolean allBodyPartsSetting;
 
     private AnimationState state;
     private TrackSearchEntry revealedSearchTrack;
@@ -186,6 +186,7 @@ public class UIAnimationStateEditor extends UIElement
     {
         this.editor = editor;
         this.setUndoId("form_animation_state_editor");
+        this.bodyParts = new UIForms(this::selectParts).timelineSelection();
         this.sidebar.relative(this).x(BBSSettings.editorLayoutSettings.getStateEditorSizeH()).wTo(this.area, 1F).h(1F);
         this.timelineArea.relative(this).y(1F).anchorY(1F).wTo(this.sidebar.area)
             .h(BBSSettings.editorLayoutSettings.getStateEditorSizeV());
@@ -215,9 +216,14 @@ public class UIAnimationStateEditor extends UIElement
         this.partHeader.add(graph);
         this.timelineArea.add(this.categoryBar, this.partHeader);
 
+        this.bodyPartsSection.relative(this.sidebar).x(3).y(1F, -3).w(1F, -6).anchorY(1F);
+        this.bodyPartsSection.fields.add(this.bodyParts);
+        this.bodyPartsSection.setVisible(false);
+
         this.editArea = new UIElement();
-        this.editArea.relative(this.sidebar).w(1F).h(1F);
-        this.sidebar.add(this.editArea);
+        this.editArea.relative(this.sidebar).w(1F).hTo(this.bodyPartsSection.area);
+        /* The section's natural height determines how much space remains for properties. */
+        this.sidebar.add(this.bodyPartsSection, this.editArea);
 
         UIDraggable draggable = new UIDraggable((context) ->
         {
@@ -260,11 +266,24 @@ public class UIAnimationStateEditor extends UIElement
         return this.state;
     }
 
-    /** A category folds the timeline to its tracks, and pages through its headings pressed again: see {@link CategoryFold}. */
+    /** A category opens its owners on the timeline and folds the others: see {@link CategoryFold}. */
     private void setCategory(TrackCategory category)
     {
         this.category = category;
-        this.categoryFold.apply(this.keyframeEditor, this.expandedTabs, category, Window.isShiftPressed(), this.activePart);
+        CategoryFold.apply(this.keyframeEditor, this.expandedTabs, category);
+    }
+
+    /** The parts list picked the parts the timeline shows; the one clicked opens. */
+    private void selectParts(List<UIForms.FormEntry> parts)
+    {
+        this.partSelection.select(parts, this.bodyParts.getActivePath());
+        this.revealedSearchTrack = null;
+        this.setState(this.state);
+
+        if (this.keyframeEditor != null)
+        {
+            this.keyframeEditor.view.getDopeSheet().revealSection(TrackTree.ownerId(this.partSelection.activePart));
+        }
     }
 
     /** Unfold every owner and heading at once. An action, not a mode: the tab lit stays. */
@@ -278,6 +297,7 @@ public class UIAnimationStateEditor extends UIElement
 
     public void setState(AnimationState state)
     {
+        this.allBodyPartsSetting = TimelineBodyPartSelection.allParts();
         this.poseOverlayCount = BBSSettings.recordingPoseOverlays.get();
         this.transformOverlayCount = BBSSettings.recordingTransformOverlays.get();
         UIKeyframes lastEditor = null;
@@ -298,12 +318,16 @@ public class UIAnimationStateEditor extends UIElement
             this.root = this.editor.form;
             this.revealedSearchTrack = null;
             this.recentTrackSearches.clear();
-            this.activePart = "";
+            this.partSelection = new TimelineBodyPartSelection();
             this.trackTree = new TrackTree();
             this.expandedTabs.collapseAll();
         }
 
-        this.parts = UIForms.entries(this.root);
+        double scroll = this.bodyParts.scroll.getScroll();
+
+        this.bodyParts.setForm(this.root);
+        this.bodyParts.scroll.setScroll(scroll);
+        this.partSelection.restore(this.bodyParts);
 
         if (this.state == null)
         {
@@ -320,7 +344,7 @@ public class UIAnimationStateEditor extends UIElement
 
         for (TrackDescriptor track : TrackCatalog.ordered(TrackCatalog.of(this.root, this.state.properties)))
         {
-            if (!track.kind().isSolver())
+            if (!track.kind().isSolver() && this.partSelection.includes(track.id().formPath()))
             {
                 catalog.add(track);
             }
@@ -358,9 +382,9 @@ public class UIAnimationStateEditor extends UIElement
             && UIReplaysEditorUtils.isTrackHidden(sheet.id, UIReplaysEditor.getSheetFilterKey(sheet), UIReplaysEditor.getSheetForm(sheet)));
 
         UIReplaysEditorUtils.pruneTree(sheets);
-        Set<String> fresh = this.trackTree.groupSheets(sheets, this.parts, this.expandedTabs, false);
+        Set<String> fresh = this.trackTree.groupSheets(sheets, this.bodyParts.getList(), this.expandedTabs, false);
 
-        CategoryFold.settle(sheets, this.expandedTabs, this.category, this.activePart, fresh);
+        CategoryFold.settle(sheets, this.expandedTabs, this.category, fresh, this.trackTree.seen(this.expandedTabs));
 
         /*
          * Filtering every track off used to drop the timeline itself, and the track filter lives in its
@@ -369,11 +393,7 @@ public class UIAnimationStateEditor extends UIElement
          */
         if (!sheets.isEmpty() || hadTracks)
         {
-            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIAnimationStateKeyframes(this.editor, () ->
-            {
-                consumer.run();
-                this.focusPicked();
-            })).target(this.editArea);
+            this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIAnimationStateKeyframes(this.editor, consumer)).target(this.editArea);
             this.keyframeEditor.relative(this.timelineArea).x(CATEGORY_BAR_WIDTH).w(1F, -CATEGORY_BAR_WIDTH).h(1F);
             this.keyframeEditor.setUndoId("form_animation_state_keyframe_editor");
             this.keyframeEditor.view.getDopeSheet().setEmptyState(UIKeys.KEYFRAMES_EMPTY_FILTERED, UIKeys.KEYFRAMES_EMPTY_FILTERED_HINT);
@@ -480,34 +500,31 @@ public class UIAnimationStateEditor extends UIElement
         AnimationState source = this.state;
         List<TrackSearchEntry> entries = UIReplaysEditorUtils.formSearchEntries(this.root, true);
         List<String> recent = this.recentTrackSearches.computeIfAbsent(source, id -> new ArrayList<>());
-        UITrackSearchOverlayPanel.open(this.getContext(), entries, this.activePart, recent,
+        UITrackSearchOverlayPanel.open(this.getContext(), entries, this.partSelection.activePart, recent,
             (entry, createKeyframe) -> this.state == source && this.revealTrack(entry, createKeyframe));
     }
 
     private boolean revealTrack(TrackSearchEntry entry, boolean createKeyframe)
     {
-        this.activePart = entry.path();
+        this.partSelection.focus(entry.path());
         this.revealedSearchTrack = entry;
         this.setState(this.state);
         return this.keyframeEditor != null
             && UIReplaysEditorUtils.revealSearchTrack(this.keyframeEditor, entry, createKeyframe, this.getContext());
     }
 
-    /** A key picked on a part's track puts that part in focus. */
-    private void focusPicked()
-    {
-        UIKeyframeSheet sheet = this.keyframeEditor == null ? null : this.keyframeEditor.view.getPickedSheet();
-
-        if (sheet != null && sheet.descriptor != null)
-        {
-            this.activePart = sheet.descriptor.id().formPath();
-        }
-    }
-
-    /** Bring a part's tracks into reach: its owner opens and scrolls into view. Nothing else folds. */
+    /**
+     * Bring a part's tracks into reach: a part off the timeline becomes the one the parts list
+     * shows, and its owner opens. Nothing else folds, and the view stays where it is.
+     */
     private void selectPart(String path)
     {
-        this.activePart = path;
+        if (!this.partSelection.activePart.equals(path))
+        {
+            this.partSelection.focus(path);
+            this.revealedSearchTrack = null;
+            this.setState(this.state);
+        }
 
         if (this.keyframeEditor != null)
         {
@@ -522,7 +539,7 @@ public class UIAnimationStateEditor extends UIElement
             return;
         }
 
-        for (UIForms.FormEntry entry : this.parts)
+        for (UIForms.FormEntry entry : this.bodyParts.getList())
         {
             if (entry.getForm() == form)
             {
@@ -547,9 +564,31 @@ public class UIAnimationStateEditor extends UIElement
     }
 
     @Override
+    public void resize()
+    {
+        int maxHeight = Math.min(160, this.getFlex().getH() / 2);
+
+        this.bodyPartsSection.setVisible(!TimelineBodyPartSelection.allParts() && this.state != null && this.bodyParts.getList().size() > 1);
+        this.bodyParts.h(Math.max(1, Math.min(this.bodyParts.getList().size() * this.bodyParts.scroll.scrollItemSize,
+            maxHeight)));
+        this.editArea.hTo(this.bodyPartsSection.isVisible() ? this.bodyPartsSection.area : this.sidebar.area,
+            this.bodyPartsSection.isVisible() ? 0F : 1F);
+
+        super.resize();
+    }
+
+    @Override
+    public void collectUndoData(MapType data)
+    {
+        super.collectUndoData(data);
+        this.partSelection.write(data);
+    }
+
+    @Override
     public void applyUndoData(MapType data)
     {
         super.applyUndoData(data);
+        this.partSelection.read(data);
         this.setState(this.state);
     }
 
@@ -783,7 +822,8 @@ public class UIAnimationStateEditor extends UIElement
     public void render(UIContext context)
     {
         /* Settings can change while this timeline remains open behind another panel. */
-        if (this.state != null && (this.poseOverlayCount != BBSSettings.recordingPoseOverlays.get()
+        if (this.state != null && (this.allBodyPartsSetting != TimelineBodyPartSelection.allParts()
+            || this.poseOverlayCount != BBSSettings.recordingPoseOverlays.get()
             || this.transformOverlayCount != BBSSettings.recordingTransformOverlays.get()))
         {
             this.setState(this.state);

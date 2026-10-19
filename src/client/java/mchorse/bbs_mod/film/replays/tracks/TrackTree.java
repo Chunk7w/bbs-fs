@@ -7,6 +7,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.items.FoldState;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,9 +17,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * Hangs a timeline's tracks under their owners — the recording, the form and each of its parts —
- * and, inside a form's owner, under its headings (Pose, Rig, Transform, Look; see {@link FormTrackGroup}).
- * Every part is always there: what isn't being worked on is folded, never filtered away.
+ * Hangs a timeline's tracks under their owners — the recording and each part on the timeline (the
+ * ones picked in the parts list, see {@link TimelineBodyPartSelection}) — and, inside a part's owner,
+ * under its headings (Pose, Rig, Transform, Look; see {@link FormTrackGroup}).
  */
 public class TrackTree
 {
@@ -34,6 +35,12 @@ public class TrackTree
     public static String ownerId(String path)
     {
         return FORM_OWNER + path;
+    }
+
+    /** Every heading these folds have shown so far, the ones {@link #groupSheets} just handed out as new among them. */
+    public Set<String> seen(FoldState<String> folds)
+    {
+        return Collections.unmodifiableSet(this.knownGroups.getOrDefault(folds, Collections.emptySet()));
     }
 
     /**
