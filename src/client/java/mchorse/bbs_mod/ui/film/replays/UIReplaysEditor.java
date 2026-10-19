@@ -770,14 +770,17 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
                 {
                     Set<String> disabledSet = BBSSettings.disabledSheets.get();
                     Map<String, Integer> keyToColor = new HashMap<>();
+                    Map<String, IKey> keyToTitle = new HashMap<>();
                     for (UIKeyframeSheet listed : this.keyframeEditor.view.getSheets())
                     {
                         keyToColor.put(getSheetFilterKey(listed), listed.color);
+                        keyToTitle.put(getSheetFilterKey(listed), listed.defaultTitle);
                     }
                     UIKeyframeSheetFilterOverlayPanel panel = new UIKeyframeSheetFilterOverlayPanel(
                             disabledSet,
                             this.keys,
-                            keyToColor
+                            keyToColor,
+                            keyToTitle
                     );
 
                     UIOverlay.addOverlay(this.getContext(), panel, 240, 0.9F);
@@ -834,7 +837,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         List<TrackSearchEntry> entries = UIReplaysEditorUtils.formSearchEntries(source.form.get(), false);
         for (String key : ReplayKeyframes.CURATED_CHANNELS)
         {
-            entries.add(new TrackSearchEntry(key, "", false, BBSSettings.trackStyles.name(key, key), key,
+            entries.add(new TrackSearchEntry(key, "", false, BBSSettings.trackStyles.name(key, TrackStyle.label(key).get()), key,
                 TrackCategory.REPLAY.label.get() + " · " + L10n.lang("bbs.ui.film.replay.sections." + replaySection(key)).get(),
                 BBSSettings.trackStyles.color(key, getColor(key)), getIcon(key), UIReplaysEditorUtils.isTrackHidden(key, key, null)));
         }
@@ -873,7 +876,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
                 if (replaySection(key).equals(group))
                 {
                     KeyframeChannel channel = (KeyframeChannel) this.replay.keyframes.get(key);
-                    UIKeyframeSheet sheet = new UIKeyframeSheet(key, IKey.constant(key), getColor(key), channel, key.equals("anchor") ? this.replay.anchor : null, false).icon(getIcon(key));
+                    UIKeyframeSheet sheet = new UIKeyframeSheet(key, TrackStyle.label(key), getColor(key), channel, key.equals("anchor") ? this.replay.anchor : null, false).icon(getIcon(key));
                     sheet.section = section;
                     sheets.add(sheet);
                 }

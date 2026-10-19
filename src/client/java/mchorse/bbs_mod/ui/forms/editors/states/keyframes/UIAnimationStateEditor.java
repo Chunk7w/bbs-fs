@@ -19,6 +19,7 @@ import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.forms.renderers.utils.MatrixCache;
 import mchorse.bbs_mod.forms.states.AnimationState;
 import mchorse.bbs_mod.l10n.L10n;
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.film.replays.tracks.TrackSearchEntry;
@@ -448,11 +449,13 @@ public class UIAnimationStateEditor extends UIElement
                 menu.action(Icons.FILTER, UIKeys.FILM_REPLAY_FILTER_SHEETS, () ->
                 {
                     Map<String, Integer> keyToColor = new HashMap<>();
+                    Map<String, IKey> keyToTitle = new HashMap<>();
                     for (UIKeyframeSheet listed : this.keyframeEditor.view.getSheets())
                     {
                         keyToColor.put(UIReplaysEditor.getSheetFilterKey(listed), listed.color);
+                        keyToTitle.put(UIReplaysEditor.getSheetFilterKey(listed), listed.defaultTitle);
                     }
-                    UIKeyframeSheetFilterOverlayPanel panel = new UIKeyframeSheetFilterOverlayPanel(BBSSettings.disabledSheets.get(), this.keys, keyToColor);
+                    UIKeyframeSheetFilterOverlayPanel panel = new UIKeyframeSheetFilterOverlayPanel(BBSSettings.disabledSheets.get(), this.keys, keyToColor, keyToTitle);
 
                     UIOverlay.addOverlay(this.getContext(), panel, 240, 0.9F);
 
