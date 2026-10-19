@@ -57,6 +57,7 @@ import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframes;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.graphs.UIKeyframeDopeSheet;
 import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
+import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIRenderable;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCanvas;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCategoryBar;
@@ -373,9 +374,12 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
 
             area.render(context.batcher, BBSSettings.baseSurface());
         }));
+        UILabel partName = new UILabel(this::getSelectedPartName).color(0xffaaaaaa, false).labelAnchor(0F, 0.5F);
+        partName.relative(this.partHeader).x(5).y(0).w(1F, -UIConstants.ICON_SIZE - 10).h(1F);
+        partName.tooltip(() -> L10n.lang("bbs.ui.film.replays.selected_body_part").format(this.getSelectedPartName()).get());
         UIIcon graph = UIKeyframes.modeButton(() -> this.keyframeEditor == null ? null : this.keyframeEditor.view);
         graph.relative(this.partHeader).x(1F, -UIConstants.ICON_SIZE).y(0.5F).anchorY(0.5F);
-        this.partHeader.add(graph);
+        this.partHeader.add(partName, graph);
         this.add(this.partHeader);
         this.markContainer();
     }
@@ -481,6 +485,11 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
     public Replay getReplay()
     {
         return this.replay;
+    }
+
+    public String getSelectedPartName()
+    {
+        return this.partSelection.title(this.replaysList.bodyParts);
     }
 
     /** The parts list picked the parts the timeline shows; the one clicked opens. */
@@ -770,14 +779,17 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
                 {
                     Set<String> disabledSet = BBSSettings.disabledSheets.get();
                     Map<String, Integer> keyToColor = new HashMap<>();
+                    Map<String, IKey> keyToTitle = new HashMap<>();
                     for (UIKeyframeSheet listed : this.keyframeEditor.view.getSheets())
                     {
                         keyToColor.put(getSheetFilterKey(listed), listed.color);
+                        keyToTitle.put(getSheetFilterKey(listed), listed.defaultTitle);
                     }
                     UIKeyframeSheetFilterOverlayPanel panel = new UIKeyframeSheetFilterOverlayPanel(
                             disabledSet,
                             this.keys,
-                            keyToColor
+                            keyToColor,
+                            keyToTitle
                     );
 
                     UIOverlay.addOverlay(this.getContext(), panel, 240, 0.9F);
@@ -834,7 +846,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
         List<TrackSearchEntry> entries = UIReplaysEditorUtils.formSearchEntries(source.form.get(), false);
         for (String key : ReplayKeyframes.CURATED_CHANNELS)
         {
-            entries.add(new TrackSearchEntry(key, "", false, BBSSettings.trackStyles.name(key, key), key,
+            entries.add(new TrackSearchEntry(key, "", false, BBSSettings.trackStyles.name(key, TrackStyle.label(key).get()), key,
                 TrackCategory.REPLAY.label.get() + " · " + L10n.lang("bbs.ui.film.replay.sections." + replaySection(key)).get(),
                 BBSSettings.trackStyles.color(key, getColor(key)), getIcon(key), UIReplaysEditorUtils.isTrackHidden(key, key, null)));
         }
@@ -873,7 +885,7 @@ public class UIReplaysEditor extends UIElement implements IBoneSelectionHost, IL
                 if (replaySection(key).equals(group))
                 {
                     KeyframeChannel channel = (KeyframeChannel) this.replay.keyframes.get(key);
-                    UIKeyframeSheet sheet = new UIKeyframeSheet(key, IKey.constant(key), getColor(key), channel, key.equals("anchor") ? this.replay.anchor : null, false).icon(getIcon(key));
+                    UIKeyframeSheet sheet = new UIKeyframeSheet(key, TrackStyle.label(key), getColor(key), channel, key.equals("anchor") ? this.replay.anchor : null, false).icon(getIcon(key));
                     sheet.section = section;
                     sheets.add(sheet);
                 }

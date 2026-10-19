@@ -77,7 +77,7 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
     private static final int LABEL_TEXT_ICON_GAP = 3;
     private static final int LABEL_COMPACT_WIDTH = 60;
 
-    /** Where names start under a heading: past its double bar, so the heading and its tracks share one column. */
+    /** Where names start under a heading: past its double bar. Its tracks start one indent step further in. */
     private static final int SECTION_TEXT_LEFT = LABEL_TEXT_LEFT + SECTION_STRIPE - RowStyle.STRIPE;
 
     /** Horizontal cull slack: wider than any keyframe shape's radius, so edge keyframes draw whole. */
@@ -320,10 +320,13 @@ public class UIKeyframeDopeSheet implements IUIKeyframeGraph
         return this.folds.isExpanded(sheet.id);
     }
 
-    /** A track lines up with its heading's name, the bar telling the two apart; only the tracks it hangs from push it in. */
+    /**
+     * A track sits one step in from its heading's name — a heading and a track can be called the same
+     * (Pose under Pose) — and a step further for every track it hangs from.
+     */
     private int getSheetIndent(UIKeyframeSheet sheet)
     {
-        return this.getIndent(sheet.getDepth() + (sheet.section == null ? 0 : sheet.section.depth()));
+        return this.getIndent(sheet.getDepth() + (sheet.section == null ? 0 : sheet.section.depth() + 1));
     }
 
     private int getIndent(int depth)

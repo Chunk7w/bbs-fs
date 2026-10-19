@@ -347,12 +347,11 @@ public class TrackCatalog
             return;
         }
 
-        String title = bone + FormUtils.PATH_SEPARATOR + "constraints";
         BaseValueBasic property = formBone != null
             ? formBone.constraints
             : new ValueBoneConstraint(id.toKey(), new BoneConstraint());
 
-        out.add(new TrackDescriptor(id, channel(properties, id), modelForm, IKey.constant(title),
+        out.add(new TrackDescriptor(id, channel(properties, id), modelForm, TrackStyle.label(id),
             Icons.LOCKED, color, property)
             .seed(() -> formBone != null ? formBone.constraints.get().copy() : new BoneConstraint())
             .under(boneTrack));
@@ -447,32 +446,31 @@ public class TrackCatalog
     private static void materialProps(ModelForm modelForm, String path, String material, TrackId parent, FormProperties properties, List<TrackDescriptor> out)
     {
         FormMaterial staticMaterial = modelForm.materials.getMaterial(material);
-        String prefix = material + FormUtils.PATH_SEPARATOR;
 
         TrackId visible = TrackId.materialProp(path, material, TrackId.MATERIAL_PROP_VISIBLE);
 
-        out.add(prop(modelForm, visible, parent, prefix + TrackId.MATERIAL_PROP_VISIBLE, Icons.VISIBLE,
+        out.add(prop(modelForm, visible, parent, Icons.VISIBLE,
             new ValueBoolean(visible.toKey(), staticMaterial == null || staticMaterial.visible.get()), properties));
 
         TrackId color = TrackId.materialProp(path, material, TrackId.MATERIAL_PROP_COLOR);
 
-        out.add(prop(modelForm, color, parent, prefix + TrackId.MATERIAL_PROP_COLOR, Icons.BUCKET,
+        out.add(prop(modelForm, color, parent, Icons.BUCKET,
             new ValueColor(color.toKey(), staticMaterial == null ? Color.white() : staticMaterial.color.get().copy()), properties));
 
         TrackId overlay = TrackId.materialProp(path, material, TrackId.MATERIAL_PROP_OVERLAY);
         ValueColor overlayValue = new ValueColor(overlay.toKey(), staticMaterial == null ? new Color(1F, 1F, 1F, 0F) : staticMaterial.overlayColor.get().copy());
 
-        out.add(prop(modelForm, overlay, parent, prefix + TrackId.MATERIAL_PROP_OVERLAY, Icons.COLOR, overlayValue, properties)
+        out.add(prop(modelForm, overlay, parent, Icons.COLOR, overlayValue, properties)
             .seed(() -> opaqueOverlaySeed(overlayValue.get())));
 
         TrackId lighting = TrackId.materialProp(path, material, TrackId.MATERIAL_PROP_LIGHTING);
 
-        out.add(prop(modelForm, lighting, parent, prefix + TrackId.MATERIAL_PROP_LIGHTING, Icons.LIGHT,
+        out.add(prop(modelForm, lighting, parent, Icons.LIGHT,
             new ValueFloat(lighting.toKey(), staticMaterial == null ? 1F : staticMaterial.lighting.get(), 0F, 1F).slider(), properties));
 
         TrackId culling = TrackId.materialProp(path, material, TrackId.MATERIAL_PROP_CULLING);
 
-        out.add(prop(modelForm, culling, parent, prefix + TrackId.MATERIAL_PROP_CULLING, Icons.CONVERT,
+        out.add(prop(modelForm, culling, parent, Icons.CONVERT,
             new ValueInt(culling.toKey(), staticMaterial == null ? 0 : staticMaterial.culling.get()), properties));
 
         pbr(modelForm, path, material, staticMaterial, parent, properties, out);
@@ -484,10 +482,6 @@ public class TrackCatalog
      */
     private static void pbr(ModelForm modelForm, String path, String material, FormMaterial staticMaterial, TrackId parent, FormProperties properties, List<TrackDescriptor> out)
     {
-        /* The whole-form level names nothing: its sliders read as the form's own, which is what they
-         * are. A material's sliders keep the material name in front of them. */
-        String prefix = material.isEmpty() ? "" : material + FormUtils.PATH_SEPARATOR;
-
         for (String slider : new String[] {
             TrackId.MATERIAL_PROP_SMOOTHNESS, TrackId.MATERIAL_PROP_METALLIC, TrackId.MATERIAL_PROP_SSS,
             TrackId.MATERIAL_PROP_PIXEL_EMISSION, TrackId.MATERIAL_PROP_RELIEF })
@@ -495,14 +489,15 @@ public class TrackCatalog
             TrackId id = TrackId.materialProp(path, material, slider);
             float value = staticMaterial == null ? 0F : pbrSlider(staticMaterial, slider);
 
-            out.add(prop(modelForm, id, parent, prefix + slider, Icons.MATERIAL,
+            out.add(prop(modelForm, id, parent, Icons.MATERIAL,
                 new ValueFloat(id.toKey(), value, 0F, 1F).slider(), properties));
         }
     }
 
-    private static TrackDescriptor prop(ModelForm modelForm, TrackId id, TrackId parent, String title, Icon icon, BaseValueBasic value, FormProperties properties)
+    /** Named by {@link TrackStyle#label(TrackId)}: a material's sliders keep its name in front, the whole-form level's don't. */
+    private static TrackDescriptor prop(ModelForm modelForm, TrackId id, TrackId parent, Icon icon, BaseValueBasic value, FormProperties properties)
     {
-        return new TrackDescriptor(id, channel(properties, id), modelForm, IKey.constant(title),
+        return new TrackDescriptor(id, channel(properties, id), modelForm, TrackStyle.label(id),
             icon, TrackStyle.color(id.property()), value).under(parent);
     }
 
