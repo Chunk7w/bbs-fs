@@ -29,9 +29,11 @@ import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
+import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.ui.utils.SplineFormTool;
+import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.UISplinePointsEditor;
 import mchorse.bbs_mod.ui.utils.bones.BoneRole;
@@ -115,13 +117,13 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         this.debug = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_RIG_DEBUG, (b) -> BBSSettings.debugOverlay.set(b.getValue()));
         this.debug.h(UIConstants.TOGGLE_HEIGHT);
 
-        this.boneController = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER,
+        this.boneController = new UIToggle(IKey.EMPTY,
             (b) ->
             {
                 this.editBone((bone) -> bone.boneController.set(b.getValue()));
                 this.updateFields();
             });
-        this.boneController.h(UIConstants.CONTROL_HEIGHT);
+        this.boneController.w(UIConstants.SWITCH_WIDTH).h(UIConstants.CONTROL_HEIGHT);
         this.boneController.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_TOOLTIP);
         this.resetBone(this.boneController, (bone) -> bone.boneController);
 
@@ -130,10 +132,15 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         this.boneControllerColor.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR);
         this.boneControllerColor.w(UIConstants.CONTROL_HEIGHT * 2);
 
+        /* The name, the colour and the switch apart, so the colour shows up left of the switch and
+         * nothing in the row moves when it does. */
+        UILabel controllerLabel = UI.label(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER, UIConstants.CONTROL_HEIGHT).labelAnchor(0, 0.5F);
         UIElement controllerRow = new UIElement();
 
+        controllerLabel.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_TOOLTIP);
+        this.resetBone(controllerLabel, (bone) -> bone.boneController);
         controllerRow.row(UIConstants.SECTION_GAP).preferred(0).height(UIConstants.CONTROL_HEIGHT);
-        controllerRow.add(this.boneController, this.boneControllerColor);
+        controllerRow.add(controllerLabel, this.boneControllerColor, this.boneController);
 
         this.shake = this.remember(new UIRigShakeSection(this), "rig.shake", true);
         this.ik = this.remember(new UIRigIKSection(this), "rig.ik", true);
