@@ -7,7 +7,6 @@ import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
-import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.ui.framework.elements.utils.FontRenderer;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.framework.elements.utils.UITabStrip;
@@ -41,7 +40,6 @@ public abstract class UIRigSection extends UISection
 
     /** The page each step's section shows, for the session: the sections are rebuilt with the panel. */
     private static final Map<RigStep, Integer> PAGES = new EnumMap<>(RigStep.class);
-    private static final int TAB_PADDING = 6;
 
     /** The word tabs over the pages, once the section has any. */
     private UITabStrip tabs;
@@ -72,7 +70,10 @@ public abstract class UIRigSection extends UISection
         }
     }
 
-    /** Adds a page of fields under the word tabs at the top of the section, which shows one page at a time. */
+    /**
+     * Adds a page of fields under the word tabs at the top of the section, which shows one page at a
+     * time; the tabs share the section's width.
+     */
     protected void page(IKey label, UIElement... fields)
     {
         if (this.tabs == null)
@@ -87,6 +88,7 @@ public abstract class UIRigSection extends UISection
                     return true;
                 }
             };
+            this.tabs.fixed();
             this.tabs.active(this::getPage);
             this.tabs.onSelect(this::setPage);
             this.tabs.h(UIConstants.CONTROL_HEIGHT);
@@ -94,12 +96,11 @@ public abstract class UIRigSection extends UISection
         }
 
         UIElement page = UI.column(fields);
-        int width = Batcher2D.getDefaultTextRenderer().getWidth(label.get()) + TAB_PADDING * 2;
 
         page.setVisible(this.pages.size() == this.getPage());
         this.pages.add(page);
         this.fields.add(page);
-        this.tabs.addTab(new UITextTab(label)).w(width).h(UIConstants.CONTROL_HEIGHT);
+        this.tabs.addTab(new UITextTab(label)).h(UIConstants.CONTROL_HEIGHT);
     }
 
     private int getPage()
