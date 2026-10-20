@@ -70,7 +70,10 @@ public final class ModelIKDebug
     private static final float POLE_SIZE = 0.07F;
     private static final float CONTROLLER_SIZE = 0.1F;
     private static final int POINT_COLOR = 0xffffff;
-    private static final float POINT_SIZE = 0.07F;
+    /* A spline is a path through the model's thick parts (a tail, a tentacle), and its points are its
+     * handles: both draw bolder than a chain's bridges and goals, or they vanish against the mesh. */
+    private static final float POINT_SIZE = 0.14F;
+    private static final float CURVE_SIZE = 0.04F;
     private static final int CURVE_STEPS = 20;
 
     /** A marker on a bone: a diamond at a chain's goal or pole, a cube at a controller. */
@@ -427,7 +430,7 @@ public final class ModelIKDebug
 
         for (int i = 1; i < curve.size(); i++)
         {
-            DebugOverlay.segment(builder, matrix, unit * LINES_SIZE, false, 0F, curve.get(i - 1), curve.get(i), line, 0.9F * a);
+            DebugOverlay.segment(builder, matrix, unit * CURVE_SIZE, false, 0F, curve.get(i - 1), curve.get(i), line, 0.9F * a);
         }
 
         for (int i = 0; i < path.points().size(); i++)
