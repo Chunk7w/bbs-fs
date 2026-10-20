@@ -76,6 +76,22 @@ public abstract class BonePassport
     public abstract Quaternionf restRotation(String bone);
 
     /**
+     * Where the bone sits at rest in model rest space, authored measure: a cubic pivot where the
+     * renderer draws it — carried through the rest rotation of every bone above it, each turning
+     * about its own pivot (a wrist under a rest-rotated elbow is drawn elsewhere than its authored
+     * pivot); a BOBJ bone's bind position. A fresh copy; null when the bone is missing.
+     */
+    public abstract Vector3f restPosition(String bone);
+
+    /**
+     * The world rotation the bone's parent frame has at rest — what a captured parent frame reads
+     * with nothing posed: a cubic bone's ancestors' rest rotations stacked root-most first; a BOBJ
+     * bone's own bind rotation, which BOBJ frames fold into the parent side. A fresh copy; null
+     * when the bone is missing.
+     */
+    public abstract Quaternionf restParentRotation(String bone);
+
+    /**
      * Direction to rotation: the local rotation that swings a rest axis onto the world direction
      * {@code from → to}, as seen from the parent's world frame — the step a chain writer takes for
      * each bone. Normalises {@code restAxis} in place, for the twist a writer takes about it. Null
@@ -192,6 +208,72 @@ public abstract class BonePassport
             ModelGroup group = this.model.getGroup(bone);
 
             return group == null ? null : Matrices.toLocalRotationZYXDegrees(group.initial.rotate);
+        }
+
+        @Override
+        public Vector3f restPosition(String bone)
+        {
+            ModelGroup group = this.model.getGroup(bone);
+
+            if (group == null)
+            {
+                return null;
+            }
+
+            Vector3f position = new Vector3f(group.initial.translate);
+
+            /* Nearest ancestor first — the renderer's matrix stack read inside out. A copy of the
+             * authored pivot when nothing above carries a rest rotation (the common case). */
+            for (ModelGroup parent = group.parent; parent != null; parent = parent.parent)
+            {
+                Vector3f rotate = parent.initial.rotate;
+
+                if (rotate.x != 0F || rotate.y != 0F || rotate.z != 0F)
+                {
+                    Vector3f pivot = parent.initial.translate;
+
+                    Matrices.toLocalRotationZYXDegrees(rotate).transform(position.sub(pivot)).add(pivot);
+                }
+            }
+
+            return position;
+        }
+
+        @Override
+        public Quaternionf restParentRotation(String bone)
+        {
+            if (this.model.getGroup(bone) == null)
+            {
+                return null;
+            }
+
+            Quaternionf rest = new Quaternionf();
+            String id = this.model.getParentGroupKey(bone);
+            int guard = 0;
+
+            while (id != null && !id.isEmpty() && guard++ < 256)
+            {
+                ModelGroup group = this.model.getGroup(id);
+
+                if (group == null)
+                {
+                    break;
+                }
+
+                /* World order is root-most first; walking up, each ancestor pre-multiplies. */
+                rest = Matrices.toLocalRotationZYXDegrees(group.initial.rotate).mul(rest);
+
+                String parent = this.model.getParentGroupKey(id);
+
+                if (parent == null || parent.equals(id))
+                {
+                    break;
+                }
+
+                id = parent;
+            }
+
+            return rest;
         }
 
         private static float length(ModelGroup a, ModelGroup b)
@@ -355,6 +437,22 @@ public abstract class BonePassport
             BOBJBone b = this.model.getArmature().bones.get(bone);
 
             return b == null ? null : b.relBoneMat.getNormalizedRotation(new Quaternionf());
+        }
+
+        @Override
+        public Vector3f restPosition(String bone)
+        {
+            BOBJBone b = this.model.getArmature().bones.get(bone);
+
+            return b == null ? null : b.boneMat.getTranslation(new Vector3f());
+        }
+
+        @Override
+        public Quaternionf restParentRotation(String bone)
+        {
+            BOBJBone b = this.model.getArmature().bones.get(bone);
+
+            return b == null ? null : b.boneMat.getUnnormalizedRotation(new Quaternionf());
         }
 
         /** The axis to the first child off the bone's head (a child on the head itself gives none), or null. */

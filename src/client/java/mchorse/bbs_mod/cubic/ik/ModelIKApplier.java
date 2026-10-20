@@ -9,9 +9,10 @@ import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.ik.solver.IKJoint;
 import mchorse.bbs_mod.cubic.ik.solver.IKTree;
 import mchorse.bbs_mod.cubic.ik.solver.IKTreeSolver;
-import mchorse.bbs_mod.cubic.model.bobj.BOBJModel;
 import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
 import mchorse.bbs_mod.cubic.render.ModelPivotFrames;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
+import mchorse.bbs_mod.cubic.rig.RigWriter;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import mchorse.bbs_mod.utils.pose.Transform;
 import org.joml.Quaternionf;
@@ -640,21 +641,6 @@ final class ModelIKApplier
         return bone == null ? null : bone.evaluatedRotation();
     }
 
-    /** Writes the solved local rotation to the bone's {@code orient}; false when it does not exist. */
-    private static boolean writeOrient(IModel model, String id, Quaternionf orient)
-    {
-        RigBone bone = model.getBone(id);
-
-        if (bone == null)
-        {
-            return false;
-        }
-
-        bone.setOrient(orient);
-
-        return true;
-    }
-
     /** Copies the bone's limits onto a solver joint; the angles are authored in degrees. */
     private static void applyDoF(IKJoint joint, BoneConstraint dof)
     {
@@ -692,14 +678,11 @@ final class ModelIKApplier
     }
 
     /**
-     * Loads a chain's rest geometry. Cubic rest geometry is the authored
-     * pivots where the renderer draws them in rest pose (see {@link
-     * #cubicRestPosition} — a pivot is authored before the rest rotations
-     * above it, the chain's own included), and the lift is the DELTA of the
-     * chain root's current parent frame from its rest orientation; BOBJ rest
-     * geometry lives in the bind matrices, and the lift subtracts the bind
-     * frame the same way (BOBJ ancestors carry authored rest rotations, so
-     * the raw parent frame alone would double-count them).
+     * Loads a chain's rest geometry: the bones' rest positions ({@link
+     * BonePassport#restPosition} — a cubic pivot where the renderer draws it,
+     * a BOBJ bind position), and the lift — the DELTA of the chain root's
+     * current parent frame from its rest orientation ({@link
+     * BonePassport#restParentRotation}).
      * {@code null} when the chain is too short or a bone is missing. A chain of
      * one directed bone has no interior joint, so it loads with a null elbow
      * rather than not at all: the elbow is what a virtual pole needs (which side
@@ -714,48 +697,31 @@ final class ModelIKApplier
             return null;
         }
 
+        BonePassport passport = BonePassport.of(model);
+
+        if (passport == null)
+        {
+            return null;
+        }
+
         boolean bent = workIds.size() >= 3;
+        Vector3f root = passport.restPosition(workIds.get(0));
+        Vector3f elbow = bent ? passport.restPosition(workIds.get(1)) : null;
+        Vector3f effector = passport.restPosition(workIds.get(workIds.size() - 1));
 
-        if (model instanceof Model cubic)
+        if (root == null || effector == null || (bent && elbow == null))
         {
-            Vector3f root = cubicRestPosition(cubic, workIds.get(0));
-            Vector3f elbow = bent ? cubicRestPosition(cubic, workIds.get(1)) : null;
-            Vector3f effector = cubicRestPosition(cubic, workIds.get(workIds.size() - 1));
-
-            if (root == null || effector == null || (bent && elbow == null))
-            {
-                return null;
-            }
-
-            /* To carry a rest direction into the current pose it must ride the
-             * DELTA of the root's parent frame from its REST orientation, exactly
-             * as the BOBJ branch subtracts the bind frame below: lifting by the
-             * raw current parent frame would double-count any rest rotation the
-             * chain's ancestors carry, tilting the result even in rest pose. */
-            Quaternionf restParent = cubicRestParentRotation(cubic, workIds.get(0));
-
-            return new RestChain(root, elbow, effector, new Quaternionf(rootParentRotation).mul(restParent.conjugate()));
-        }
-        else if (model instanceof BOBJModel bobj)
-        {
-            Map<String, BOBJBone> bones = bobj.getArmature().bones;
-            BOBJBone root = bones.get(workIds.get(0));
-            BOBJBone elbow = bent ? bones.get(workIds.get(1)) : null;
-            BOBJBone effector = bones.get(workIds.get(workIds.size() - 1));
-
-            if (root == null || effector == null || (bent && elbow == null))
-            {
-                return null;
-            }
-
-            /* In bind pose (zero channels) the root's parent frame IS its bind
-             * rotation, so the current-vs-bind delta is the exact world lift. */
-            Quaternionf bindParent = root.boneMat.getUnnormalizedRotation(new Quaternionf());
-
-            return new RestChain(root.boneMat.getTranslation(new Vector3f()), elbow == null ? null : elbow.boneMat.getTranslation(new Vector3f()), effector.boneMat.getTranslation(new Vector3f()), new Quaternionf(rootParentRotation).mul(bindParent.conjugate()));
+            return null;
         }
 
-        return null;
+        /* To carry a rest direction into the current pose it must ride the DELTA
+         * of the root's parent frame from its REST orientation: lifting by the raw
+         * current parent frame would double-count any rest rotation the chain's
+         * ancestors carry (for BOBJ, the bind frames), tilting the result even in
+         * rest pose. */
+        Quaternionf restParent = passport.restParentRotation(workIds.get(0));
+
+        return new RestChain(root, elbow, effector, new Quaternionf(rootParentRotation).mul(restParent.conjugate()));
     }
 
     /**
@@ -911,102 +877,12 @@ final class ModelIKApplier
         return new Quaternionf(rootStartWorldRotation).conjugate().transform(normal);
     }
 
-    /**
-     * A bone's rest position in model rest space — a cubic pivot where the
-     * renderer draws it in rest pose (see {@link #cubicRestPosition}), a BOBJ
-     * bone's bind position; {@code null} when absent.
-     */
+    /** A bone's rest position ({@link BonePassport#restPosition}); {@code null} when absent. */
     private static Vector3f restPosition(IModel model, String id)
     {
-        if (id == null || id.isEmpty())
-        {
-            return null;
-        }
+        BonePassport passport = BonePassport.of(model);
 
-        if (model instanceof Model cubic)
-        {
-            return cubicRestPosition(cubic, id);
-        }
-
-        RigBone bone = model.getBone(id);
-
-        return bone == null ? null : bone.getRestTranslation();
-    }
-
-    /**
-     * Where the renderer draws a cubic bone's pivot in rest pose, in model rest
-     * space: the authored pivot ({@code initial.translate}) carried through the
-     * authored rest rotation ({@code initial.rotate}) of every bone above it,
-     * each turning about its own pivot. A chain's own rest rotations count too —
-     * a wrist under a rest-rotated elbow is drawn elsewhere than its authored
-     * pivot, and reading the pivot raw twisted the chain when IK switched on.
-     * A copy of the authored pivot when nothing above carries a rest rotation
-     * (the common case). {@code null} when the bone does not exist.
-     */
-    private static Vector3f cubicRestPosition(Model cubic, String id)
-    {
-        ModelGroup bone = cubic.getGroup(id);
-
-        if (bone == null)
-        {
-            return null;
-        }
-
-        Vector3f position = new Vector3f(bone.initial.translate);
-
-        /* Nearest ancestor first — the renderer's matrix stack read inside out. */
-        for (ModelGroup parent = bone.parent; parent != null; parent = parent.parent)
-        {
-            Vector3f rotate = parent.initial.rotate;
-
-            if (rotate.x != 0F || rotate.y != 0F || rotate.z != 0F)
-            {
-                Vector3f pivot = parent.initial.translate;
-
-                Matrices.toLocalRotationZYXDegrees(rotate).transform(position.sub(pivot)).add(pivot);
-            }
-        }
-
-        return position;
-    }
-
-    /**
-     * The rest-pose world rotation of the chain root's PARENT — the product of
-     * every ancestor's authored rest rotation ({@code initial.rotate}, degrees,
-     * ZYX), in the same unmirrored model space {@link ModelPivotFrames} captures.
-     * Identity when the root sits at the model top or its ancestors carry no rest
-     * rotation (the common case, where the auto-pole lift is unchanged). This is
-     * the cubic counterpart of BOBJ's bind parent frame.
-     */
-    private static Quaternionf cubicRestParentRotation(Model cubic, String rootId)
-    {
-        Quaternionf rest = new Quaternionf();
-        String id = cubic.getParentGroupKey(rootId);
-        int guard = 0;
-
-        while (id != null && !id.isEmpty() && guard++ < 256)
-        {
-            ModelGroup bone = cubic.getGroup(id);
-
-            if (bone == null)
-            {
-                break;
-            }
-
-            /* World order is root-most first; walking up, each ancestor pre-multiplies. */
-            rest = Matrices.toLocalRotationZYXDegrees(bone.initial.rotate).mul(rest);
-
-            String parent = cubic.getParentGroupKey(id);
-
-            if (parent == null || parent.equals(id))
-            {
-                break;
-            }
-
-            id = parent;
-        }
-
-        return rest;
+        return id == null || id.isEmpty() || passport == null ? null : passport.restPosition(id);
     }
 
     /**
@@ -1040,20 +916,14 @@ final class ModelIKApplier
 
         for (int i = 0; i < n; i++)
         {
-            Quaternionf evaluated = evaluatedRotation(model, nodes.get(i));
+            RigBone bone = model.getBone(nodes.get(i));
 
-            if (evaluated == null)
+            if (bone == null)
             {
                 return;
             }
 
-            Quaternionf solvedLocal = new Quaternionf(tree.joints[i].local);
-            Quaternionf applied = nodeWeight[i] >= 1F - EPS ? solvedLocal : evaluated.slerp(solvedLocal, nodeWeight[i]);
-
-            if (!writeOrient(model, nodes.get(i), applied))
-            {
-                return;
-            }
+            Quaternionf applied = RigWriter.blend(bone, new Quaternionf(tree.joints[i].local), nodeWeight[i]);
 
             /* Blended world walk, rigid-model style: the parent frame is the captured
              * one carried by how far the nearest captured ancestor's BLENDED world
@@ -1114,15 +984,14 @@ final class ModelIKApplier
 
             Quaternionf lastDelta = new Quaternionf(blendedWorld[lastJoint]).mul(new Quaternionf(tree.joints[lastJoint].startWorldRotation).conjugate());
             Quaternionf tipParent = lastDelta.mul(new Quaternionf(tipFrame.parentRotation()));
-            Quaternionf tipLocal = tipParent.conjugate().mul(r.tipTarget());
-            Quaternionf evaluated = evaluatedRotation(model, tipId);
+            RigBone tip = model.getBone(tipId);
 
-            if (evaluated == null)
+            if (tip == null)
             {
                 continue;
             }
 
-            writeOrient(model, tipId, r.weight() >= 1F - EPS ? tipLocal : evaluated.slerp(tipLocal, r.weight()));
+            RigWriter.blend(tip, tipParent.conjugate().mul(r.tipTarget()), r.weight());
         }
 
         for (ResolvedChain r : resolved)
