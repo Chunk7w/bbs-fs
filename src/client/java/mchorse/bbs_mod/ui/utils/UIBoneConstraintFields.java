@@ -124,7 +124,8 @@ public class UIBoneConstraintFields
             this.changed.run();
         });
 
-        toggle.w(UIConstants.SWITCH_WIDTH);
+        /* As tall as the header row, so its switch lines up with the axis name and the lock. */
+        toggle.w(UIConstants.SWITCH_WIDTH).h(UIConstants.CONTROL_HEIGHT);
         toggle.tooltip(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LIMIT.format(axis));
 
         return toggle;
