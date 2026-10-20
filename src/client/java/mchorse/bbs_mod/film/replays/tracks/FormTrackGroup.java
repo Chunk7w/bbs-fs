@@ -20,7 +20,7 @@ public enum FormTrackGroup
 {
     /* In the order the headings show. The rig bends the same skeleton the pose keys, so it follows it. */
     POSE("pose", Icons.POSE, Colors.RED),
-    RIG("rig", Icons.IK, 0xfb7185),
+    RIG("rig", Icons.BONE, 0xfb7185),
     TRANSFORM("transform", Icons.ALL_DIRECTIONS, 0x4ade80),
     LOOK("look", Icons.MATERIAL, 0xfb923c);
 

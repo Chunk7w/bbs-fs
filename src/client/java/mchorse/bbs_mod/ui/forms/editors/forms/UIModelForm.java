@@ -41,7 +41,7 @@ public class UIModelForm extends UIForm<ModelForm>
 
         this.registerPanel(this.defaultPanel, UIKeys.FORMS_EDITORS_MODEL_POSE, ModelForm.ICON);
         this.rigPanel = new UIRigFormPanel(this);
-        this.registerPanel(this.rigPanel, UIKeys.FORMS_EDITORS_MODEL_RIG_TITLE, Icons.IK);
+        this.registerPanel(this.rigPanel, UIKeys.FORMS_EDITORS_MODEL_RIG_TITLE, Icons.BONE);
         this.registerPanel(new UIActionsFormPanel(this), UIKeys.FORMS_EDITORS_ACTIONS_TITLE, Icons.MORE);
         this.registerDefaultPanels();
 

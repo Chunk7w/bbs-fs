@@ -56,12 +56,12 @@ public enum RigStep
         List.of("physics_end", "physics_target_bone", "physics_iterations", "physics_collisions", "physics_radius",
             "physics_relative_gravity", "physics_gravity_rotate_x", "physics_gravity_rotate_y", "physics_gravity_rotate_z"),
         List.of("physics", "wind"),
-        new Track("physics", Icons.PHYSICS, 0x9d6cff), new Track("wind", Icons.PARTICLE, Colors.ORANGE)),
+        new Track("physics", Icons.PHYSICS, 0x9d6cff), new Track("wind", Icons.WIND, Colors.ORANGE)),
     /** Spline IK, solved in its root's parent frame after the physics; it may move the whole model. */
-    SPLINE("spline", Icons.GRAPH,
+    SPLINE("spline", Icons.SPLINE,
         List.of(),
         List.of("splines", "spline_ik"),
-        new Track("spline_ik", Icons.GRAPH, Colors.BLUE)),
+        new Track("spline_ik", Icons.SPLINE, Colors.BLUE)),
     /** Bone limits, the last word on a bone's rotation. Keyed per bone, not by a form property. */
     LIMITS("limits", Icons.LOCKED,
         List.of("constraints"),
