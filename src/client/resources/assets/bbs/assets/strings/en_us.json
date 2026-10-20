@@ -2670,15 +2670,7 @@
     "bbs.ui.forms.editors.model.spline.progress": "Position on curve",
     "bbs.ui.forms.editors.model.spline.progress_short": "Position",
     "bbs.ui.forms.editors.model.spline.progress_tooltip": "Chain position on the curve: 0 is the start, 100 is the end.",
-    "bbs.ui.forms.editors.model.spline.error.invalid_chain": "The chain must contain at least two bones",
     "bbs.ui.forms.editors.model.spline.title": "Spline IK",
     "bbs.ui.forms.editors.model.spline.twist": "Twist",
-    "bbs.ui.forms.editors.model.spline.up": "Move point earlier",
-    "bbs.ui.forms.editors.model.spline.error.chain_scale": "Chain bones require a uniform positive scale",
-    "bbs.ui.forms.editors.model.spline.error.cubic_only": "Spline IK requires a cubic model",
-    "bbs.ui.forms.editors.model.spline.error.ik_conflict": "Disable regular IK on this chain",
-    "bbs.ui.forms.editors.model.spline.error.limits_conflict": "Disable rotation limits on this chain",
-    "bbs.ui.forms.editors.model.spline.error.long_chain": "This chain is too long",
-    "bbs.ui.forms.editors.model.spline.error.physics_conflict": "Disable physics on this chain",
-    "bbs.ui.forms.editors.model.spline.error.spline_conflict": "An earlier Spline IK already controls these bones"
+    "bbs.ui.forms.editors.model.spline.up": "Move point earlier"
 }

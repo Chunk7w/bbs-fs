@@ -160,23 +160,6 @@ public final class ModelSplineRuntime
         return splines;
     }
 
-    /** Short stable error keys for the editor; null is a supported chain. */
-    public static String validate(ModelForm form, SplineIK selected)
-    {
-        ModelInstance instance = ModelFormRenderer.getModel(form);
-        if (instance == null || !(instance.model instanceof Model model)) return "cubic_only";
-        String error = validate(model, form, chain(model, selected));
-        if (error != null) return error;
-        Set<String> ids = new HashSet<>(getChain(form, selected));
-        for (SplineIK spline : form.splines.getAllTyped())
-        {
-            SplineControl control = form.splineIK.get().get(spline.getId());
-            if (spline == selected) break;
-            if (control.influence > 0F && !Collections.disjoint(ids, getChain(form, spline))) return "spline_conflict";
-        }
-        return null;
-    }
-
     private static String validate(Model model, ModelForm form, List<ModelGroup> chain)
     {
         if (chain.size() < 2) return "invalid_chain";

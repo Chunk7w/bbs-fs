@@ -24,7 +24,6 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIDeltaPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformOp;
-import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.SplineEditorUtils;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
@@ -32,7 +31,6 @@ import mchorse.bbs_mod.ui.utils.UISplineControlFields;
 import mchorse.bbs_mod.ui.utils.UISplinePointsEditor;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePicker;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePickerContextMenu;
-import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.pose.Transform;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -56,7 +54,6 @@ public class UIRigSplineSection extends UIRigSection
 
     public final UIBonePicker start;
     public final UIBonePicker end;
-    public final UILabel status;
     public final UISplineControlFields controls;
     public final UISplinePointsEditor pointEditor;
     public final UIPropTransform position;
@@ -81,9 +78,6 @@ public class UIRigSplineSection extends UIRigSection
         this.end = new UIBonePicker(this::setEnd);
         this.end.menu((picker) -> this.fillMenu(picker, this.tip(), this.endCandidates()));
         this.end.viewport(panel.viewportPicking());
-
-        this.status = UI.label(IKey.EMPTY, UIConstants.CONTROL_HEIGHT, Colors.ORANGE);
-        this.status.labelAnchor(0, 0.5F);
 
         this.controls = new UISplineControlFields((edit) ->
         {
@@ -143,7 +137,6 @@ public class UIRigSplineSection extends UIRigSection
         this.fields.add(
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            this.status,
             UI.labelRow(key("influence"), this.controls.influence),
             UI.labelRow(key("progress"), this.controls.progress),
             this.pointEditor,
@@ -179,14 +172,9 @@ public class UIRigSplineSection extends UIRigSection
             return false;
         }
 
-        String reason = ModelSplineRuntime.validate(this.panel.getForm(), chain);
-
         this.setInfo(this.root() + " → " + this.tip());
         this.start.setLabel(IKey.raw(this.root()));
         this.end.setLabel(IKey.raw(this.tip()));
-        this.status.label = reason == null ? IKey.EMPTY : key("error." + reason);
-        this.status.tooltip(this.status.label);
-        this.status.setVisible(reason != null);
         this.controls.influence.setValue(chain.influence.get());
         this.controls.progress.setValue(chain.progress.get());
         this.controls.twist.setValue(chain.twist.get());

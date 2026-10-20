@@ -2652,15 +2652,7 @@
     "bbs.ui.forms.editors.model.spline.progress": "Положение на кривой",
     "bbs.ui.forms.editors.model.spline.progress_short": "Положение",
     "bbs.ui.forms.editors.model.spline.progress_tooltip": "Положение цепочки на кривой: 0 — начало, 100 — конец.",
-    "bbs.ui.forms.editors.model.spline.error.invalid_chain": "В цепочке должно быть не менее двух костей",
     "bbs.ui.forms.editors.model.spline.title": "Сплайн IK",
     "bbs.ui.forms.editors.model.spline.twist": "Скручивание",
-    "bbs.ui.forms.editors.model.spline.up": "Переместить точку раньше",
-    "bbs.ui.forms.editors.model.spline.error.chain_scale": "Костям цепи нужен равномерный положительный масштаб",
-    "bbs.ui.forms.editors.model.spline.error.cubic_only": "Сплайн IK доступен для кубических моделей",
-    "bbs.ui.forms.editors.model.spline.error.ik_conflict": "Отключите обычный IK в этой цепочке",
-    "bbs.ui.forms.editors.model.spline.error.limits_conflict": "Отключите ограничения вращения в этой цепочке",
-    "bbs.ui.forms.editors.model.spline.error.long_chain": "Слишком длинная цепочка",
-    "bbs.ui.forms.editors.model.spline.error.physics_conflict": "Отключите физику в этой цепочке",
-    "bbs.ui.forms.editors.model.spline.error.spline_conflict": "Кости уже заняты предыдущим Сплайн IK"
+    "bbs.ui.forms.editors.model.spline.up": "Переместить точку раньше"
 }
