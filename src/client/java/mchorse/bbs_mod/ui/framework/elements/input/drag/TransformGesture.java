@@ -1,8 +1,7 @@
 package mchorse.bbs_mod.ui.framework.elements.input.drag;
 
 import mchorse.bbs_mod.BBSSettings;
-import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
-import mchorse.bbs_mod.cubic.physics.ModelPhysicsRuntime;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.graphics.window.Window;
 import mchorse.bbs_mod.ui.Keys;
 import mchorse.bbs_mod.ui.framework.UIContext;
@@ -350,9 +349,10 @@ public class TransformGesture implements DragContext
         {
             /* Arm the physics rewind for this gesture. Only on a fresh one: re-entering while editing
              * (switching the op mid-drag) rewinds the transform to the SAME start snapshot, so the sim
-             * the gesture must be able to return to is still the one captured back then. */
+             * the gesture must be able to return to is still the one captured back then. The IK solve
+             * dump is scoped to the gesture too (see ModelIKRuntime#logGesture). */
             this.host.beginGesture();
-            ModelPhysicsRuntime.checkpoint();
+            RigStep.gestureStarted();
         }
 
         this.editing = true;
@@ -368,10 +368,6 @@ public class TransformGesture implements DragContext
         this.axisWalkAxis = null;
         this.axisWalkPlane = false;
         this.axisWalkStep = 0;
-
-        /* Scope the IK solve dump to this gesture — the log then holds exactly
-         * the drag being investigated (see ModelIKRuntime#logGesture). */
-        ModelIKRuntime.logGesture(true);
 
         this.cache.copy(this.host.getTransform());
         Gizmo.INSTANCE.trackGesture(this);
@@ -545,8 +541,7 @@ public class TransformGesture implements DragContext
 
     private void disable()
     {
-        ModelIKRuntime.logGesture(false);
-        ModelPhysicsRuntime.dropCheckpoint();
+        RigStep.gestureEnded();
 
         this.editing = false;
         this.axis2 = null;
@@ -602,7 +597,7 @@ public class TransformGesture implements DragContext
 
         /* The pose is back where it started, so the simulation it drove goes back too — otherwise the
          * chains stay where the drag flung them and lash home over a single tick. */
-        ModelPhysicsRuntime.rewindToCheckpoint();
+        RigStep.gestureRejected();
 
         this.disable();
         this.host.refreshFields();

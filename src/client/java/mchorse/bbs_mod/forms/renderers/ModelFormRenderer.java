@@ -26,6 +26,7 @@ import mchorse.bbs_mod.cubic.jem.CemVanillaStage;
 import mchorse.bbs_mod.cubic.constraints.ModelConstraintsRuntime;
 import mchorse.bbs_mod.cubic.physics.ModelPhysicsDebug;
 import mchorse.bbs_mod.cubic.physics.ModelPhysicsRuntime;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.shake.ModelShakeRuntime;
 import mchorse.bbs_mod.cubic.model.ArmorSlot;
 import mchorse.bbs_mod.cubic.model.ArmorType;
@@ -87,6 +88,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITickable
@@ -261,11 +263,10 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
     }
 
     /**
-     * The channels phase of the bone pipeline (rest &rarr; actions &rarr; pose): resets every bone
-     * to its bind pose, applies the animator's actions, then the form's pose stack. After this the
-     * channels are the FK truth; the constraint stages (IK &rarr; physics &rarr; limits) run on top
-     * of it separately (render: the apply* trio; matrix capture: its explicit IK solve) and
-     * write only evaluated orientations, never the channels.
+     * The channels phase of the bone pipeline (rest &rarr; actions &rarr; pose &rarr; shake): resets
+     * every bone to its bind pose, applies the animator's actions, then the form's pose stack. After
+     * this the channels are the FK truth; the rig's other steps run on top of it per pass
+     * ({@link #runSteps}) and write only evaluated orientations, never the channels.
      */
     private void evaluateChannels(IEntity entity, ModelInstance model, float transition)
     {
@@ -316,7 +317,7 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
 
         /* The shake belongs to the pose: IK, physics, limits and every reader of the channels see
          * the bones where they are drawn. */
-        ModelShakeRuntime.apply(model.model, this.form, this.getShakeTime(entity, transition));
+        this.runSteps(RigStep.CHANNELS, entity, model, transition, null, null);
 
         if (cacheable)
         {
@@ -523,10 +524,7 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
         RepeatedFormRender repeated = RepeatedFormRender.current();
         if (repeated == null || repeated.pose(this) == null)
         {
-            this.applyIK(model, baseTransform);
-            this.applyPhysics(target, model, transition, baseTransform);
-            this.applySpline(model);
-            this.applyConstraints(model);
+            this.runSteps(RigStep.RENDER, target, model, transition, baseTransform, FormPoseEvents.Pass.RENDER);
             if (repeated != null) repeated.capture(this, model, this.splineMotion);
         }
         this.applySplineMotion(newStack);
@@ -660,7 +658,28 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
             base.rotateY(MathUtils.PI);
         }
 
-        this.applyIK(model, base);
+        this.runSteps(RigStep.BAKE, null, model, transition, base, null);
+    }
+
+    /**
+     * Runs the rig's steps a pass asks for, in the frame's one order (see {@link RigStep}).
+     * {@code world} is the model's world frame, {@code null} to run them model-local (the UI, the
+     * matrix readers, the first person arm); {@code hook} is the pass the addons' pose hook is told.
+     */
+    private void runSteps(Set<RigStep> steps, IEntity entity, ModelInstance model, float transition, Matrix4f world, FormPoseEvents.Pass hook)
+    {
+        for (RigStep step : steps)
+        {
+            switch (step)
+            {
+                case SHAKE -> ModelShakeRuntime.apply(model.model, this.form, this.getShakeTime(entity, transition));
+                case IK -> this.applyIK(model, world);
+                case HOOK -> FormPoseEvents.MODEL_POSE.invoker().apply(this.form, entity, model, transition, world, hook);
+                case PHYSICS -> this.applyPhysics(entity, model, transition, world);
+                case SPLINE -> this.applySpline(model);
+                case LIMITS -> this.applyConstraints(model);
+            }
+        }
     }
 
     private void applyIK(ModelInstance model, Matrix4f baseTransform)
@@ -731,7 +750,6 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
 
     private void applyPhysics(IEntity target, ModelInstance model, float transition, Matrix4f baseTransform)
     {
-        FormPoseEvents.MODEL_POSE.invoker().apply(this.form, target, model, transition, baseTransform, FormPoseEvents.Pass.RENDER);
         model.lastBaseTransform = baseTransform;
         model.form = this.form;
         ModelPhysicsRuntime.apply(target, model, transition, baseTransform);
@@ -1252,10 +1270,7 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
              * past. The live-drag world-space target overrides need a base transform this
              * local pass doesn't carry, so the config/`ik`-track solve runs (controllers
              * keyed into the pose are already baked in and reached). */
-            model.form = this.form;
-            ModelIKRuntime.apply(model, null, null);
-            FormPoseEvents.MODEL_POSE.invoker().apply(this.form, entity, model, transition, null, FormPoseEvents.Pass.MATRICES);
-            this.applySpline(model);
+            this.runSteps(RigStep.READERS, entity, model, transition, null, FormPoseEvents.Pass.MATRICES);
 
             stack.multiply(RotationAxis.POSITIVE_Y.rotation(MathUtils.PI));
             this.captureMatrices(model);
@@ -1400,15 +1415,14 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
         else
         {
             this.evaluateChannels(entity, model, transition);
+
+            /* Only a spline moves the sampled origin off the channels (it may carry the whole
+             * model), so only with one does the pose of the matrix readers run, including an
+             * IK-driven parent of the travelling chain and addon pose contributions. */
             if (!this.form.splines.getAllTyped().isEmpty())
             {
-                /* Match the non-simulating pose used by matrix readers, including an
-                 * IK-driven parent of the travelling chain and addon pose contributions. */
-                model.form = this.form;
-                ModelIKRuntime.apply(model, null, null);
-                FormPoseEvents.MODEL_POSE.invoker().apply(this.form, entity, model, transition, null, FormPoseEvents.Pass.MATRICES);
+                this.runSteps(RigStep.READERS, entity, model, transition, null, FormPoseEvents.Pass.MATRICES);
             }
-            this.applySpline(model);
         }
 
         stack.multiply(RotationAxis.POSITIVE_Y.rotation(MathUtils.PI));
