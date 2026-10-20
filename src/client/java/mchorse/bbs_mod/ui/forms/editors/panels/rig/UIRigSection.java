@@ -41,7 +41,8 @@ public abstract class UIRigSection extends UISection
 
         if (this.toggle != null)
         {
-            this.toggle.w(UIConstants.SWITCH_WIDTH);
+            /* As tall as the title, so the header is as tall as any section's. */
+            this.toggle.w(UIConstants.SWITCH_WIDTH).h(HEADER_HEIGHT);
             this.title.removeFromParent();
 
             UIElement header = new UIElement();
