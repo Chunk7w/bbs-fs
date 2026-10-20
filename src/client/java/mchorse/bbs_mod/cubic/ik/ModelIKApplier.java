@@ -3,6 +3,7 @@ package mchorse.bbs_mod.cubic.ik;
 import mchorse.bbs_mod.bobj.BOBJBone;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.RigBone;
+import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.ik.solver.IKJoint;
@@ -138,7 +139,7 @@ final class ModelIKApplier
     {
     }
 
-    public static void apply(IModel model, List<ModelIKCache.CompiledChain> chains, Map<String, JointDoF> jointDoF, Map<String, Vector3f> controllerTargets, Map<String, Vector3f> poleTargets, Map<String, Float> targetWeights, Map<String, Float> poleWeights, Map<String, IKControl> controls)
+    public static void apply(IModel model, List<ModelIKCache.CompiledChain> chains, Map<String, BoneConstraint> jointDoF, Map<String, Vector3f> controllerTargets, Map<String, Vector3f> poleTargets, Map<String, Float> targetWeights, Map<String, Float> poleWeights, Map<String, IKControl> controls)
     {
         if (model == null || chains == null || chains.isEmpty())
         {
@@ -421,7 +422,7 @@ final class ModelIKApplier
      * (the constraint-stack contract), and the solve STARTS from them, so the
      * twist the animator posed survives into the solve by construction.
      */
-    private static void applyGroup(IModel model, List<ModelIKCache.CompiledChain> group, Map<String, PivotFrame> frames, Map<String, JointDoF> jointDoF, Map<String, Vector3f> controllerTargets, Map<String, Vector3f> poleTargets, Map<String, Float> targetWeights, Map<String, Float> poleWeights, Map<String, IKControl> controls)
+    private static void applyGroup(IModel model, List<ModelIKCache.CompiledChain> group, Map<String, PivotFrame> frames, Map<String, BoneConstraint> jointDoF, Map<String, Vector3f> controllerTargets, Map<String, Vector3f> poleTargets, Map<String, Float> targetWeights, Map<String, Float> poleWeights, Map<String, IKControl> controls)
     {
         List<ResolvedChain> resolved = new ArrayList<>(group.size());
 
@@ -488,7 +489,7 @@ final class ModelIKApplier
             joint.angles.set(joint.startAngles);
             tree.parentIndex[i] = nearestAncestor(model, nodes.get(i), nodeIndex);
 
-            JointDoF dof = jointDoF == null ? null : jointDoF.get(nodes.get(i));
+            BoneConstraint dof = jointDoF == null ? null : jointDoF.get(nodes.get(i));
 
             if (dof != null)
             {
@@ -654,8 +655,8 @@ final class ModelIKApplier
         return true;
     }
 
-    /** Copies the config's per-bone freedom onto a solver joint; limits are authored in degrees. */
-    private static void applyDoF(IKJoint joint, JointDoF dof)
+    /** Copies the bone's limits onto a solver joint; the angles are authored in degrees. */
+    private static void applyDoF(IKJoint joint, BoneConstraint dof)
     {
         float toRad = (float) (Math.PI / 180.0);
 

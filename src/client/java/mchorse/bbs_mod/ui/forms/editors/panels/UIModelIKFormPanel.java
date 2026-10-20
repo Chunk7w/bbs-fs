@@ -4,7 +4,6 @@ import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.ik.BoneIKIO;
 import mchorse.bbs_mod.cubic.ik.IKControl;
-import mchorse.bbs_mod.cubic.ik.JointDoF;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
 import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.data.types.MapType;
@@ -16,12 +15,9 @@ import mchorse.bbs_mod.settings.values.IValueListener;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIForm;
 import mchorse.bbs_mod.ui.forms.editors.utils.UIDebugOverlayContextMenu;
-import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
-import mchorse.bbs_mod.utils.Direction;
-import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
@@ -31,12 +27,10 @@ import mchorse.bbs_mod.ui.utils.bones.BoneRole;
 import mchorse.bbs_mod.ui.utils.bones.BoneRoles;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
-import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.pose.ModelIKManager;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import mchorse.bbs_mod.ui.utils.UIIKControlFields;
@@ -56,39 +50,17 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
     public UISliderTrackpad weight;
     public UIToggle tipRotation;
     public UIToggle classic;
-
-    public UIIcon lockX;
-    public UIIcon lockY;
-    public UIIcon lockZ;
-    public UIToggle limitX;
-    public UIToggle limitY;
-    public UIToggle limitZ;
-    public UISliderTrackpad limitMinX;
-    public UISliderTrackpad limitMaxX;
-    public UISliderTrackpad limitMinY;
-    public UISliderTrackpad limitMaxY;
-    public UISliderTrackpad limitMinZ;
-    public UISliderTrackpad limitMaxZ;
-    public UISliderTrackpad stiffnessX;
-    public UISliderTrackpad stiffnessY;
-    public UISliderTrackpad stiffnessZ;
     public UIToggle stretch;
     public UIToggle squash;
 
     /* The chain's own parameters, hidden until the chain is switched on: with IK
      * off they describe nothing, and an empty panel says "tick this" far better
-     * than a wall of dimmed controls. The joint section below is NOT among them —
-     * it belongs to the BONE, and the bones that need limits (a knee) usually
-     * carry no chain of their own, the chain being on the foot. */
+     * than a wall of dimmed controls. A bone's limits (a knee's) are the bone's
+     * own, on the limits tab — the chain usually lives on the foot. */
     private UIElement poleRow;
     private UIElement chainLengthRow;
     private UIElement weightRow;
     private UISection advancedSection;
-
-    /** The angle pairs, shown only for the axes whose limit switch is on. */
-    private UIElement limitRowX;
-    private UIElement limitRowY;
-    private UIElement limitRowZ;
 
     public UIModelIKFormPanel(UIForm editor)
     {
@@ -266,140 +238,13 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
             this.classic
         );
 
-        /* The selected bone's JOINT freedom — per axis: lock, limit (degrees), stiffness.
-         * Per BONE, not per chain: a bone shared by several chains has one set of joints. */
-        this.lockX = this.jointLock(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LOCK.format("X"), (j) -> j.lockX, (j, v) -> j.lockX = v);
-        this.lockY = this.jointLock(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LOCK.format("Y"), (j) -> j.lockY, (j, v) -> j.lockY = v);
-        this.lockZ = this.jointLock(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LOCK.format("Z"), (j) -> j.lockZ, (j, v) -> j.lockZ = v);
-
-        this.limitX = this.jointToggle(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LIMIT.format("X"), (j, v) -> j.limitX = v);
-        this.limitY = this.jointToggle(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LIMIT.format("Y"), (j, v) -> j.limitY = v);
-        this.limitZ = this.jointToggle(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_LIMIT.format("Z"), (j, v) -> j.limitZ = v);
-
-        this.limitMinX = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MIN.format("X"), Colors.RED, (j, v) -> j.minX = v);
-        this.limitMaxX = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MAX.format("X"), Colors.RED, (j, v) -> j.maxX = v);
-        this.limitMinY = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MIN.format("Y"), Colors.GREEN, (j, v) -> j.minY = v);
-        this.limitMaxY = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MAX.format("Y"), Colors.GREEN, (j, v) -> j.maxY = v);
-        this.limitMinZ = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MIN.format("Z"), Colors.BLUE, (j, v) -> j.minZ = v);
-        this.limitMaxZ = this.jointDegrees(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_MAX.format("Z"), Colors.BLUE, (j, v) -> j.maxZ = v);
-
-        this.stiffnessX = this.jointStiffness(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS.format("X"), Colors.RED, (j, v) -> j.stiffnessX = v);
-        this.stiffnessY = this.jointStiffness(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS.format("Y"), Colors.GREEN, (j, v) -> j.stiffnessY = v);
-        this.stiffnessZ = this.jointStiffness(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS.format("Z"), Colors.BLUE, (j, v) -> j.stiffnessZ = v);
-
-        UISection joint = this.section(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT, "ik.joint", false);
-
-        /* Per axis: a named header carrying the lock and the limit switch, then the
-         * pair of angles under it — the same shape the bone constraints panel uses,
-         * so the two limit editors read as one idea. Stiffness has no per-axis
-         * switch, so it sits as its own X/Y/Z row at the bottom rather than
-         * widening every axis row by a column that answers a different question. */
-        this.limitRowX = UI.row(this.limitMinX, this.limitMaxX);
-        this.limitRowY = UI.row(this.limitMinY, this.limitMaxY);
-        this.limitRowZ = UI.row(this.limitMinZ, this.limitMaxZ);
-
-        joint.fields.add(
-            this.jointAxisHeader(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_AXIS.format(UIKeys.GENERAL_X), this.lockX, this.limitX),
-            this.limitRowX,
-            this.jointAxisHeader(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_AXIS.format(UIKeys.GENERAL_Y), this.lockY, this.limitY),
-            this.limitRowY,
-            this.jointAxisHeader(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_AXIS.format(UIKeys.GENERAL_Z), this.lockZ, this.limitZ),
-            this.limitRowZ,
-            UI.label(UIKeys.FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS_TITLE),
-            UI.row(this.stiffnessX, this.stiffnessY, this.stiffnessZ)
-        );
-
         this.options.add(
             this.debugRow(this.debug, BBSSettings.ikDebug),
             this.bonesSearch,
             settings,
             this.advancedSection,
-            joint,
             this.boneController
         );
-    }
-
-    /**
-     * One joint axis' header: its name on the left, the lock icon and the limit
-     * switch pinned right, with the axis' two angles in the row below. The axis
-     * letter is named here rather than left to the value colors alone, because the
-     * pair under it carries no letter of its own.
-     */
-    private UIElement jointAxisHeader(IKey label, UIIcon lock, UIToggle limit)
-    {
-        UIElement row = new UIElement();
-
-        row.row(UIConstants.MARGIN).preferred(0).height(UIConstants.CONTROL_HEIGHT);
-        row.add(UI.label(label, UIConstants.CONTROL_HEIGHT).labelAnchor(0, 0.5F), lock.w(20), limit.w(26));
-
-        return row;
-    }
-
-    /**
-     * The per-axis lock as a padlock icon: open when the axis solves freely,
-     * closed when it is frozen at its FK value. The glyph IS the state, read
-     * live from the selected bone's joint property — no value syncing; a locked
-     * axis additionally gets the standard selection highlight behind the icon.
-     */
-    private UIIcon jointLock(IKey tooltip, Predicate<JointDoF> getter, BiConsumer<JointDoF, Boolean> setter)
-    {
-        UIIcon icon = new UIIcon(() -> getter.test(this.currentJoint()) ? Icons.LOCKED : Icons.UNLOCKED, (b) ->
-        {
-            this.editJoint((j) -> setter.accept(j, !getter.test(j)));
-            this.updateFields();
-        })
-        {
-            @Override
-            protected void renderSkin(UIContext context)
-            {
-                if (getter.test(UIModelIKFormPanel.this.currentJoint()))
-                {
-                    context.batcher.highlight(this.area, Direction.BOTTOM);
-                }
-
-                super.renderSkin(context);
-            }
-        };
-
-        icon.wh(UIConstants.CONTROL_HEIGHT, UIConstants.CONTROL_HEIGHT);
-        icon.tooltip(tooltip);
-
-        return icon;
-    }
-
-    private UIToggle jointToggle(IKey label, BiConsumer<JointDoF, Boolean> setter)
-    {
-        UIToggle toggle = new UIToggle(IKey.EMPTY, (b) ->
-        {
-            this.editJoint((j) -> setter.accept(j, b.getValue()));
-            this.updateFields();
-        });
-
-        toggle.tooltip(label);
-
-        return toggle;
-    }
-
-    private UISliderTrackpad jointDegrees(IKey tooltip, int color, BiConsumer<JointDoF, Float> setter)
-    {
-        UISliderTrackpad pad = new UISliderTrackpad((v) -> this.editJoint((j) -> setter.accept(j, v.floatValue())));
-
-        pad.angle180();
-        pad.tooltip(tooltip);
-        pad.textbox.setColor(color);
-
-        return pad;
-    }
-
-    private UISliderTrackpad jointStiffness(IKey tooltip, int color, BiConsumer<JointDoF, Float> setter)
-    {
-        UISliderTrackpad pad = new UISliderTrackpad((v) -> this.editJoint((j) -> setter.accept(j, v.floatValue())));
-
-        pad.normalized();
-        pad.tooltip(tooltip);
-        pad.textbox.setColor(color);
-
-        return pad;
     }
 
     @Override
@@ -428,26 +273,6 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         this.stretch.setEnabled(enabled);
         this.squash.setEnabled(enabled);
         this.classic.setEnabled(enabled);
-        this.setJointEnabled(enabled);
-    }
-
-    private void setJointEnabled(boolean enabled)
-    {
-        this.lockX.setEnabled(enabled);
-        this.lockY.setEnabled(enabled);
-        this.lockZ.setEnabled(enabled);
-        this.limitX.setEnabled(enabled);
-        this.limitY.setEnabled(enabled);
-        this.limitZ.setEnabled(enabled);
-        this.limitMinX.setEnabled(enabled);
-        this.limitMaxX.setEnabled(enabled);
-        this.limitMinY.setEnabled(enabled);
-        this.limitMaxY.setEnabled(enabled);
-        this.limitMinZ.setEnabled(enabled);
-        this.limitMaxZ.setEnabled(enabled);
-        this.stiffnessX.setEnabled(enabled);
-        this.stiffnessY.setEnabled(enabled);
-        this.stiffnessZ.setEnabled(enabled);
     }
 
     private void fillBoneMenu(UIBonePickerContextMenu picker, String current, Predicate<String> disabled)
@@ -470,13 +295,6 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         return bone == null ? IKControl.DEFAULT : bone.ik.get();
     }
 
-    private JointDoF currentJoint()
-    {
-        FormBone bone = this.selectedFormBone();
-
-        return bone == null ? JointDoF.FREE : bone.joint.get();
-    }
-
     /** Edits the selected bone's IK scalars as one value change (one undo entry). */
     private void editControl(Consumer<IKControl> edit)
     {
@@ -489,23 +307,11 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         });
     }
 
-    /** Edits the selected bone's joint freedom as one value change (one undo entry). */
-    private void editJoint(Consumer<JointDoF> edit)
-    {
-        this.editBone((bone) ->
-        {
-            JointDoF joint = bone.joint.get().copy();
-
-            edit.accept(joint);
-            bone.joint.set(joint);
-        });
-    }
-
     /**
      * The rig's IK, read off the bone list instead of one click per bone. Three slots, right
      * to left: the chain (living on its tip; the bones it drives run as a line along the
-     * tree), the controller (a target, or the pole the bend aims at), the joint's limits.
-     * A switched-off chain goes gray everywhere — it drives nothing this tick.
+     * tree), the controller (a target, or the pole the bend aims at), the bone's limits the
+     * solve holds it by. A switched-off chain goes gray everywhere — it drives nothing this tick.
      */
     @Override
     protected void describeBones(BoneRoles roles)
@@ -517,7 +323,7 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
                 roles.mark(bone.getId(), 1, BoneRole.TARGET);
             }
 
-            if (!bone.joint.get().isFree())
+            if (!bone.constraints.get().isFree())
             {
                 roles.mark(bone.getId(), 2, BoneRole.LIMIT);
             }
@@ -536,7 +342,6 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
 
         FormBone formBone = this.selectedFormBone();
         IKControl control = this.currentControl();
-        JointDoF joint = this.currentJoint();
 
         String targetLabel = formBone == null ? "" : formBone.ikTarget.get();
         boolean hasChain = formBone != null && formBone.hasChain();
@@ -582,37 +387,6 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
         this.enabled.setValue(active);
         this.boneController.setEnabled(this.bones.isEnabled() && !this.selectedBone.isEmpty());
         this.boneController.setValue(formBone != null && formBone.boneController.get());
-
-        this.limitX.setValue(joint.limitX);
-        this.limitY.setValue(joint.limitY);
-        this.limitZ.setValue(joint.limitZ);
-        this.limitMinX.setValue(joint.minX);
-        this.limitMaxX.setValue(joint.maxX);
-        this.limitMinY.setValue(joint.minY);
-        this.limitMaxY.setValue(joint.maxY);
-        this.limitMinZ.setValue(joint.minZ);
-        this.limitMaxZ.setValue(joint.maxZ);
-        this.stiffnessX.setValue(joint.stiffnessX);
-        this.stiffnessY.setValue(joint.stiffnessY);
-        this.stiffnessZ.setValue(joint.stiffnessZ);
-
-        /* The joint is a property of the BONE, editable regardless of whether a chain
-         * ends here — it affects every chain running through this bone. */
-        boolean canEditJoint = !this.selectedBone.isEmpty() && this.bones.isEnabled();
-
-        /* An axis with no limit has no angles to show — the switch above is the
-         * whole story until it is flipped. */
-        this.limitRowX.setVisible(joint.limitX);
-        this.limitRowY.setVisible(joint.limitY);
-        this.limitRowZ.setVisible(joint.limitZ);
-
-        this.setJointEnabled(canEditJoint);
-        this.limitMinX.setEnabled(canEditJoint && joint.limitX);
-        this.limitMaxX.setEnabled(canEditJoint && joint.limitX);
-        this.limitMinY.setEnabled(canEditJoint && joint.limitY);
-        this.limitMaxY.setEnabled(canEditJoint && joint.limitY);
-        this.limitMinZ.setEnabled(canEditJoint && joint.limitZ);
-        this.limitMaxZ.setEnabled(canEditJoint && joint.limitZ);
 
         /* Off means gone, not dimmed: only the switch is left standing. */
         this.target.setVisible(active);

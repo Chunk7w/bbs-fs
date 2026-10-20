@@ -2,13 +2,13 @@ package mchorse.bbs_mod.forms.forms.utils;
 
 import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.ik.IKControl;
-import mchorse.bbs_mod.cubic.ik.JointDoF;
 import mchorse.bbs_mod.cubic.physics.PhysicsControl;
+import mchorse.bbs_mod.data.types.BaseType;
+import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.settings.values.core.ValueBoneConstraint;
 import mchorse.bbs_mod.settings.values.core.ValueBoneIK;
 import mchorse.bbs_mod.settings.values.core.ValueBonePhysics;
 import mchorse.bbs_mod.settings.values.core.ValueGroup;
-import mchorse.bbs_mod.settings.values.core.ValueJointDoF;
 import mchorse.bbs_mod.settings.values.core.ValueString;
 import mchorse.bbs_mod.settings.values.numeric.ValueBoolean;
 import mchorse.bbs_mod.settings.values.numeric.ValueFloat;
@@ -45,6 +45,7 @@ public class FormBone extends ValueGroup
             value -> form.physics.getOriginalValue().controls.put(this.getId(), value));
     }
 
+    /** The bone's limits: locks, angle limits and stiffness per axis, for every step that turns it. */
     public final ValueBoneConstraint constraints = new ValueBoneConstraint("constraints", new BoneConstraint());
 
     /* The IK chain this bone is the tip of. The addresses and modes are the chain's structure;
@@ -59,9 +60,6 @@ public class FormBone extends ValueGroup
     public final ValueBoolean ikSquash = new ValueBoolean("ik_squash", false);
     public final ValueBoolean ikClassic = new ValueBoolean("ik_classic", false);
     public final ValueBoneIK ik = new ValueBoneIK("ik", new IKControl());
-
-    /** The bone's joint freedom for any IK chain that solves through it (locks, limits, stiffness). */
-    public final ValueJointDoF joint = new ValueJointDoF("joint", new JointDoF());
 
     /* The physics chain this bone is the root of ({@code physicsEnd} names the chain's last bone
      * down the hierarchy). The addresses and the simulation's configuration are static; the
@@ -95,7 +93,6 @@ public class FormBone extends ValueGroup
         this.ikSquash.invisible();
         this.ikClassic.invisible();
         this.ik.invisible();
-        this.joint.invisible();
         this.physicsEnd.invisible();
         this.physicsTargetBone.invisible();
         this.physicsIterations.invisible();
@@ -118,7 +115,6 @@ public class FormBone extends ValueGroup
         this.add(this.ikSquash);
         this.add(this.ikClassic);
         this.add(this.ik);
-        this.add(this.joint);
         this.add(this.physicsEnd);
         this.add(this.physicsTargetBone);
         this.add(this.physicsIterations);
@@ -130,6 +126,19 @@ public class FormBone extends ValueGroup
         this.add(this.physicsGravityRotateZ);
         this.add(this.physics);
         this.add(this.shake);
+    }
+
+    @Override
+    public void fromData(BaseType data)
+    {
+        super.fromData(data);
+
+        /* Saved while the IK kept a joint freedom of its own next to the limits (the 2026-09-20
+         * release): it reads into the one set of limits, see BoneConstraint#readJoint. */
+        if (data instanceof MapType map && map.has("joint", BaseType.TYPE_MAP))
+        {
+            this.constraints.getOriginalValue().readJoint(map.getMap("joint"));
+        }
     }
 
     /** Whether this bone's shake is switched on. */
@@ -164,7 +173,6 @@ public class FormBone extends ValueGroup
             && !this.ikSquash.get()
             && !this.ikClassic.get()
             && this.ik.get().isDefault()
-            && this.joint.get().isFree()
             && !this.hasPhysicsChain()
             && this.physicsTargetBone.get().isEmpty()
             && this.physicsIterations.get() == 4

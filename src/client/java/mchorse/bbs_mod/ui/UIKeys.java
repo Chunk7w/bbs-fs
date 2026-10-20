@@ -618,14 +618,6 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_IK_CLASSIC_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.ik.classic_tooltip");
     public static final IKey FORMS_EDITORS_MODEL_IK_CYCLE = L10n.lang("bbs.ui.forms.editors.model.ik.cycle");
     public static final IKey FORMS_EDITORS_MODEL_IK_POLE_CYCLE = L10n.lang("bbs.ui.forms.editors.model.ik.pole_cycle");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT = L10n.lang("bbs.ui.forms.editors.model.ik.joint");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_LOCK = L10n.lang("bbs.ui.forms.editors.model.ik.joint.lock");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_LIMIT = L10n.lang("bbs.ui.forms.editors.model.ik.joint.limit");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_MIN = L10n.lang("bbs.ui.forms.editors.model.ik.joint.min");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_MAX = L10n.lang("bbs.ui.forms.editors.model.ik.joint.max");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS = L10n.lang("bbs.ui.forms.editors.model.ik.joint.stiffness");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_STIFFNESS_TITLE = L10n.lang("bbs.ui.forms.editors.model.ik.joint.stiffness_title");
-    public static final IKey FORMS_EDITORS_MODEL_IK_JOINT_AXIS = L10n.lang("bbs.ui.forms.editors.model.ik.joint.axis");
     public static final IKey FORMS_EDITORS_MODEL_IK_CONTEXT_COPY = L10n.lang("bbs.ui.forms.editors.model.ik.context.copy");
     public static final IKey FORMS_EDITORS_MODEL_IK_CONTEXT_PASTE = L10n.lang("bbs.ui.forms.editors.model.ik.context.paste");
     public static final IKey FORMS_EDITORS_MODEL_IK_CONTEXT_RESET = L10n.lang("bbs.ui.forms.editors.model.ik.context.reset");
@@ -699,6 +691,9 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_MAX = L10n.lang("bbs.ui.forms.editors.model.constraints.max");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_AXIS = L10n.lang("bbs.ui.forms.editors.model.constraints.axis");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LIMIT = L10n.lang("bbs.ui.forms.editors.model.constraints.limit");
+    public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK = L10n.lang("bbs.ui.forms.editors.model.constraints.lock");
+    public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_STIFFNESS = L10n.lang("bbs.ui.forms.editors.model.constraints.stiffness");
+    public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_STIFFNESS_TITLE = L10n.lang("bbs.ui.forms.editors.model.constraints.stiffness_title");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_CONTEXT_COPY = L10n.lang("bbs.ui.forms.editors.model.constraints.context.copy");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_CONTEXT_PASTE = L10n.lang("bbs.ui.forms.editors.model.constraints.context.paste");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_CONTEXT_RESET = L10n.lang("bbs.ui.forms.editors.model.constraints.context.reset");

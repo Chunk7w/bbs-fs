@@ -826,7 +826,8 @@ final class ChainSolver
             Quaternionf localRot = Matrices.fromToMirroredX(restDirLocal, desiredDirLocal);
             Quaternionf applied = localRot;
 
-            if (c != null && c.isActive())
+            /* The angle limits only: a lock keeps the keyed pose, which a swinging chain has none of. */
+            if (c != null && c.isLimited())
             {
                 Vector3f eulerDeg = Matrices.toEulerZYXDegrees(localRot);
 
