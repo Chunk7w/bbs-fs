@@ -7,6 +7,7 @@ import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
 import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.physics.PhysicsControls;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.spline.SplineIK;
 import mchorse.bbs_mod.cubic.spline.SplinePoint;
 import mchorse.bbs_mod.forms.FormUtils;
@@ -42,6 +43,7 @@ import mchorse.bbs_mod.utils.pose.PoseTransform;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -197,35 +199,17 @@ public class TrackCatalog
 
     private static void properties(Form root, Form form, ModelInstance model, String path, FormProperties properties, List<TrackDescriptor> out)
     {
-        boolean hasIK = false;
-        boolean hasPhysics = false;
-        boolean hasShake = false;
-
-        if (form instanceof ModelForm modelForm)
-        {
-            for (BaseValue value : modelForm.bones.getAll())
-            {
-                if (value instanceof FormBone bone)
-                {
-                    hasIK |= bone.hasChain();
-                    hasPhysics |= bone.hasPhysicsChain();
-                    hasShake |= bone.hasShake();
-                }
-            }
-        }
+        Map<RigStep, Boolean> used = new EnumMap<>(RigStep.class);
 
         for (BaseValue value : form.getAll())
         {
 
             String name = value.getId();
+            RigStep step = form instanceof ModelForm ? RigStep.ofTrack(name) : null;
 
-            /* Solver tracks follow the configured rig, not its animated weight or cached controls.
-             * Wind acts on physics chains, so it is offered alongside physics. */
-            if (form instanceof ModelForm modelForm
-                && ((value == modelForm.ik && !hasIK)
-                    || ((value == modelForm.physics || value == modelForm.wind) && !hasPhysics)
-                    || (value == modelForm.shake && !hasShake)
-                    || (value == modelForm.splineIK && modelForm.splines.getAll().isEmpty())))
+            /* The rig's tracks follow the configured rig, not its animated weight or cached controls
+             * (the wind comes with the physics chains it acts on). */
+            if (step != null && !used.computeIfAbsent(step, (s) -> s.isUsed((ModelForm) form)))
             {
                 continue;
             }
