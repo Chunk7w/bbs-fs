@@ -5,6 +5,7 @@ import mchorse.bbs_mod.ui.utils.SplineFormTool;
 import mchorse.bbs_mod.ui.utils.UISplinePointsEditor;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.ModelInstance;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.spline.ModelSplineRuntime;
 import mchorse.bbs_mod.cubic.spline.SplineIK;
 import mchorse.bbs_mod.cubic.spline.SplinePoint;
@@ -33,7 +34,6 @@ import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.SplineEditorUtils;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
-import mchorse.bbs_mod.ui.utils.bones.BoneRole;
 import mchorse.bbs_mod.ui.utils.bones.BoneRoles;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.pose.ModelSplineManager;
@@ -169,12 +169,7 @@ public class UIModelSplineFormPanel extends UIBoneListFormPanel implements Splin
     @Override
     protected void describeBones(BoneRoles roles)
     {
-        if (this.form == null) return;
-        for (SplineIK spline : this.form.splines.getAllTyped())
-        {
-            roles.chain(ModelSplineRuntime.getChain(this.form, spline), BoneRole.LINK);
-            roles.mark(spline.tip.get(), 0, BoneRole.CHAIN);
-        }
+        roles.step(this.owners(), RigStep.SPLINE, 0, 1);
     }
 
     @Override

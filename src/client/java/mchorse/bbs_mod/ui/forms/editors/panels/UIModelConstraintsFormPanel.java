@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.ui.forms.editors.panels;
 
 import mchorse.bbs_mod.cubic.IModel;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.constraints.BoneConstraintsIO;
 import mchorse.bbs_mod.data.types.MapType;
@@ -156,13 +157,7 @@ public class UIModelConstraintsFormPanel extends UIBoneListFormPanel
     @Override
     protected void describeBones(BoneRoles roles)
     {
-        this.forEachFormBone((bone) ->
-        {
-            if (!bone.constraints.get().isDefault())
-            {
-                roles.touch(bone.getId());
-            }
-        });
+        roles.touch(this.owners(), RigStep.LIMITS);
     }
 
     @Override

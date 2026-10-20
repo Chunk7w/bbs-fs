@@ -2,11 +2,16 @@ package mchorse.bbs_mod.cubic.shake;
 
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.RigBone;
+import mchorse.bbs_mod.cubic.rig.RigClaim.Hold;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.utils.pose.Transform;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 /**
  * Layers each shaking bone's {@link ShakeControl} over the pose, as one more additive layer of it.
@@ -96,6 +101,28 @@ public final class ModelShakeRuntime
             {
                 shake(rig, control, ticks / TICKS_PER_SECOND, channels(bone.getId(), control.seed));
             }
+        }
+    }
+
+    /**
+     * The shake's hand on the form's bones (see {@link RigOwners}): every bone switched to shake, the
+     * shake added on top of its pose. It acts while it has a strength, read live as the film keys it.
+     */
+    public static void claim(IModel model, ModelForm form, RigOwners owners)
+    {
+        ShakeControls controls = form.shake.get();
+
+        for (BaseValue value : form.bones.getAll())
+        {
+            if (!(value instanceof FormBone bone) || !bone.hasShake())
+            {
+                continue;
+            }
+
+            String id = bone.getId();
+            ShakeControl control = controls.controls.getOrDefault(id, ShakeControl.DEFAULT);
+
+            owners.chain(RigStep.SHAKE, id, id, List.of(id), Hold.ADDS, true, control.strength != 0F && model.getBone(id) != null);
         }
     }
 

@@ -1520,6 +1520,7 @@
 	"bbs.ui.forms.editors.model.shake.seed_tooltip": "Другой рисунок тряски",
 	"bbs.ui.forms.editors.model.shake.amplitude": "Амплитуда",
 	"bbs.ui.forms.editors.model.shake.driven": "Поворот ведёт IK",
+	"bbs.ui.forms.editors.model.shake.driven_spline": "Поворот ведёт Сплайн IK",
 	"bbs.ui.forms.editors.model.shake.driven_tooltip": "IK или Spline IK задаёт поворот кости и гасит тряску. Трясите кость-цель.",
 	"bbs.ui.forms.editors.model.shake.context.copy": "Скопировать тряску",
 	"bbs.ui.forms.editors.model.shake.context.paste": "Вставить тряску",

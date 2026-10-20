@@ -18,7 +18,7 @@ import mchorse.bbs_mod.ui.utils.pose.PoseBones;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.data.animation.Animation;
 import mchorse.bbs_mod.cubic.data.animation.AnimationPart;
-import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
 import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.film.replays.tracks.TrackDescriptor;
 import mchorse.bbs_mod.film.replays.tracks.TrackId;
@@ -363,10 +363,9 @@ public class UIReplaysEditorUtils
     }
 
     /**
-     * Whether the film pose editor's current bone rotation is owned by an
-     * enabled IK chain of its (possibly nested) model form — the gizmo then
-     * refuses rotation gestures and dims its rings (see
-     * {@link ModelIKRuntime#isRotationConstrained}).
+     * Whether a solve of its (possibly nested) model form sets the film pose
+     * editor's current bone rotation — the gizmo then refuses rotation gestures
+     * and dims its rings (see {@link RigOwners#locksRotation}).
      */
     private static boolean isFilmBoneRotationConstrained(UIFilmPanel panel)
     {
@@ -396,7 +395,7 @@ public class UIReplaysEditorUtils
 
         ModelInstance instance = ModelFormRenderer.getModel(modelForm);
 
-        return instance != null && ModelIKRuntime.isRotationConstrained(instance.model, modelForm, StringUtils.fileName(bone.a));
+        return instance != null && RigOwners.of(instance.model, modelForm).locksRotation(StringUtils.fileName(bone.a));
     }
 
     /**

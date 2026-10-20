@@ -1,7 +1,12 @@
 package mchorse.bbs_mod.cubic.rig;
 
+import mchorse.bbs_mod.cubic.IModel;
+import mchorse.bbs_mod.cubic.constraints.ModelConstraintsRuntime;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
 import mchorse.bbs_mod.cubic.physics.ModelPhysicsRuntime;
+import mchorse.bbs_mod.cubic.shake.ModelShakeRuntime;
+import mchorse.bbs_mod.cubic.spline.ModelSplineRuntime;
+import mchorse.bbs_mod.forms.forms.ModelForm;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -34,6 +39,8 @@ public enum RigStep
 
     /* The sets are enum sets: they iterate in the frame's order whatever order they were written in. */
 
+    public static final Set<RigStep> ALL = Collections.unmodifiableSet(EnumSet.allOf(RigStep.class));
+
     /** The channels phase: what layers into the pose before its snapshot. */
     public static final Set<RigStep> CHANNELS = steps(SHAKE);
 
@@ -52,6 +59,23 @@ public enum RigStep
     private static Set<RigStep> steps(RigStep first, RigStep... rest)
     {
         return Collections.unmodifiableSet(EnumSet.of(first, rest));
+    }
+
+    /**
+     * Reports which of the form's bones this step has a hand on and how (see {@link RigOwners}).
+     * The addons' hook reports nothing: what a listener does to the pose is its own business.
+     */
+    public void claim(IModel model, ModelForm form, RigOwners owners)
+    {
+        switch (this)
+        {
+            case SHAKE -> ModelShakeRuntime.claim(model, form, owners);
+            case IK -> ModelIKRuntime.claim(model, form, owners);
+            case HOOK -> {}
+            case PHYSICS -> ModelPhysicsRuntime.claim(model, form, owners);
+            case SPLINE -> ModelSplineRuntime.claim(model, form, owners);
+            case LIMITS -> ModelConstraintsRuntime.claim(model, form, owners);
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import mchorse.bbs_mod.cubic.ik.BoneIKIO;
 import mchorse.bbs_mod.cubic.ik.IKControl;
 import mchorse.bbs_mod.cubic.ik.JointDoF;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
@@ -509,47 +510,20 @@ public class UIModelIKFormPanel extends UIBoneListFormPanel
     @Override
     protected void describeBones(BoneRoles roles)
     {
-        IModel model = this.modelInstance == null ? null : this.modelInstance.model;
-
-        if (model == null || this.form == null)
-        {
-            return;
-        }
-
-        /* Targets before poles: a bone that is both reads as the target, as it always has. */
         this.forEachFormBone((bone) ->
         {
-            String tip = bone.getId();
-
             if (bone.boneController.get())
             {
-                roles.mark(tip, 1, BoneRole.TARGET);
-            }
-
-            if (bone.hasChain())
-            {
-                boolean on = bone.ik.get().enabled;
-
-                roles.chain(ModelIKRuntime.chainBones(model, tip, bone.ikChainLength.get()), on ? BoneRole.LINK : BoneRole.LINK.off());
-                roles.mark(tip, 0, on ? BoneRole.CHAIN : BoneRole.CHAIN.off());
-                roles.mark(bone.ikTarget.get(), 1, on ? BoneRole.TARGET : BoneRole.TARGET.off());
+                roles.mark(bone.getId(), 1, BoneRole.TARGET);
             }
 
             if (!bone.joint.get().isFree())
             {
-                roles.mark(tip, 2, BoneRole.LIMIT);
+                roles.mark(bone.getId(), 2, BoneRole.LIMIT);
             }
         });
 
-        this.forEachFormBone((bone) ->
-        {
-            IKControl control = bone.ik.get();
-
-            if (bone.hasChain() && control.enabled && control.pole)
-            {
-                roles.mark(bone.ikPoleTarget.get(), 1, BoneRole.POLE);
-            }
-        });
+        roles.step(this.owners(), RigStep.IK, 0, 1);
     }
 
     @Override

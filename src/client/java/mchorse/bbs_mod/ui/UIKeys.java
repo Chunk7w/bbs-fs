@@ -674,6 +674,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_SEED_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.shake.seed_tooltip");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.amplitude");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_DRIVEN = L10n.lang("bbs.ui.forms.editors.model.shake.driven");
+    public static final IKey FORMS_EDITORS_MODEL_SHAKE_DRIVEN_SPLINE = L10n.lang("bbs.ui.forms.editors.model.shake.driven_spline");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_DRIVEN_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.shake.driven_tooltip");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_COPY = L10n.lang("bbs.ui.forms.editors.model.shake.context.copy");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_PASTE = L10n.lang("bbs.ui.forms.editors.model.shake.context.paste");

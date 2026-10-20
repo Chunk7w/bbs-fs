@@ -1,7 +1,8 @@
 package mchorse.bbs_mod.ui.forms.editors.panels;
 
 import mchorse.bbs_mod.cubic.IModel;
-import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.shake.ShakeControl;
 import mchorse.bbs_mod.cubic.shake.ShakeControls;
 import mchorse.bbs_mod.data.types.BaseType;
@@ -38,7 +39,7 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
     private UIElement settings;
     private UISection amplitude;
 
-    /** Shown when IK or Spline IK owns the bone's rotation: the solve would take the shake out of it. */
+    /** Shown when IK or Spline IK owns the bone's rotation, naming which: the solve would take the shake out of it. */
     private UILabel driven;
 
     public UIModelShakeFormPanel(UIForm editor)
@@ -125,11 +126,12 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
         return control == null ? ShakeControl.DEFAULT : control;
     }
 
-    private boolean isRotationDriven()
+    /** The solve that sets the selected bone's rotation, or null when the pose's own shows. */
+    private RigStep rotationDriver()
     {
         IModel model = this.modelInstance == null ? null : this.modelInstance.model;
 
-        return model != null && ModelIKRuntime.isRotationConstrained(model, this.form, this.selectedBone);
+        return RigOwners.of(model, this.form).rotationDriver(this.selectedBone);
     }
 
     @Override
@@ -147,7 +149,10 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
         this.enabled.setValue(on);
         this.settings.setVisible(on);
         this.amplitude.setVisible(on);
-        this.driven.setVisible(on && this.isRotationDriven());
+        RigStep driver = on ? this.rotationDriver() : null;
+
+        this.driven.label = driver == RigStep.SPLINE ? UIKeys.FORMS_EDITORS_MODEL_SHAKE_DRIVEN_SPLINE : UIKeys.FORMS_EDITORS_MODEL_SHAKE_DRIVEN;
+        this.driven.setVisible(driver != null);
         this.fields.fill(this.currentControl());
 
         this.options.resize();
@@ -157,13 +162,7 @@ public class UIModelShakeFormPanel extends UIBoneListFormPanel
     @Override
     protected void describeBones(BoneRoles roles)
     {
-        this.forEachFormBone((bone) ->
-        {
-            if (bone.hasShake())
-            {
-                roles.touch(bone.getId());
-            }
-        });
+        roles.touch(this.owners(), RigStep.SHAKE);
     }
 
     /** A preset is every shaking bone's shake, keyed by the bone. */

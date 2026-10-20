@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.ui.forms.editors.panels;
 
 import mchorse.bbs_mod.cubic.ModelInstance;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
 import mchorse.bbs_mod.utils.presets.DataManager;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.forms.ModelForm;
@@ -110,6 +111,12 @@ public abstract class UIBoneListFormPanel extends UIFormPanel<ModelForm>
      * is right now — no cache to keep in step with edits, undo or a playing film.
      */
     protected abstract void describeBones(BoneRoles roles);
+
+    /** Who has a hand on which bone of the form, as the rig's steps report it right now. */
+    protected RigOwners owners()
+    {
+        return RigOwners.of(this.modelInstance == null ? null : this.modelInstance.model, this.form);
+    }
 
     /** Every bone entry the form has; bones never edited have none. */
     protected void forEachFormBone(Consumer<FormBone> consumer)

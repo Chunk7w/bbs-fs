@@ -3,6 +3,9 @@ package mchorse.bbs_mod.cubic.constraints;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.RigBone;
 import mchorse.bbs_mod.cubic.ModelInstance;
+import mchorse.bbs_mod.cubic.rig.RigClaim.Hold;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
 import mchorse.bbs_mod.forms.renderers.utils.RenderFrame;
@@ -12,6 +15,7 @@ import org.joml.Vector3f;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class ModelConstraintsRuntime
@@ -35,6 +39,27 @@ public final class ModelConstraintsRuntime
         }
 
         applyToBones(instance.model, bones);
+    }
+
+    /**
+     * The limits' hand on the form's bones (see {@link RigOwners}): every bone with limits set up,
+     * its rotation clamped last. They act while an axis is switched on, read live as the film keys
+     * them; set up with every axis off they sit on the bone and do nothing.
+     */
+    public static void claim(IModel model, ModelForm form, RigOwners owners)
+    {
+        for (BaseValue value : form.bones.getAll())
+        {
+            if (!(value instanceof FormBone bone) || bone.constraints.get().isDefault())
+            {
+                continue;
+            }
+
+            String id = bone.getId();
+            boolean active = bone.constraints.get().isActive();
+
+            owners.chain(RigStep.LIMITS, id, id, List.of(id), Hold.CLAMPS, active, active);
+        }
     }
 
     /* One-slot per-frame memo - the walk used to run twice per form per frame (physics asks

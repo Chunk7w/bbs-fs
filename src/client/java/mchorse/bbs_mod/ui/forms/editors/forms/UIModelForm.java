@@ -1,7 +1,7 @@
 package mchorse.bbs_mod.ui.forms.editors.forms;
 
 import mchorse.bbs_mod.cubic.ModelInstance;
-import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
 import mchorse.bbs_mod.data.DataStorageUtils;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.FormUtils;
@@ -39,7 +39,7 @@ public class UIModelForm extends UIForm<ModelForm>
             ModelForm form = this.form;
             ModelInstance instance = form == null ? null : ModelFormRenderer.getModel(form);
 
-            return instance != null && ModelIKRuntime.isRotationConstrained(instance.model, form, this.modelPanel.poseEditor.groups.list.getCurrentFirst());
+            return instance != null && RigOwners.of(instance.model, form).locksRotation(this.modelPanel.poseEditor.groups.list.getCurrentFirst());
         });
         this.defaultPanel = this.modelPanel;
 

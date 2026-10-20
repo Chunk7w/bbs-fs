@@ -1525,6 +1525,7 @@
 	"bbs.ui.forms.editors.model.shake.seed_tooltip": "Another pattern of the same shake",
 	"bbs.ui.forms.editors.model.shake.amplitude": "Amplitude",
 	"bbs.ui.forms.editors.model.shake.driven": "Rotation is driven by IK",
+	"bbs.ui.forms.editors.model.shake.driven_spline": "Rotation is driven by Spline IK",
 	"bbs.ui.forms.editors.model.shake.driven_tooltip": "IK or Spline IK sets this bone's rotation and solves the shake out. Shake its target bone instead.",
 	"bbs.ui.forms.editors.model.shake.context.copy": "Copy shake",
 	"bbs.ui.forms.editors.model.shake.context.paste": "Paste shake",
