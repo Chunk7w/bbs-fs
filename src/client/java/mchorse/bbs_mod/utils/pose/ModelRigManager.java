@@ -89,7 +89,8 @@ public class ModelRigManager extends DataManager
             {
                 String name = key;
 
-                /* A name the rig's own presets already use gets the step's name after it. */
+                /* A name already in the list gets a key of its own; the list still shows the old
+                 * name (see getLabel), the row's icons tell the two apart. */
                 for (int i = 1; list.has(name); i++)
                 {
                     name = key + " (" + entry.getKey().title().get() + (i > 1 ? " " + i : "") + ")";
@@ -104,6 +105,15 @@ public class ModelRigManager extends DataManager
         this.sources.put(group, sources);
 
         return list;
+    }
+
+    @Override
+    public String getLabel(String group, String key)
+    {
+        Map<String, Source> sources = this.sources.get(group);
+        Source source = sources == null ? null : sources.get(key);
+
+        return source == null ? key : source.key();
     }
 
     @Override

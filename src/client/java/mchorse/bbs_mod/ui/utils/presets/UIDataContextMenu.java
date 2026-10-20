@@ -87,6 +87,12 @@ public class UIDataContextMenu extends UIContextMenu
         this.entries = new UISearchList<>(new UIStringList((l) -> this.send(this.data.getMap(l.get(0))))
         {
             @Override
+            protected String elementToString(UIContext context, int i, String element)
+            {
+                return UIDataContextMenu.this.manager.getLabel(UIDataContextMenu.this.group, element);
+            }
+
+            @Override
             public void renderPostListElement(UIContext context, String element, int i, int x, int y, boolean hover, boolean selected)
             {
                 UIDataContextMenu.this.renderIcons(context, element, x, y);

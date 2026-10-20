@@ -25,6 +25,12 @@ public abstract class DataManager
         return this.load(group);
     }
 
+    /** What a listed preset is called in the list: its key, unless a manager keyed it apart from a same-named one. */
+    public String getLabel(String group, String key)
+    {
+        return key;
+    }
+
     /** The group's own file as loaded: what saving and removing write back. */
     protected final MapType load(String group)
     {
