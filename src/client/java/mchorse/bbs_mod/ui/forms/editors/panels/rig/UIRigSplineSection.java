@@ -19,7 +19,6 @@ import mchorse.bbs_mod.ui.forms.editors.forms.UIForm;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIDeltaPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
@@ -130,18 +129,14 @@ public class UIRigSplineSection extends UIRigSection
             (id) -> this.chain().points.get(id).position.getOriginalValue(), this.position,
             () -> this.initialPointPosition(this.chain()));
 
-        UISection advanced = panel.remember(new UISection(key("advanced")), "rig.spline.advanced", false);
-
-        advanced.fields.add(this.moveModel, UI.labelRow(key("twist"), this.controls.twist), this.fit);
-
-        this.fields.add(
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_MAIN,
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
             UI.labelRow(key("influence"), this.controls.influence),
             UI.labelRow(key("progress"), this.controls.progress),
-            this.pointEditor,
-            advanced
+            this.pointEditor
         );
+        this.page(key("advanced"), this.moveModel, UI.labelRow(key("twist"), this.controls.twist), this.fit);
     }
 
     private UIForm editor()

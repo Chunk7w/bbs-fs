@@ -13,7 +13,6 @@ import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
@@ -124,23 +123,7 @@ public class UIRigPhysicsSection extends UIRigSection
         this.windLocal = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_LOCAL, (b) -> this.editWind((w) -> w.local = b.getValue()));
         this.windLocal.tooltip(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_LOCAL_TOOLTIP);
 
-        UISection collisions = panel.remember(new UISection(UIKeys.FORMS_EDITORS_MODEL_RIG_COLLISIONS), "rig.physics.collisions", false);
-
-        collisions.fields.add(this.collisions, UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_RADIUS, this.radius));
-
-        UISection wind = panel.remember(new UISection(UIKeys.FORMS_EDITORS_MODEL_RIG_WIND), "rig.physics.wind", false);
-
-        wind.fields.add(
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_STRENGTH, this.windStrength),
-            UI.label(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_DIRECTION),
-            UI.row(this.windX, this.windY, this.windZ),
-            this.windLocal,
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE, this.windTurbulence),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE_SPEED, this.windTurbulenceSpeed),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE_SCALE, this.windTurbulenceScale)
-        );
-
-        this.fields.add(
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_MAIN,
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_ATTACH, this.attach),
@@ -151,9 +134,17 @@ public class UIRigPhysicsSection extends UIRigSection
             this.relativeGravity,
             UI.label(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_RELATIVE_GRAVITY_ROTATION),
             UI.row(this.gravityRotateX, this.gravityRotateY, this.gravityRotateZ),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_ITERATIONS, this.iterations),
-            collisions,
-            wind
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_ITERATIONS, this.iterations)
+        );
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_COLLISIONS, this.collisions, UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_RADIUS, this.radius));
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_WIND,
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_STRENGTH, this.windStrength),
+            UI.label(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_DIRECTION),
+            UI.row(this.windX, this.windY, this.windZ),
+            this.windLocal,
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE, this.windTurbulence),
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE_SPEED, this.windTurbulenceSpeed),
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_WIND_TURBULENCE_SCALE, this.windTurbulenceScale)
         );
     }
 

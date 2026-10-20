@@ -13,7 +13,6 @@ import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.utils.UI;
@@ -115,24 +114,20 @@ public class UIRigIKSection extends UIRigSection
         this.classic = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_IK_CLASSIC, (b) -> this.editTip((bone) -> bone.ikClassic.set(b.getValue())));
         this.classic.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_CLASSIC_TOOLTIP);
 
-        UISection advanced = panel.remember(new UISection(UIKeys.FORMS_EDITORS_MODEL_IK_ADVANCED), "rig.ik.advanced", false);
-
-        advanced.fields.add(
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_MAIN,
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
+            UI.labelRow(targetLabel, this.target),
+            UI.labelRow(this.pole, this.poleTarget),
+            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_WEIGHT, this.controls.weight)
+        );
+        this.page(UIKeys.FORMS_EDITORS_MODEL_IK_ADVANCED,
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_POLE_ANGLE, this.controls.poleAngle),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_SOFTNESS, this.controls.softness),
             this.tipRotation,
             this.stretch,
             this.squash,
             this.classic
-        );
-
-        this.fields.add(
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            UI.labelRow(targetLabel, this.target),
-            UI.labelRow(this.pole, this.poleTarget),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_WEIGHT, this.controls.weight),
-            advanced
         );
     }
 

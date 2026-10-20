@@ -8,7 +8,6 @@ import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
@@ -38,13 +37,8 @@ public class UIRigShakeSection extends UIRigSection
         this.driven.labelAnchor(0, 0.5F);
         this.driven.tooltip(UIKeys.FORMS_EDITORS_MODEL_SHAKE_DRIVEN_TOOLTIP);
 
-        UISection amplitude = panel.remember(new UISection(UIKeys.FORMS_EDITORS_MODEL_SHAKE_AMPLITUDE), "rig.shake.amplitude", true);
-
-        amplitude.fields.add(this.controls.amplitudes());
-
-        this.fields.add(this.driven);
-        this.fields.add(this.controls.settings());
-        this.fields.add(amplitude);
+        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_MAIN, this.driven, UI.column(this.controls.settings()));
+        this.page(UIKeys.FORMS_EDITORS_MODEL_SHAKE_AMPLITUDE, this.controls.amplitudes());
     }
 
     @Override

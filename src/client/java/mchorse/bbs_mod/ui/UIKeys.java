@@ -657,6 +657,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_RIG_ATTACH = L10n.lang("bbs.ui.forms.editors.model.rig.attach");
     public static final IKey FORMS_EDITORS_MODEL_RIG_COLLISIONS = L10n.lang("bbs.ui.forms.editors.model.rig.collisions");
     public static final IKey FORMS_EDITORS_MODEL_RIG_WIND = L10n.lang("bbs.ui.forms.editors.model.rig.wind");
+    public static final IKey FORMS_EDITORS_MODEL_RIG_MAIN = L10n.lang("bbs.ui.forms.editors.model.rig.main");
     public static final IKey FORMS_EDITORS_MODEL_RIG_ROLE_TIP = L10n.lang("bbs.ui.forms.editors.model.rig.role.tip");
     public static final IKey FORMS_EDITORS_MODEL_RIG_ROLE_ROOT = L10n.lang("bbs.ui.forms.editors.model.rig.role.root");
     public static final IKey FORMS_EDITORS_MODEL_RIG_ROLE_LINK = L10n.lang("bbs.ui.forms.editors.model.rig.role.link");
