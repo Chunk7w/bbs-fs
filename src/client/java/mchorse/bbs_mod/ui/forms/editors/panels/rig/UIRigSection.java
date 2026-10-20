@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.forms.editors.panels.rig;
 
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
@@ -89,6 +90,8 @@ public abstract class UIRigSection extends UISection
                 }
             };
             this.tabs.fixed();
+            /* The dark strip an icon switch (UIIcons) sits on. */
+            this.tabs.background(BBSSettings::deepSurface);
             this.tabs.active(this::getPage);
             this.tabs.onSelect(this::setPage);
             this.tabs.h(UIConstants.CONTROL_HEIGHT);
