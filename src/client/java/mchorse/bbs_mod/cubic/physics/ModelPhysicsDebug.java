@@ -479,7 +479,7 @@ public final class ModelPhysicsDebug
             return null;
         }
 
-        Vector3f dir = tipRestDirection(model, ids);
+        Vector3f dir = ChainSolver.tipRestDirection(model, ids);
 
         if (dir == null || dir.lengthSquared() < EPS * EPS)
         {
@@ -498,13 +498,5 @@ public final class ModelPhysicsDebug
         PivotFrame frame = frames.get(bone);
 
         return frame == null ? null : new Vector3f(frame.position());
-    }
-
-    /** The chain tip's rest direction, asked of whichever rig this model is. */
-    private static Vector3f tipRestDirection(IModel model, List<String> ids)
-    {
-        PhysicsRig rig = PhysicsRig.of(model);
-
-        return rig == null ? null : rig.tipRestDirectionLocal(ids);
     }
 }

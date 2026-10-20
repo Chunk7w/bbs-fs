@@ -41,7 +41,7 @@ public abstract class BonePassport
         return null;
     }
 
-    /** Model units per authored unit: a cubic pixel is a sixteenth of a block, a BOBJ armature is authored in model units. */
+    /** Model units per authored unit: a cubic pixel is a sixteenth of a block; a BOBJ armature's measures are taken as they are. */
     public abstract float scale();
 
     /**
@@ -51,6 +51,23 @@ public abstract class BonePassport
      * when the bone is missing (or a cubic chain's named parent is). Unnormalised, authored measure.
      */
     public abstract Vector3f restAxisPastTip(String bone, String child, String parent);
+
+    /**
+     * Where the bone points at rest towards {@code child}; with none, the way the bone leads by
+     * itself (a BOBJ bone with no child off its head keeps to the line its parent led into it).
+     * Unlike {@link #restAxisPastTip} the last bone of a chain does not carry on the chain's line —
+     * the physics limits measure from this one. Null when the bone is missing. Unnormalised,
+     * authored measure.
+     */
+    public abstract Vector3f restAxis(String bone, String child);
+
+    /**
+     * The rest length from the bone to {@code child}, in model units — what the physics simulates
+     * with; with no child, to the bone's first child, a quarter block when it has none. Never
+     * shorter than a hair, so a bone on its child's pivot still has a length. -1 when a bone is
+     * missing.
+     */
+    public abstract float restLength(String bone, String child);
 
     /**
      * Direction to rotation: the local rotation that swings a rest axis onto the world direction
@@ -121,6 +138,58 @@ public abstract class BonePassport
             return leads(group);
         }
 
+        @Override
+        public Vector3f restAxis(String bone, String child)
+        {
+            ModelGroup group = this.model.getGroup(bone);
+
+            if (group == null)
+            {
+                return null;
+            }
+
+            ModelGroup next = child == null ? null : this.model.getGroup(child);
+
+            return next != null ? new Vector3f(next.initial.translate).sub(group.initial.translate) : leads(group);
+        }
+
+        @Override
+        public float restLength(String bone, String child)
+        {
+            ModelGroup group = this.model.getGroup(bone);
+
+            if (group == null)
+            {
+                return -1F;
+            }
+
+            if (child != null)
+            {
+                ModelGroup next = this.model.getGroup(child);
+
+                return next == null ? -1F : length(group, next);
+            }
+
+            float len = 0.25F;
+
+            if (group.children != null && !group.children.isEmpty())
+            {
+                len = length(group, group.children.get(0));
+            }
+
+            return len <= EPS ? EPS : len;
+        }
+
+        private static float length(ModelGroup a, ModelGroup b)
+        {
+            float dx = (b.initial.translate.x - a.initial.translate.x) / 16F;
+            float dy = (b.initial.translate.y - a.initial.translate.y) / 16F;
+            float dz = (b.initial.translate.z - a.initial.translate.z) / 16F;
+            float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            return len <= EPS ? EPS : len;
+        }
+
         /** The way a bone points by itself: at its first child, else straight down. */
         private static Vector3f leads(ModelGroup group)
         {
@@ -181,11 +250,93 @@ public abstract class BonePassport
                 }
             }
 
-            return this.leads(b);
+            Vector3f out = this.firstChild(b);
+
+            return out != null ? out : new Vector3f(0F, -1F, 0F);
         }
 
-        /** The way a bone points by itself: at the first child off its head, else straight down. */
-        private Vector3f leads(BOBJBone bone)
+        @Override
+        public Vector3f restAxis(String bone, String child)
+        {
+            BOBJBone b = this.model.getArmature().bones.get(bone);
+
+            if (b == null)
+            {
+                return null;
+            }
+
+            BOBJBone next = child == null ? null : this.model.getArmature().bones.get(child);
+
+            if (next != null)
+            {
+                Vector3f out = next.relBoneMat.getTranslation(new Vector3f());
+
+                if (out.lengthSquared() > EPS * EPS)
+                {
+                    return out;
+                }
+            }
+
+            Vector3f out = this.firstChild(b);
+
+            if (out != null)
+            {
+                return out;
+            }
+
+            if (b.parentBone != null)
+            {
+                out = b.relBoneMat.getTranslation(new Vector3f());
+
+                if (out.lengthSquared() > EPS * EPS)
+                {
+                    return out;
+                }
+            }
+
+            return new Vector3f(0F, -1F, 0F);
+        }
+
+        @Override
+        public float restLength(String bone, String child)
+        {
+            BOBJBone b = this.model.getArmature().bones.get(bone);
+
+            if (b == null)
+            {
+                return -1F;
+            }
+
+            if (child != null)
+            {
+                BOBJBone next = this.model.getArmature().bones.get(child);
+
+                if (next == null)
+                {
+                    return -1F;
+                }
+
+                float len = boneLength(next);
+
+                return len <= EPS ? EPS : len;
+            }
+
+            float len = 0.25F;
+
+            for (BOBJBone candidate : this.model.getArmature().orderedBones)
+            {
+                if (candidate != null && candidate.parentBone == b)
+                {
+                    len = boneLength(candidate);
+                    break;
+                }
+            }
+
+            return len <= EPS ? EPS : len;
+        }
+
+        /** The axis to the first child off the bone's head (a child on the head itself gives none), or null. */
+        private Vector3f firstChild(BOBJBone bone)
         {
             for (BOBJBone candidate : this.model.getArmature().orderedBones)
             {
@@ -200,7 +351,22 @@ public abstract class BonePassport
                 }
             }
 
-            return new Vector3f(0F, -1F, 0F);
+            return null;
+        }
+
+        /**
+         * Rest distance from the bone's parent to it, in model space. Not the parent-relative
+         * matrix: that is in the parent's local frame, which carries the armature's scale (a
+         * Mixamo rig's 0.01 made every segment a hundred times too long).
+         */
+        private static float boneLength(BOBJBone bone)
+        {
+            if (bone.parentBone == null)
+            {
+                return bone.boneMat.getTranslation(new Vector3f()).length();
+            }
+
+            return bone.boneMat.getTranslation(new Vector3f()).distance(bone.parentBone.boneMat.getTranslation(new Vector3f()));
         }
     }
 }

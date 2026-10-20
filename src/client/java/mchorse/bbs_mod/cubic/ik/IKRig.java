@@ -19,8 +19,7 @@ import java.util.List;
  *
  * <p>What it removes is the TYPE TEST, which used to be repeated at every call: the question
  * "which skeleton is this" is asked once, in {@link #of}, and the answer is an object that knows
- * its own way. Mirrors {@link mchorse.bbs_mod.cubic.physics.PhysicsRig}, which drew the same
- * line for the physics solver.
+ * its own way.
  *
  * <p>The procedures themselves stay in {@link ClassicLimbSolver} next to the solve they finish —
  * moving that much numerical code would have been a rewrite, not a rename.
