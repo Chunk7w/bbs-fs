@@ -1440,7 +1440,7 @@
 	"bbs.ui.forms.editors.mob.nbt": "NBT моба",
 	"bbs.ui.forms.editors.mob.title": "Моб",
 	"bbs.ui.forms.editors.model.actions": "Действия",
-	"bbs.ui.forms.editors.model.ik.bone_controller": "Кость-контроллер",
+	"bbs.ui.forms.editors.model.ik.bone_controller": "Контроллер",
 	"bbs.ui.forms.editors.model.ik.bone_controller_tooltip": "Кликаемый маркер на выбранной кости",
 	"bbs.ui.forms.editors.model.ik.bone_controller_color": "Цвет контроллера",
 	"bbs.ui.forms.editors.model.ik.target": "Цель — кость-контроллер, к которой тянется цепочка",

@@ -1445,7 +1445,7 @@
 	"bbs.ui.forms.editors.mob.nbt": "Mob NBT",
 	"bbs.ui.forms.editors.mob.title": "Mob",
 	"bbs.ui.forms.editors.model.actions": "Actions",
-	"bbs.ui.forms.editors.model.ik.bone_controller": "Bone Controller",
+	"bbs.ui.forms.editors.model.ik.bone_controller": "Controller",
 	"bbs.ui.forms.editors.model.ik.bone_controller_tooltip": "Clickable marker on the selected bone",
 	"bbs.ui.forms.editors.model.ik.bone_controller_color": "Controller colour",
 	"bbs.ui.forms.editors.model.ik.target": "Target — the controller bone the chain reaches for",
