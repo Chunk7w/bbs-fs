@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The rig's IK overlay: each chain a run of wires through square joints, its goal and pole as
+ * The rig's IK overlay: each chain shown by square joints, its goal and pole as
  * diamonds bridged to the chain by dashed relationship lines, and the form's controller bones as
  * diamonds in their own colour. The look is fixed; the two settings are how solid and how big it
  * draws ({@code BBSSettings.debugOpacity}, {@code debugSize}), and it always draws through the
@@ -53,7 +53,7 @@ import java.util.Set;
 public final class ModelIKDebug
 {
     /* The fixed look; sizes are fractions of the model's average rest bone length. */
-    private static final int LINES_COLOR = 0xe6ebf2;
+    private static final int JOINTS_COLOR = 0xe6ebf2;
     private static final int TARGET_COLOR = 0xffffff;
     private static final int POLE_COLOR = 0xff8c26;
     private static final float LINES_SIZE = 0.02F;
@@ -284,7 +284,7 @@ public final class ModelIKDebug
         RenderSystem.enableDepthTest();
     }
 
-    /** The chain's wires and square joints, and dashed bridges from the chain to its goal and pole in their handles' colours. */
+    /** The chain's square joints, and dashed bridges from the chain to its goal and pole in their handles' colours. */
     private static void drawChain(BufferBuilder builder, MatrixStack stack, Map<String, PivotFrame> frames, Map<String, Handle> handles, ModelIKCache.CompiledChain chain, float unit, float a)
     {
         List<String> ids = chain.chainRootToEffector();
@@ -320,12 +320,7 @@ public final class ModelIKDebug
         Matrix4f matrix = stack.peek().getPositionMatrix();
         float thickness = unit * LINES_SIZE;
         float dash = unit * 0.12F;
-        float[] wire = DebugOverlay.rgb(LINES_COLOR);
-
-        for (int i = 0; i < n - 1; i++)
-        {
-            DebugOverlay.segment(builder, matrix, thickness, false, dash, pts.get(i), pts.get(i + 1), wire, 0.9F * a);
-        }
+        float[] joint = DebugOverlay.rgb(JOINTS_COLOR);
 
         DebugOverlay.segment(builder, matrix, thickness, true, dash, pts.get(n - 1), target, DebugOverlay.rgb(handles.get(chain.target()).color()), 0.4F * a);
 
@@ -336,7 +331,7 @@ public final class ModelIKDebug
 
         for (int i = 0; i < n - 1; i++)
         {
-            DebugOverlay.square(builder, stack, pts.get(i), unit * JOINTS_SIZE, wire, a);
+            DebugOverlay.square(builder, stack, pts.get(i), unit * JOINTS_SIZE, joint, a);
         }
     }
 
