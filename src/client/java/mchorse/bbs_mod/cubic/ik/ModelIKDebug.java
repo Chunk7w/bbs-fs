@@ -54,7 +54,6 @@ public final class ModelIKDebug
 {
     /* The fixed look; sizes are fractions of the model's average rest bone length. */
     private static final int JOINTS_COLOR = 0xe6ebf2;
-    private static final int TARGET_COLOR = 0xffffff;
     private static final int POLE_COLOR = 0xff8c26;
     private static final float LINES_SIZE = 0.02F;
     private static final float JOINTS_SIZE = 0.03F;
@@ -166,8 +165,9 @@ public final class ModelIKDebug
     }
 
     /**
-     * Every handle, one per bone: the chains' goals and poles, then the controllers — a bone that
-     * is both a controller and a goal or a pole is one diamond, in the controller's colour.
+     * Every handle, one per bone: the chains' goals and poles, then the controllers. A goal is a
+     * controller bone too and draws in the bone's controller colour; a bone that is both a
+     * controller and a pole is one diamond, in the controller's colour.
      */
     private static Map<String, Handle> handles(IModel model, ModelForm form, List<ModelIKCache.CompiledChain> chains)
     {
@@ -175,7 +175,7 @@ public final class ModelIKDebug
 
         for (ModelIKCache.CompiledChain chain : chains)
         {
-            handles.put(chain.target(), new Handle(chain.target(), TARGET_SIZE, TARGET_COLOR));
+            handles.put(chain.target(), new Handle(chain.target(), TARGET_SIZE, controllerColor(form, chain.target())));
 
             if (chain.poleTarget() != null && !chain.poleTarget().isEmpty())
             {
@@ -192,6 +192,14 @@ public final class ModelIKDebug
         }
 
         return handles;
+    }
+
+    /** The bone's controller colour, white while it has none. */
+    private static int controllerColor(ModelForm form, String bone)
+    {
+        FormBone formBone = form.bones.getBone(bone);
+
+        return formBone == null ? FormBone.CONTROLLER_COLOR : formBone.boneControllerColor.get();
     }
 
     private static Map<String, PivotFrame> collectFrames(IModel model, List<ModelIKCache.CompiledChain> chains, Set<String> handles)

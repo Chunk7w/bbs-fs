@@ -15,6 +15,7 @@ import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
+import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.UIIKControlFields;
@@ -43,6 +44,7 @@ public class UIRigIKSection extends UIRigSection
     public final UIBonePicker start;
     public final UIBonePicker end;
     public final UIBonePicker target;
+    public final UIColor targetColor;
     public final UIToggle pole;
     public final UIBonePicker poleTarget;
     public final UIIKControlFields controls;
@@ -78,6 +80,17 @@ public class UIRigIKSection extends UIRigSection
         this.target.menu((picker) -> this.fillBoneMenu(picker, this.read((b) -> b.ikTarget.get()), this::isCyclic));
         this.target.viewport(panel.viewportPicking());
         this.target.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET);
+
+        /* The target is a controller bone: its marker takes the bone's own controller colour. */
+        this.targetColor = new UIColor((c) -> this.editTarget((formBone) -> formBone.boneControllerColor.set(c))).noLabel();
+        this.targetColor.withDefault(this::targetColorDefault, () -> this.editTarget((formBone) -> formBone.boneControllerColor.reset()));
+        this.targetColor.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR);
+        this.targetColor.w(UIConstants.CONTROL_HEIGHT * 2);
+
+        UIElement targetLabel = new UIElement();
+
+        targetLabel.row(UIConstants.SECTION_GAP).preferred(0).height(UIConstants.CONTROL_HEIGHT);
+        targetLabel.add(UI.label(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET_LABEL, UIConstants.CONTROL_HEIGHT).labelAnchor(0, 0.5F), this.targetColor);
 
         this.pole = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_IK_POLE, (b) ->
         {
@@ -116,7 +129,7 @@ public class UIRigIKSection extends UIRigSection
         this.fields.add(
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET_LABEL, this.target),
+            UI.labelRow(targetLabel, this.target),
             UI.labelRow(this.pole, this.poleTarget),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_WEIGHT, this.controls.weight),
             advanced
@@ -147,6 +160,8 @@ public class UIRigIKSection extends UIRigSection
         this.start.setLabel(IKey.raw(start));
         this.end.setLabel(IKey.raw(this.tip));
         this.target.setLabel(IKey.raw(bone(formBone.ikTarget.get()) + (cyclicTarget ? UIKeys.FORMS_EDITORS_MODEL_IK_CYCLE.get() : "")));
+        this.targetColor.setVisible(formBone.hasChain());
+        this.targetColor.setColor(this.targetColor());
         this.pole.setValue(control.pole);
         this.poleTarget.setLabel(IKey.raw(bone(formBone.ikPoleTarget.get()) + (cyclicPole ? UIKeys.FORMS_EDITORS_MODEL_IK_POLE_CYCLE.get() : "")));
         this.controls.weight.setValue(control.weight);
@@ -210,7 +225,7 @@ public class UIRigIKSection extends UIRigSection
     {
         super.setFieldsEnabled(enabled);
 
-        for (UIElement element : List.of(this.start, this.end, this.target, this.pole, this.controls.weight, this.controls.softness,
+        for (UIElement element : List.of(this.start, this.end, this.target, this.targetColor, this.pole, this.controls.weight, this.controls.softness,
             this.controls.poleAngle, this.tipRotation, this.stretch, this.squash, this.classic))
         {
             element.setEnabled(enabled);
@@ -336,6 +351,26 @@ public class UIRigIKSection extends UIRigSection
             this.panel.editFormBone(this.tip, edit);
             this.panel.refresh();
         }
+    }
+
+    /** Edits the target bone's own values. */
+    private void editTarget(Consumer<FormBone> edit)
+    {
+        this.panel.editFormBone(this.read((b) -> b.ikTarget.get()), edit);
+    }
+
+    /** The target bone's controller colour. */
+    private int targetColor()
+    {
+        FormBone target = this.panel.getFormBone(this.read((b) -> b.ikTarget.get()));
+
+        return target == null ? FormBone.CONTROLLER_COLOR : target.boneControllerColor.get();
+    }
+
+    /** The controller's default colour while the target's differs, else null (nothing to reset). */
+    private Integer targetColorDefault()
+    {
+        return this.targetColor() == FormBone.CONTROLLER_COLOR ? null : FormBone.CONTROLLER_COLOR;
     }
 
     /** Edits the chain's IK scalars as one value change (one undo entry). */
