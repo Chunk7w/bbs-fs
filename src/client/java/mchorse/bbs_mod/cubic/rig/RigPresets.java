@@ -42,7 +42,7 @@ public final class RigPresets
 
         for (RigStep step : RigStep.SYSTEMS)
         {
-            if (step.isUsed(form))
+            if (step.isUsed(form) || setOnBones(form, step))
             {
                 steps.add(step);
             }
@@ -90,6 +90,28 @@ public final class RigPresets
         }
 
         return preset;
+    }
+
+    /** Whether some bone has a value of the step set — a controller is the IK's even with no chain. */
+    private static boolean setOnBones(ModelForm form, RigStep step)
+    {
+        for (BaseValue value : form.bones.getAll())
+        {
+            if (value instanceof FormBone bone)
+            {
+                for (String id : step.boneValues)
+                {
+                    BaseValue field = bone.get(id);
+
+                    if (field != null && !field.isDefault())
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /** One step's preset saved by the tab it used to have, in that tab's format. */

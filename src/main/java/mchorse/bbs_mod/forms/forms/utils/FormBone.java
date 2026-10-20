@@ -29,6 +29,8 @@ import mchorse.bbs_mod.forms.forms.ModelForm;
  */
 public class FormBone extends ValueGroup
 {
+    public static final int CONTROLLER_COLOR = 0xffffff;
+
     /** Compatibility field views; the form's compound properties own the payloads. */
     public void bind(ModelForm form)
     {
@@ -52,6 +54,8 @@ public class FormBone extends ValueGroup
      * the animatable scalars (weight, softness, pole angle, enabled) live in {@link #ik}. */
     /** A selectable viewport marker at this bone, independent of IK chains. */
     public final ValueBoolean boneController = new ValueBoolean("bone_controller", false);
+    /** The controller marker's colour. */
+    public final ValueInt boneControllerColor = new ValueInt("bone_controller_color", CONTROLLER_COLOR).color();
     public final ValueString ikTarget = new ValueString("ik_target", "");
     public final ValueString ikPoleTarget = new ValueString("ik_pole_target", "");
     public final ValueInt ikChainLength = new ValueInt("ik_chain_length", 0);
@@ -85,6 +89,7 @@ public class FormBone extends ValueGroup
 
         this.constraints.invisible();
         this.boneController.invisible();
+        this.boneControllerColor.invisible();
         this.ikTarget.invisible();
         this.ikPoleTarget.invisible();
         this.ikChainLength.invisible();
@@ -107,6 +112,7 @@ public class FormBone extends ValueGroup
 
         this.add(this.constraints);
         this.add(this.boneController);
+        this.add(this.boneControllerColor);
         this.add(this.ikTarget);
         this.add(this.ikPoleTarget);
         this.add(this.ikChainLength);
@@ -165,6 +171,7 @@ public class FormBone extends ValueGroup
     {
         return this.constraints.get().isDefault()
             && !this.boneController.get()
+            && this.boneControllerColor.get() == CONTROLLER_COLOR
             && !this.hasChain()
             && this.ikPoleTarget.get().isEmpty()
             && this.ikChainLength.get() == 0

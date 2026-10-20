@@ -906,7 +906,7 @@ final class ChainSolver
      * along the line the chain comes in on, the rotation writer's convention, so the solved tip and
      * the pose target agree at rest. Null for a model the passport does not know.
      */
-    static Vector3f tipRestDirection(IModel model, List<String> ids)
+    private static Vector3f tipRestDirection(IModel model, List<String> ids)
     {
         BonePassport passport = BonePassport.of(model);
         int n = ids.size();

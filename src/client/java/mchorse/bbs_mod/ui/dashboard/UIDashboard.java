@@ -7,7 +7,6 @@ import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.camera.Camera;
 import mchorse.bbs_mod.camera.OrbitCamera;
 import mchorse.bbs_mod.camera.controller.OrbitCameraController;
-import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.api.client.events.RegisterDashboardPanelsEvent;
 import mchorse.bbs_mod.graphics.window.Window;
@@ -144,24 +143,7 @@ public class UIDashboard extends UIBaseMenu
                 }
             }
         }).category(category);
-        this.overlay.keys().register(Keys.TOGGLE_DEBUG, () ->
-        {
-            /* Every rig step that draws a debug overlay: all on unless one already is. */
-            boolean enabled = true;
-
-            for (RigStep step : RigStep.values())
-            {
-                enabled &= step.debug() == null || !step.debug().enabled.get();
-            }
-
-            for (RigStep step : RigStep.values())
-            {
-                if (step.debug() != null)
-                {
-                    step.debug().enabled.set(enabled);
-                }
-            }
-        }).category(category);
+        this.overlay.keys().register(Keys.TOGGLE_DEBUG, () -> BBSSettings.debugOverlay.toggle()).category(category);
         this.overlay.keys().register(Keys.OPEN_SETTINGS, () ->
         {
             if (UIOverlay.has(this.context))

@@ -93,7 +93,7 @@ public class UIAnimationStateEditor extends UIElement
             for (var chain : SplineEditorUtils.sources(model))
             {
                 /* A model's spline shows with the IK debug. */
-                if (chain instanceof SplineIK && !BBSSettings.ikDebug.enabled.get()) continue;
+                if (chain instanceof SplineIK && !BBSSettings.debugOverlay.get()) continue;
 
                 Matrix4f parent = SplineEditorUtils.parentMatrix(this.root, renderer.getTargetEntity(), context.getTransition(), model, chain);
                 if (parent == null) continue;

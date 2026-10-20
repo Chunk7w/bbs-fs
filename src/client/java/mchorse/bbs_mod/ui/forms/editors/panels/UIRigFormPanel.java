@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.forms.editors.panels;
 
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.rig.RigClaim;
@@ -15,7 +16,6 @@ import mchorse.bbs_mod.forms.forms.utils.FormBone;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.settings.values.IValueListener;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
-import mchorse.bbs_mod.settings.values.ui.ValueModelDebug;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIForm;
 import mchorse.bbs_mod.ui.forms.editors.panels.rig.UIRigIKSection;
@@ -24,12 +24,11 @@ import mchorse.bbs_mod.ui.forms.editors.panels.rig.UIRigPhysicsSection;
 import mchorse.bbs_mod.ui.forms.editors.panels.rig.UIRigSection;
 import mchorse.bbs_mod.ui.forms.editors.panels.rig.UIRigShakeSection;
 import mchorse.bbs_mod.ui.forms.editors.panels.rig.UIRigSplineSection;
-import mchorse.bbs_mod.ui.forms.editors.utils.UIDebugOverlayContextMenu;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
-import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
+import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.ui.utils.SplineFormTool;
@@ -39,7 +38,6 @@ import mchorse.bbs_mod.ui.utils.bones.BoneRole;
 import mchorse.bbs_mod.ui.utils.bones.BoneRoles;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePicker;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
-import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.presets.UIDataContextMenu;
 import mchorse.bbs_mod.utils.pose.ModelRigManager;
 import org.joml.Matrix4f;
@@ -88,6 +86,7 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
 
     public UIToggle debug;
     public UIToggle boneController;
+    public UIColor boneControllerColor;
 
     public UIRigShakeSection shake;
     public UIRigIKSection ik;
@@ -113,23 +112,28 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
                 UIKeys.FORMS_EDITORS_MODEL_RIG_CONTEXT_NAME)
             .icons(UIRigFormPanel::presetIcons));
 
-        this.debug = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_RIG_DEBUG, (b) -> setDebug(b.getValue()));
-
-        UIIcon looks = new UIIcon(Icons.GEAR, (b) -> this.openDebugLooks());
-
-        looks.tooltip(UIKeys.MODEL_DEBUG_CONFIGURE);
-        looks.wh(UIConstants.ICON_SIZE, UIConstants.TOGGLE_HEIGHT);
-
-        UIElement debugRow = new UIElement();
-
-        debugRow.row(0).preferred(0).height(UIConstants.TOGGLE_HEIGHT);
-        debugRow.add(this.debug, looks);
+        this.debug = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_RIG_DEBUG, (b) -> BBSSettings.debugOverlay.set(b.getValue()));
+        this.debug.h(UIConstants.TOGGLE_HEIGHT);
 
         this.boneController = new UIToggle(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER,
-            (b) -> this.editBone((bone) -> bone.boneController.set(b.getValue())));
+            (b) ->
+            {
+                this.editBone((bone) -> bone.boneController.set(b.getValue()));
+                this.updateFields();
+            });
         this.boneController.h(UIConstants.CONTROL_HEIGHT);
         this.boneController.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_TOOLTIP);
         this.resetBone(this.boneController, (bone) -> bone.boneController);
+
+        this.boneControllerColor = new UIColor((c) -> this.editBone((bone) -> bone.boneControllerColor.set(c))).noLabel();
+        this.boneControllerColor.withDefault(this::controllerColorDefault, () -> this.editBone((bone) -> bone.boneControllerColor.reset()));
+        this.boneControllerColor.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR);
+        this.boneControllerColor.w(UIConstants.CONTROL_HEIGHT * 2);
+
+        UIElement controllerRow = new UIElement();
+
+        controllerRow.row(UIConstants.SECTION_GAP).preferred(0).height(UIConstants.CONTROL_HEIGHT);
+        controllerRow.add(this.boneController, this.boneControllerColor);
 
         this.shake = this.remember(new UIRigShakeSection(this), "rig.shake", true);
         this.ik = this.remember(new UIRigIKSection(this), "rig.ik", true);
@@ -143,7 +147,7 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         this.sections.add(this.spline);
         this.sections.add(this.limits);
 
-        this.options.add(debugRow, this.bonesSearch, this.boneController);
+        this.options.add(this.debug, this.bonesSearch, controllerRow);
         this.options.add(this.sections.toArray(new UIElement[0]));
     }
 
@@ -159,47 +163,12 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         return icons;
     }
 
-    /* The rig's debug overlays: one switch for all of them */
-
-    private static void setDebug(boolean enabled)
+    /** The controller's default colour while the selected bone's differs, else null (nothing to reset). */
+    private Integer controllerColorDefault()
     {
-        for (RigStep step : RigStep.SYSTEMS)
-        {
-            if (step.debug() != null)
-            {
-                step.debug().enabled.set(enabled);
-            }
-        }
-    }
+        FormBone bone = this.selectedFormBone();
 
-    private static boolean isDebug()
-    {
-        for (RigStep step : RigStep.SYSTEMS)
-        {
-            if (step.debug() != null && step.debug().enabled.get())
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /** The look of each step's overlay, a menu of its own. */
-    private void openDebugLooks()
-    {
-        this.getContext().replaceContextMenu((menu) ->
-        {
-            for (RigStep step : RigStep.SYSTEMS)
-            {
-                ValueModelDebug debug = step.debug();
-
-                if (debug != null)
-                {
-                    menu.action(step.icon, step.title(), () -> this.getContext().replaceContextMenu(new UIDebugOverlayContextMenu(debug)));
-                }
-            }
-        });
+        return bone == null || bone.boneControllerColor.get() == FormBone.CONTROLLER_COLOR ? null : FormBone.CONTROLLER_COLOR;
     }
 
     /* What the sections see of the panel */
@@ -325,7 +294,7 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
     public void startEdit(ModelForm form)
     {
         this.spline.endPointEdit();
-        this.debug.setValue(isDebug());
+        this.debug.setValue(BBSSettings.debugOverlay.get());
 
         super.startEdit(form);
     }
@@ -345,6 +314,7 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         this.bonesSearch.setEnabled(enabled);
         this.bones.setEnabled(enabled);
         this.boneController.setEnabled(enabled);
+        this.boneControllerColor.setEnabled(enabled);
 
         for (UIRigSection section : this.sections)
         {
@@ -367,6 +337,8 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
 
         this.boneController.setEnabled(canEdit);
         this.boneController.setValue(bone != null && bone.boneController.get());
+        this.boneControllerColor.setVisible(bone != null && bone.boneController.get());
+        this.boneControllerColor.setColor(bone == null ? FormBone.CONTROLLER_COLOR : bone.boneControllerColor.get());
 
         for (UIRigSection section : this.sections)
         {
@@ -428,9 +400,10 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         /* The rig's handles show while the tab is drawn, debug overlay or not. */
         RigHandles.show(this.form);
 
-        if (this.debug.getValue() != isDebug())
+        /* F5 flips the same switch. */
+        if (this.debug.getValue() != BBSSettings.debugOverlay.get())
         {
-            this.debug.setValue(isDebug());
+            this.debug.setValue(BBSSettings.debugOverlay.get());
         }
 
         super.render(context);

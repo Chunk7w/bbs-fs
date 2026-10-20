@@ -1,6 +1,5 @@
 package mchorse.bbs_mod.cubic.rig;
 
-import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.constraints.ModelConstraintsRuntime;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
@@ -12,7 +11,6 @@ import mchorse.bbs_mod.forms.forms.utils.FormBone;
 import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
-import mchorse.bbs_mod.settings.values.ui.ValueModelDebug;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
@@ -48,7 +46,7 @@ public enum RigStep
         new Track("shake", Icons.EXCHANGE, 0x159e64)),
     /** IK chains, and the controller bones they reach for. */
     IK("ik", Icons.IK,
-        List.of("ik_target", "ik_pole_target", "ik_chain_length", "ik_tip_rotation", "ik_stretch", "ik_squash", "ik_classic", "bone_controller"),
+        List.of("ik_target", "ik_pole_target", "ik_chain_length", "ik_tip_rotation", "ik_stretch", "ik_squash", "ik_classic", "bone_controller", "bone_controller_color"),
         List.of("ik"),
         new Track("ik", Icons.IK, Colors.WHITE)),
     /** The addons' pose hook ({@code FormPoseEvents.MODEL_POSE}): after IK, before the built-in physics. */
@@ -183,17 +181,6 @@ public enum RigStep
         }
 
         return false;
-    }
-
-    /** The step's debug overlay setting, or null for a step that draws none. */
-    public ValueModelDebug debug()
-    {
-        return switch (this)
-        {
-            case IK -> BBSSettings.ikDebug;
-            case PHYSICS -> BBSSettings.physicsDebug;
-            default -> null;
-        };
     }
 
     /**

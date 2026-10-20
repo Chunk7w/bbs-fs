@@ -592,6 +592,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_ACTIONS = L10n.lang("bbs.ui.forms.editors.model.actions");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller");
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_TOOLTIP = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller_tooltip");
+    public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller_color");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET = L10n.lang("bbs.ui.forms.editors.model.ik.target");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET_LABEL = L10n.lang("bbs.ui.forms.editors.model.ik.target_label");
     public static final IKey FORMS_EDITORS_MODEL_IK_POLE = L10n.lang("bbs.ui.forms.editors.model.ik.pole");
@@ -640,13 +641,6 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_COPY_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.copy_amplitude");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_PASTE_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.paste_amplitude");
     public static final IKey FORMS_EDITORS_MODEL_SHAKE_CONTEXT_RESET_AMPLITUDE = L10n.lang("bbs.ui.forms.editors.model.shake.context.reset_amplitude");
-    public static final IKey MODEL_DEBUG_ENABLED = L10n.lang("bbs.ui.model_debug.enabled");
-    public static final IKey MODEL_DEBUG_XRAY = L10n.lang("bbs.ui.model_debug.xray");
-    public static final IKey MODEL_DEBUG_DASHED = L10n.lang("bbs.ui.model_debug.dashed");
-    public static final IKey MODEL_DEBUG_SHAPE = L10n.lang("bbs.ui.model_debug.shape");
-    public static final IKey MODEL_DEBUG_OPACITY = L10n.lang("bbs.ui.model_debug.opacity");
-    public static final IKey MODEL_DEBUG_CONFIGURE = L10n.lang("bbs.ui.model_debug.configure");
-    public static final IKey MODEL_DEBUG_RESET = L10n.lang("bbs.ui.model_debug.reset");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_APPLY_TO_CHILDREN = L10n.lang("bbs.ui.forms.editors.model.constraints.apply_to_children");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_MIN = L10n.lang("bbs.ui.forms.editors.model.constraints.min");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_MAX = L10n.lang("bbs.ui.forms.editors.model.constraints.max");

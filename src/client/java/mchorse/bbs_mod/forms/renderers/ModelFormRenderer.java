@@ -24,7 +24,6 @@ import mchorse.bbs_mod.cubic.spline.ModelSplineRuntime;
 import mchorse.bbs_mod.cubic.jem.CemAnimator;
 import mchorse.bbs_mod.cubic.jem.CemVanillaStage;
 import mchorse.bbs_mod.cubic.constraints.ModelConstraintsRuntime;
-import mchorse.bbs_mod.cubic.physics.ModelPhysicsDebug;
 import mchorse.bbs_mod.cubic.physics.ModelPhysicsRuntime;
 import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.cubic.shake.ModelShakeRuntime;
@@ -114,7 +113,7 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
     private ModelInstance lastModel;
     private boolean renderingArm;
 
-    /** The IK and physics overlays, read off the rig with the model and drawn after the body parts — see {@link ModelIKDebug#prepare}. */
+    /** The rig's debug overlay, read off the rig with the model and drawn after the body parts — see {@link ModelIKDebug#prepare}. */
     private final List<Runnable> overlays = new ArrayList<>();
 
     private IEntity entity = new StubEntity();
@@ -577,8 +576,7 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
 
         if (stencilMap == null && !this.renderingArm && this.form != null)
         {
-            this.addOverlay(ModelIKDebug.prepare(newStack, model.model, this.form, ""));
-            this.addOverlay(ModelPhysicsDebug.prepare(newStack, model.model, this.form, target.getAge(), ""));
+            this.addOverlay(ModelIKDebug.prepare(newStack, model.model, this.form));
         }
 
         gameRenderer.getLightmapTextureManager().disable();
@@ -1149,7 +1147,6 @@ public class ModelFormRenderer extends FormRenderer<ModelForm> implements ITicka
             MatrixStackUtils.multiply(stack, context.stack.peek().getPositionMatrix());
             this.applySplineMotion(stack);
             this.addOverlay(ModelIKDebug.prepareStencil(stack, model.model, this.form, context.stencilMap, this.form));
-            this.addOverlay(ModelPhysicsDebug.prepareStencil(stack, model.model, this.form, context.stencilMap, this.form));
         }
     }
 

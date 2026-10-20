@@ -47,6 +47,7 @@ public final class BoneIKIO
                 }
 
                 bone.boneController.set(false);
+                bone.boneControllerColor.set(FormBone.CONTROLLER_COLOR);
 
                 if (bone.hasChain() || !bone.ik.get().isDefault())
                 {
