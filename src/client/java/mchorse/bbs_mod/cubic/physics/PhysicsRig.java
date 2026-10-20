@@ -5,7 +5,7 @@ import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.model.bobj.BOBJModel;
-import mchorse.bbs_mod.cubic.render.ModelRotationBlender;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -273,9 +273,7 @@ interface PhysicsRig
         @Override
         public Vector3f tipRestDirectionLocal(List<String> ids)
         {
-            BOBJBone bone = this.model.getArmature().bones.get(ids.get(ids.size() - 1));
-
-            return bone == null ? null : ModelRotationBlender.getBobjRestDirection(this.model, bone, null, ids, ids.size() - 1);
+            return BonePassport.of(this.model).restAxisPastTip(ids.get(ids.size() - 1), null, ids.size() >= 2 ? ids.get(ids.size() - 2) : null);
         }
     }
 }

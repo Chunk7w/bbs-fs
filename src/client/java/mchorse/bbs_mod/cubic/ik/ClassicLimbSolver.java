@@ -6,7 +6,7 @@ import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.model.bobj.BOBJModel;
 import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
-import mchorse.bbs_mod.cubic.render.ModelRotationBlender;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -761,8 +761,8 @@ final class ClassicLimbSolver
 
     /**
      * The bone's local rest direction towards its child, taken exactly as that
-     * model's renderer takes it (cubic: pivot difference; BOBJ: the renderer's own
-     * {@link ModelRotationBlender#getBobjRestDirection}), so the orientation pass
+     * model's renderer takes it (cubic: pivot difference; BOBJ: the rest axis the
+     * renderer aims, {@link BonePassport#restAxisPastTip}), so the orientation pass
      * reconstructs the same swing the renderer applies.
      */
     private static Vector3f restDirection(IModel model, List<String> chainIds, int i)
@@ -789,15 +789,9 @@ final class ClassicLimbSolver
     /** See {@link IKRig.BobjIKRig#restDirection}. */
     static Vector3f bobjRestDirection(BOBJModel model, List<String> chainIds, int i)
     {
-        BOBJBone bone = model.getArmature().bones.get(chainIds.get(i));
-        BOBJBone child = model.getArmature().bones.get(chainIds.get(i + 1));
+        Vector3f axis = BonePassport.of(model).restAxisPastTip(chainIds.get(i), chainIds.get(i + 1), i > 0 ? chainIds.get(i - 1) : null);
 
-        if (bone == null)
-        {
-            return null;
-        }
-
-        return normalizeRest(ModelRotationBlender.getBobjRestDirection(model, bone, child, chainIds, i));
+        return axis == null ? null : normalizeRest(axis);
     }
 
     /**
