@@ -5,6 +5,7 @@ import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
 import mchorse.bbs_mod.cubic.rig.RigClaim.Hold;
 import mchorse.bbs_mod.cubic.rig.RigOwners;
 import mchorse.bbs_mod.cubic.rig.RigStep;
@@ -270,10 +271,11 @@ public final class ModelSplineRuntime
         if (result == null || !Float.isFinite(control.twist)) return false;
 
         for (int i = 0; i < count - 1; i++) fkTangents[i] = new Vector3f(fkPositions[i + 1]).sub(fkPositions[i]).normalize();
-        /* No artificial child is needed: the terminal's axis and length come from the final
-         * rest segment, but its own FK rotation still matters when orienting its geometry. */
-        Vector3f terminalAxis = new Vector3f(chain.get(count - 1).initial.translate).sub(chain.get(count - 2).initial.translate);
-        if (terminalAxis.lengthSquared() <= EPS * EPS) return false;
+        /* No artificial child is needed: the terminal's axis is its rest axis past the tip, on along
+         * the final rest segment, but its own FK rotation still matters when orienting its geometry. */
+        ModelGroup terminal = chain.get(count - 1);
+        Vector3f terminalAxis = BonePassport.of(terminal.owner).restAxisPastTip(terminal.id, null, chain.get(count - 2).id);
+        if (terminalAxis == null || terminalAxis.lengthSquared() <= EPS * EPS) return false;
         fkTangents[count - 1] = fkWorld[count - 1].transform(terminalAxis.normalize());
 
         Vector3f fkNormal = SplineMath.perpendicular(fkTangents[0]);
@@ -299,6 +301,8 @@ public final class ModelSplineRuntime
 
             Quaternionf parentRotation = matrix.getUnnormalizedRotation(new Quaternionf()).normalize();
             Quaternionf local = parentRotation.invert().mul(target).normalize();
+            /* Its own mix rather than RigWriter.blend: it always slerps and renormalises, and the
+             * chain is written atomically below. */
             Quaternionf orientation = new Quaternionf(fkLocal[i]).slerp(local, weight).normalize();
             /* Blend the authored roll as an angle after the swing. Slerping a quaternion that
              * already includes twist would wrap to the shortest arc and pop at 180 degrees
