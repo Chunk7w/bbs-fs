@@ -41,10 +41,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The rig's overlay: each IK chain shown by square joints, its goal and pole as diamonds bridged
- * to the chain by dashed relationship lines, the form's controller bones as diamonds in their own
- * colour, and each spline as its curve with its points as diamonds (the picked ones in the accent
- * colour) over its chain's square joints. The look is fixed; the two settings are how solid and how big it
+ * The rig's overlay: each IK chain's goal and pole as diamonds bridged to the chain by dashed
+ * relationship lines, the form's controller bones as diamonds in their own colour, and each spline
+ * as its curve with its points as diamonds (the picked ones in the accent colour). The look is
+ * fixed; the two settings are how solid and how big it
  * draws ({@code BBSSettings.debugOpacity}, {@code debugSize}), and it always draws through the
  * model. It reads the model-local pivot frames the renderer already produced — IK is applied to
  * the rig before this runs, so the frames are the solved chain (re-solving would double-apply the
@@ -62,10 +62,9 @@ import java.util.Set;
 public final class ModelIKDebug
 {
     /* The fixed look; sizes are fractions of the model's average rest bone length. */
-    private static final int JOINTS_COLOR = 0xe6ebf2;
+    private static final int CURVE_COLOR = 0xe6ebf2;
     private static final int POLE_COLOR = 0xff8c26;
     private static final float LINES_SIZE = 0.02F;
-    private static final float JOINTS_SIZE = 0.03F;
     private static final float TARGET_SIZE = 0.09F;
     private static final float POLE_SIZE = 0.07F;
     private static final int POINT_COLOR = 0xffffff;
@@ -77,8 +76,8 @@ public final class ModelIKDebug
     {
     }
 
-    /** A spline as drawn: its points and its sampled curve in the model space, and its chain's bones. */
-    private record Path(SplineIK spline, List<SplinePoint> points, List<Vector3f> positions, List<Vector3f> curve, List<String> chain)
+    /** A spline as drawn: its points and its sampled curve in the model space. */
+    private record Path(SplineIK spline, List<SplinePoint> points, List<Vector3f> positions, List<Vector3f> curve)
     {
     }
 
@@ -112,19 +111,12 @@ public final class ModelIKDebug
             return null;
         }
 
-        Set<String> bones = new HashSet<>(handles.keySet());
+        Map<String, PivotFrame> frames = collectFrames(model, chains, handles.keySet());
 
-        if (overlay)
-        {
-            paths.forEach((path) -> bones.addAll(path.chain()));
-        }
-
-        Map<String, PivotFrame> frames = collectFrames(model, chains, bones);
-
-        return () -> render(stack, model, form, chains, handles, paths, overlay, frames);
+        return () -> render(stack, model, form, chains, handles, paths, frames);
     }
 
-    private static void render(MatrixStack stack, IModel model, ModelForm form, List<ModelIKCache.CompiledChain> chains, Map<String, Handle> handles, List<Path> paths, boolean joints, Map<String, PivotFrame> frames)
+    private static void render(MatrixStack stack, IModel model, ModelForm form, List<ModelIKCache.CompiledChain> chains, Map<String, Handle> handles, List<Path> paths, Map<String, PivotFrame> frames)
     {
         RenderSystem.disableDepthTest();
         RenderSystem.disableCull();
@@ -161,7 +153,7 @@ public final class ModelIKDebug
 
         for (Path path : paths)
         {
-            drawPath(builder, stack, frames, form, path, joints, unit, opacity);
+            drawPath(builder, stack, form, path, unit, opacity);
         }
 
         BufferRenderer.drawWithGlobalProgram(builder.end());
@@ -265,7 +257,7 @@ public final class ModelIKDebug
                 curve.add(frame.transformPosition(sample));
             }
 
-            paths.add(new Path(spline, points, positions, curve, ModelIKRuntime.chainBones(model, spline.tip.get(), spline.chainLength.get())));
+            paths.add(new Path(spline, points, positions, curve));
         }
 
         return paths;
@@ -368,7 +360,7 @@ public final class ModelIKDebug
         RenderSystem.enableDepthTest();
     }
 
-    /** The chain's square joints, and dashed bridges from the chain to its goal and pole in their handles' colours. */
+    /** Dashed bridges from the chain to its goal and pole, in their handles' colours. */
     private static void drawChain(BufferBuilder builder, MatrixStack stack, Map<String, PivotFrame> frames, Map<String, Handle> handles, ModelIKCache.CompiledChain chain, float unit, float a)
     {
         List<String> ids = chain.chainRootToEffector();
@@ -404,7 +396,6 @@ public final class ModelIKDebug
         Matrix4f matrix = stack.peek().getPositionMatrix();
         float thickness = unit * LINES_SIZE;
         float dash = unit * 0.12F;
-        float[] joint = DebugOverlay.rgb(JOINTS_COLOR);
 
         DebugOverlay.segment(builder, matrix, thickness, true, dash, pts.get(n - 1), target, DebugOverlay.rgb(handles.get(chain.target()).color()), 0.4F * a);
 
@@ -412,36 +403,18 @@ public final class ModelIKDebug
         {
             DebugOverlay.segment(builder, matrix, thickness, true, dash, pts.get(1), pole, DebugOverlay.rgb(handles.get(chain.poleTarget()).color()), 0.4F * a);
         }
-
-        for (int i = 0; i < n - 1; i++)
-        {
-            DebugOverlay.square(builder, stack, pts.get(i), unit * JOINTS_SIZE, joint, a);
-        }
     }
 
-    /** The spline's curve, its chain's joints (with the debug) and its points over them. */
-    private static void drawPath(BufferBuilder builder, MatrixStack stack, Map<String, PivotFrame> frames, ModelForm form, Path path, boolean joints, float unit, float a)
+    /** The spline's curve and its points over it. */
+    private static void drawPath(BufferBuilder builder, MatrixStack stack, ModelForm form, Path path, float unit, float a)
     {
         Matrix4f matrix = stack.peek().getPositionMatrix();
-        float[] line = DebugOverlay.rgb(JOINTS_COLOR);
+        float[] line = DebugOverlay.rgb(CURVE_COLOR);
         List<Vector3f> curve = path.curve();
 
         for (int i = 1; i < curve.size(); i++)
         {
             DebugOverlay.segment(builder, matrix, unit * LINES_SIZE, false, 0F, curve.get(i - 1), curve.get(i), line, 0.9F * a);
-        }
-
-        if (joints)
-        {
-            for (String bone : path.chain())
-            {
-                Vector3f joint = position(frames, bone);
-
-                if (joint != null)
-                {
-                    DebugOverlay.square(builder, stack, joint, unit * JOINTS_SIZE, line, a);
-                }
-            }
         }
 
         for (int i = 0; i < path.points().size(); i++)
