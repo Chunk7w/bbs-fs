@@ -49,9 +49,13 @@ public class UIRigLimitsSection extends UIRigSection
 
         this.controls.fill(constraint, this.inIKChain(bone));
 
-        if (folded == null && this.isExpanded() != active)
+        /* A fold by hand holds for the session, on a section built anew too (a pick in the viewport
+         * rebuilds the tab). */
+        boolean expanded = folded == null ? active : folded;
+
+        if (this.isExpanded() != expanded)
         {
-            this.setExpanded(active);
+            this.setExpanded(expanded);
         }
 
         return active;
