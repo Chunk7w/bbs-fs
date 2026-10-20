@@ -37,8 +37,9 @@ public class UIRigShakeSection extends UIRigSection
         this.driven.labelAnchor(0, 0.5F);
         this.driven.tooltip(UIKeys.FORMS_EDITORS_MODEL_SHAKE_DRIVEN_TOOLTIP);
 
-        this.page(UIKeys.FORMS_EDITORS_MODEL_RIG_MAIN, this.driven, UI.column(this.controls.settings()));
-        this.page(UIKeys.FORMS_EDITORS_MODEL_SHAKE_AMPLITUDE, this.controls.amplitudes());
+        this.fields.add(this.driven);
+        this.fields.add(this.controls.settings());
+        this.fields.add(this.controls.amplitudes());
     }
 
     @Override
