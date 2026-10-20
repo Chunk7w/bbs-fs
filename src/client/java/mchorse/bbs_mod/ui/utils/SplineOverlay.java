@@ -178,9 +178,13 @@ public class SplineOverlay
 
     public void drawInsertionPreview(UIContext context, Area viewport)
     {
-        if (!viewport.isInside(context)) return;
-        CurveHit hit = this.insertionAt(context.mouseX, context.mouseY);
-        if (hit == null) return;
+        drawInsertion(context, viewport, this.insertionAt(context.mouseX, context.mouseY));
+    }
+
+    /** Where a Ctrl click puts a new point on a curve, a model's spline IK (see {@link #curveAt}) included. */
+    public static void drawInsertion(UIContext context, Area viewport, CurveHit hit)
+    {
+        if (hit == null || !viewport.isInside(context)) return;
         context.batcher.clip(viewport, context);
         context.batcher.box(hit.x - 7, hit.y - 7, hit.x + 7, hit.y + 7, 0xD015212B);
         context.batcher.outline(hit.x - 7, hit.y - 7, hit.x + 7, hit.y + 7, 0xFF79BBFF);

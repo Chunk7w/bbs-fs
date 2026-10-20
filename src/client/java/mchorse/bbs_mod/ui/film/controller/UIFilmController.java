@@ -213,9 +213,12 @@ public class UIFilmController extends UIElement implements GizmoViewport
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
+            /* A model spline's curve is the rig overlay's; over one of its points a Ctrl click picks the point instead. */
+            if (insertion == null && this.panel.preview.getViewport().isInside(context) && this.getGizmoStencil().getPickedPoint() == null)
+                insertion = this.splineIKCurveAt(spline, context);
             if (insertion != null && spline.sameSource(insertion.chain()) && this.getCurrentEntity() != null
                 && FormUtils.getRoot(SplineEditorUtils.owner(insertion.chain())) == this.getCurrentEntity().getForm())
-                this.splineOverlay.drawInsertionPreview(context, this.panel.preview.getViewport());
+                SplineOverlay.drawInsertion(context, this.panel.preview.getViewport(), insertion);
         }
         var hovered = this.panel.preview.getViewport().isInside(context) ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
         if (hovered != null && (this.getCurrentEntity() == null || FormUtils.getRoot(

@@ -108,7 +108,10 @@ public class UIAnimationStateEditor extends UIElement
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
-            if (insertion != null && spline.sameSource(insertion.chain())) this.splineOverlay.drawInsertionPreview(context, renderer.area);
+            /* A model spline's curve is the rig overlay's; over one of its points a Ctrl click picks the point instead. */
+            if (insertion == null && renderer.area.isInside(context) && renderer.getStencil().getPickedPoint() == null)
+                insertion = this.splineIKCurveAt(spline, context);
+            if (insertion != null && spline.sameSource(insertion.chain())) SplineOverlay.drawInsertion(context, renderer.area, insertion);
         }
         SplineEditorUtils.viewportHover(this.keyframeEditor, renderer.area.isInside(context)
             ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null);

@@ -698,7 +698,13 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         }
         this.splineOverlay.finish(context, this.renderer.area);
         if (panel != null && Window.isCtrlPressed() && !context.isFocused() && !panel.pointEditor().position.isEditing())
-            this.splineOverlay.drawInsertionPreview(context, this.renderer.area);
+        {
+            SplineOverlay.CurveHit insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
+            /* A model spline's curve is the rig overlay's; over one of its points a Ctrl click picks the point instead. */
+            if (insertion == null && this.renderer.area.isInside(context) && this.renderer.getStencil().getPickedPoint() == null)
+                insertion = this.splineIKCurveAt(panel.splineSources(), context);
+            SplineOverlay.drawInsertion(context, this.renderer.area, insertion);
+        }
         SplineOverlay.Hit hovered = this.renderer.area.isInside(context) ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
         if (panel != null) panel.pointEditor().points.viewportHover = (hovered != null && hovered.chain() == panel.activeSpline() ? hovered.point().getId() : "");
     }
