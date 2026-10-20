@@ -15,13 +15,11 @@ import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
-import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.UIIKControlFields;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePicker;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePickerContextMenu;
-import mchorse.bbs_mod.utils.colors.Colors;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,7 +42,6 @@ public class UIRigIKSection extends UIRigSection
 
     public final UIBonePicker start;
     public final UIBonePicker end;
-    public final UILabel preview;
     public final UIBonePicker target;
     public final UIToggle pole;
     public final UIBonePicker poleTarget;
@@ -68,9 +65,6 @@ public class UIRigIKSection extends UIRigSection
         this.end = new UIBonePicker(this::setEnd);
         this.end.menu((picker) -> this.fillMenu(picker, this.tip, this.endCandidates()));
         this.end.viewport(panel.viewportPicking());
-
-        this.preview = UI.label(IKey.EMPTY, UIConstants.LIST_ITEM_HEIGHT, Colors.LIGHTER_GRAY);
-        this.preview.labelAnchor(0F, 0.5F);
 
         this.target = new UIBonePicker((bone) ->
         {
@@ -122,7 +116,6 @@ public class UIRigIKSection extends UIRigSection
         this.fields.add(
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            this.preview,
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET_LABEL, this.target),
             UI.labelRow(this.pole, this.poleTarget),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_WEIGHT, this.controls.weight),
@@ -153,7 +146,6 @@ public class UIRigIKSection extends UIRigSection
         this.setInfo(start + " → " + this.tip);
         this.start.setLabel(IKey.raw(start));
         this.end.setLabel(IKey.raw(this.tip));
-        this.preview.label = IKey.raw(String.join(" → ", chain));
         this.target.setLabel(IKey.raw(bone(formBone.ikTarget.get()) + (cyclicTarget ? UIKeys.FORMS_EDITORS_MODEL_IK_CYCLE.get() : "")));
         this.pole.setValue(control.pole);
         this.poleTarget.setLabel(IKey.raw(bone(formBone.ikPoleTarget.get()) + (cyclicPole ? UIKeys.FORMS_EDITORS_MODEL_IK_POLE_CYCLE.get() : "")));

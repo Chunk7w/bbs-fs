@@ -56,7 +56,6 @@ public class UIRigSplineSection extends UIRigSection
 
     public final UIBonePicker start;
     public final UIBonePicker end;
-    public final UILabel preview;
     public final UILabel status;
     public final UISplineControlFields controls;
     public final UISplinePointsEditor pointEditor;
@@ -82,9 +81,6 @@ public class UIRigSplineSection extends UIRigSection
         this.end = new UIBonePicker(this::setEnd);
         this.end.menu((picker) -> this.fillMenu(picker, this.tip(), this.endCandidates()));
         this.end.viewport(panel.viewportPicking());
-
-        this.preview = UI.label(IKey.EMPTY, UIConstants.LIST_ITEM_HEIGHT, Colors.LIGHTER_GRAY);
-        this.preview.labelAnchor(0F, 0.5F);
 
         this.status = UI.label(IKey.EMPTY, UIConstants.CONTROL_HEIGHT, Colors.ORANGE);
         this.status.labelAnchor(0, 0.5F);
@@ -147,7 +143,6 @@ public class UIRigSplineSection extends UIRigSection
         this.fields.add(
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            this.preview,
             this.status,
             UI.labelRow(key("influence"), this.controls.influence),
             UI.labelRow(key("progress"), this.controls.progress),
@@ -189,7 +184,6 @@ public class UIRigSplineSection extends UIRigSection
         this.setInfo(this.root() + " → " + this.tip());
         this.start.setLabel(IKey.raw(this.root()));
         this.end.setLabel(IKey.raw(this.tip()));
-        this.preview.label = IKey.raw(String.join(" → ", claim.chain()));
         this.status.label = reason == null ? IKey.EMPTY : key("error." + reason);
         this.status.tooltip(this.status.label);
         this.status.setVisible(reason != null);

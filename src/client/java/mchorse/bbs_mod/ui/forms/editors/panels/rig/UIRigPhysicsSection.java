@@ -17,9 +17,7 @@ import mchorse.bbs_mod.ui.framework.elements.UISection;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
-import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
 import mchorse.bbs_mod.ui.utils.UI;
-import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.UIPhysicsControlFields;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePicker;
 import mchorse.bbs_mod.ui.utils.bones.UIBonePickerContextMenu;
@@ -42,7 +40,6 @@ public class UIRigPhysicsSection extends UIRigSection
 {
     public final UIBonePicker start;
     public final UIBonePicker end;
-    public final UILabel preview;
     public final UIBonePicker attach;
     public final UIPhysicsControlFields controls;
     public final UIToggle relativeGravity;
@@ -78,9 +75,6 @@ public class UIRigPhysicsSection extends UIRigSection
         this.end = new UIBonePicker(this::setEnd);
         this.end.menu((picker) -> this.fillMenu(picker, this.read().physicsEnd.get(), this.endCandidates()));
         this.end.viewport(panel.viewportPicking());
-
-        this.preview = UI.label(IKey.EMPTY, UIConstants.LIST_ITEM_HEIGHT, Colors.LIGHTER_GRAY);
-        this.preview.labelAnchor(0F, 0.5F);
 
         this.attach = new UIBonePicker((bone) ->
         {
@@ -149,7 +143,6 @@ public class UIRigPhysicsSection extends UIRigSection
         this.fields.add(
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_START, this.start),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_END, this.end),
-            this.preview,
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_RIG_ATTACH, this.attach),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_IK_WEIGHT, this.controls.weight),
             UI.labelRow(UIKeys.FORMS_EDITORS_MODEL_PHYSICS_GRAVITY, this.controls.gravity),
@@ -207,7 +200,6 @@ public class UIRigPhysicsSection extends UIRigSection
         this.setInfo(this.root + " → " + end);
         this.start.setLabel(IKey.raw(this.root));
         this.end.setLabel(IKey.raw(end));
-        this.preview.label = IKey.raw(String.join(" → ", claim.chain()));
         this.attach.setLabel(IKey.raw(bone(formBone.physicsTargetBone.get())));
         this.controls.weight.setValue(control.weight);
         this.controls.gravity.setValue(control.gravity);
