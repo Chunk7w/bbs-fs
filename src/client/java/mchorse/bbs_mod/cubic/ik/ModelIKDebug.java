@@ -147,8 +147,14 @@ public final class ModelIKDebug
     private static List<ModelIKCache.CompiledChain> enabledChains(IModel model, ModelForm form)
     {
         List<ModelIKCache.CompiledChain> chains = new ArrayList<>();
+        ModelIKCache.Compiled compiled = ModelIKCache.compile(model, form);
 
-        for (ModelIKCache.CompiledChain chain : ModelIKCache.compile(model, form).chains())
+        if (compiled == null)
+        {
+            return chains;
+        }
+
+        for (ModelIKCache.CompiledChain chain : compiled.chains())
         {
             if (form.bones.getBone(chain.tip()) != null && form.ik.get().get(chain.tip()).enabled)
             {
