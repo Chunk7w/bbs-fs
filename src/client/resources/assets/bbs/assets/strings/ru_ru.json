@@ -1445,6 +1445,7 @@
 	"bbs.ui.forms.editors.model.ik.bone_controller_color": "Цвет контроллера",
 	"bbs.ui.forms.editors.model.ik.target": "Цель — кость-контроллер, к которой тянется цепочка",
 	"bbs.ui.forms.editors.model.ik.target_label": "Цель",
+	"bbs.ui.forms.editors.model.ik.target_color": "Цвет цели",
 	"bbs.ui.forms.editors.model.ik.pole": "Полюс",
 	"bbs.ui.forms.editors.model.ik.pole_target": "Цель полюса — куда смотрит сгиб (локоть, колено)",
 	"bbs.ui.forms.editors.model.ik.pole_target_label": "Цель полюса",

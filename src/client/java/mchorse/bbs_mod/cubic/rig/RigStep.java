@@ -46,7 +46,7 @@ public enum RigStep
         new Track("shake", Icons.EXCHANGE, 0x159e64)),
     /** IK chains, and the controller bones they reach for. */
     IK("ik", Icons.IK,
-        List.of("ik_target", "ik_pole_target", "ik_chain_length", "ik_tip_rotation", "ik_stretch", "ik_squash", "ik_classic", "bone_controller", "bone_controller_color"),
+        List.of("ik_target", "ik_target_color", "ik_pole_target", "ik_chain_length", "ik_tip_rotation", "ik_stretch", "ik_squash", "ik_classic", "bone_controller", "bone_controller_color"),
         List.of("ik"),
         new Track("ik", Icons.IK, Colors.WHITE)),
     /** The addons' pose hook ({@code FormPoseEvents.MODEL_POSE}): after IK, before the built-in physics. */

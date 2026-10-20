@@ -237,6 +237,7 @@ public final class BoneIKIO
     public static void clearChain(FormBone bone)
     {
         bone.ikTarget.set("");
+        bone.ikTargetColor.set(FormBone.TARGET_COLOR);
         bone.ikPoleTarget.set("");
         bone.ikChainLength.set(0);
         bone.ikTipRotation.set(false);

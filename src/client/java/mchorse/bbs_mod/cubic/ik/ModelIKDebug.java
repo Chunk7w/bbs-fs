@@ -42,7 +42,8 @@ import java.util.Set;
 
 /**
  * The rig's overlay: each IK chain's goal and pole as diamonds bridged to the chain by dashed
- * relationship lines, the form's controller bones as diamonds in their own colour, and each spline
+ * relationship lines, the form's controller bones as cubes in their own colour (gold unless set),
+ * and each spline
  * as its curve with its points as diamonds (the picked ones in the accent colour). The look is
  * fixed; the two settings are how solid and how big it
  * draws ({@code BBSSettings.debugOpacity}, {@code debugSize}), and it always draws through the
@@ -67,13 +68,25 @@ public final class ModelIKDebug
     private static final float LINES_SIZE = 0.02F;
     private static final float TARGET_SIZE = 0.09F;
     private static final float POLE_SIZE = 0.07F;
+    private static final float CONTROLLER_SIZE = 0.1F;
     private static final int POINT_COLOR = 0xffffff;
     private static final float POINT_SIZE = 0.07F;
     private static final int CURVE_STEPS = 20;
 
-    /** A diamond on a bone: a chain's goal or pole, or a controller (in the bone's own colour). */
-    private record Handle(String bone, float size, int color)
+    /** A marker on a bone: a diamond at a chain's goal or pole, a cube at a controller. */
+    private record Handle(String bone, float size, int color, boolean cube)
     {
+        void draw(BufferBuilder builder, MatrixStack stack, Vector3f point, float unit, float[] color, float a)
+        {
+            if (this.cube)
+            {
+                DebugOverlay.square(builder, stack, point, unit * this.size, color, a);
+            }
+            else
+            {
+                DebugOverlay.diamond(builder, stack, point, unit * this.size, color, a);
+            }
+        }
     }
 
     /** A spline as drawn: its points and its sampled curve in the model space. */
@@ -147,7 +160,7 @@ public final class ModelIKDebug
 
             if (point != null)
             {
-                DebugOverlay.diamond(builder, stack, point, unit * handle.size(), DebugOverlay.rgb(handle.color()), opacity);
+                handle.draw(builder, stack, point, unit, DebugOverlay.rgb(handle.color()), opacity);
             }
         }
 
@@ -187,9 +200,9 @@ public final class ModelIKDebug
     }
 
     /**
-     * Every handle, one per bone: the chains' goals and poles, then the controllers. A goal is a
-     * controller bone too and draws in the bone's controller colour; a bone that is both a
-     * controller and a pole is one diamond, in the controller's colour.
+     * Every handle, one per bone: the chains' goals (in the colour each chain gives its goal) and
+     * poles, then the controllers — a bone that is both a controller and a goal or a pole is the
+     * controller's cube.
      */
     private static Map<String, Handle> handles(IModel model, ModelForm form, List<ModelIKCache.CompiledChain> chains)
     {
@@ -197,11 +210,11 @@ public final class ModelIKDebug
 
         for (ModelIKCache.CompiledChain chain : chains)
         {
-            handles.put(chain.target(), new Handle(chain.target(), TARGET_SIZE, controllerColor(form, chain.target())));
+            handles.put(chain.target(), new Handle(chain.target(), TARGET_SIZE, targetColor(form, chain.tip()), false));
 
             if (chain.poleTarget() != null && !chain.poleTarget().isEmpty())
             {
-                handles.putIfAbsent(chain.poleTarget(), new Handle(chain.poleTarget(), POLE_SIZE, POLE_COLOR));
+                handles.putIfAbsent(chain.poleTarget(), new Handle(chain.poleTarget(), POLE_SIZE, POLE_COLOR, false));
             }
         }
 
@@ -209,19 +222,19 @@ public final class ModelIKDebug
         {
             if (value instanceof FormBone bone && bone.boneController.get() && model.getAllGroupKeys().contains(bone.getId()))
             {
-                handles.put(bone.getId(), new Handle(bone.getId(), TARGET_SIZE, bone.boneControllerColor.get()));
+                handles.put(bone.getId(), new Handle(bone.getId(), CONTROLLER_SIZE, bone.boneControllerColor.get(), true));
             }
         }
 
         return handles;
     }
 
-    /** The bone's controller colour, white while it has none. */
-    private static int controllerColor(ModelForm form, String bone)
+    /** The colour the chain on the tip gives the marker at its goal. */
+    private static int targetColor(ModelForm form, String tip)
     {
-        FormBone formBone = form.bones.getBone(bone);
+        FormBone formBone = form.bones.getBone(tip);
 
-        return formBone == null ? FormBone.CONTROLLER_COLOR : formBone.boneControllerColor.get();
+        return formBone == null ? FormBone.TARGET_COLOR : formBone.ikTargetColor.get();
     }
 
     /** The form's splines: each one's points and curve, where the spline step put them this frame. */
@@ -339,7 +352,7 @@ public final class ModelIKDebug
                 continue;
             }
 
-            DebugOverlay.diamond(builder, stack, point, unit * handle.size(), pickColor(stencilMap), 1F);
+            handle.draw(builder, stack, point, unit, pickColor(stencilMap), 1F);
             stencilMap.addPicking(form, handle.bone());
         }
 

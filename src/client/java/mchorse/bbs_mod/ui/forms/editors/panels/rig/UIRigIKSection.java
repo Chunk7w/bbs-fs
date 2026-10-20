@@ -80,10 +80,10 @@ public class UIRigIKSection extends UIRigSection
         this.target.viewport(panel.viewportPicking());
         this.target.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET);
 
-        /* The target is a controller bone: its marker takes the bone's own controller colour. */
-        this.targetColor = new UIColor((c) -> this.editTarget((formBone) -> formBone.boneControllerColor.set(c))).noLabel();
-        this.targetColor.withDefault(this::targetColorDefault, () -> this.editTarget((formBone) -> formBone.boneControllerColor.reset()));
-        this.targetColor.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR);
+        /* The colour of the marker at the target, kept with the chain. */
+        this.targetColor = new UIColor((c) -> this.panel.editFormBone(this.tip, (formBone) -> formBone.ikTargetColor.set(c))).noLabel();
+        this.targetColor.withDefault(this::targetColorDefault, () -> this.panel.editFormBone(this.tip, (formBone) -> formBone.ikTargetColor.reset()));
+        this.targetColor.tooltip(UIKeys.FORMS_EDITORS_MODEL_IK_TARGET_COLOR);
         this.targetColor.w(UIConstants.CONTROL_HEIGHT * 2);
 
         UIElement targetLabel = new UIElement();
@@ -310,6 +310,7 @@ public class UIRigIKSection extends UIRigSection
             IKControl control = form.ik.getOriginalValue().get(from).copy();
 
             moved.ikTarget.set(old.ikTarget.get());
+            moved.ikTargetColor.set(old.ikTargetColor.get());
             moved.ikPoleTarget.set(old.ikPoleTarget.get());
             moved.ikChainLength.set(length);
             moved.ikTipRotation.set(old.ikTipRotation.get());
@@ -348,24 +349,18 @@ public class UIRigIKSection extends UIRigSection
         }
     }
 
-    /** Edits the target bone's own values. */
-    private void editTarget(Consumer<FormBone> edit)
-    {
-        this.panel.editFormBone(this.read((b) -> b.ikTarget.get()), edit);
-    }
-
-    /** The target bone's controller colour. */
+    /** The colour of the marker at the chain's target. */
     private int targetColor()
     {
-        FormBone target = this.panel.getFormBone(this.read((b) -> b.ikTarget.get()));
+        FormBone formBone = this.panel.getFormBone(this.tip);
 
-        return target == null ? FormBone.CONTROLLER_COLOR : target.boneControllerColor.get();
+        return formBone == null ? FormBone.TARGET_COLOR : formBone.ikTargetColor.get();
     }
 
-    /** The controller's default colour while the target's differs, else null (nothing to reset). */
+    /** The target marker's default colour while the chain's differs, else null (nothing to reset). */
     private Integer targetColorDefault()
     {
-        return this.targetColor() == FormBone.CONTROLLER_COLOR ? null : FormBone.CONTROLLER_COLOR;
+        return this.targetColor() == FormBone.TARGET_COLOR ? null : FormBone.TARGET_COLOR;
     }
 
     /** Edits the chain's IK scalars as one value change (one undo entry). */

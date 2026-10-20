@@ -29,7 +29,10 @@ import mchorse.bbs_mod.forms.forms.ModelForm;
  */
 public class FormBone extends ValueGroup
 {
-    public static final int CONTROLLER_COLOR = 0xffffff;
+    /** A controller's marker unless the bone says otherwise: the gold the rig's controllers have had. */
+    public static final int CONTROLLER_COLOR = 0xffd84d;
+    /** The marker at an IK chain's target unless the chain says otherwise. */
+    public static final int TARGET_COLOR = 0xffffff;
 
     /** Compatibility field views; the form's compound properties own the payloads. */
     public void bind(ModelForm form)
@@ -57,6 +60,8 @@ public class FormBone extends ValueGroup
     /** The controller marker's colour. */
     public final ValueInt boneControllerColor = new ValueInt("bone_controller_color", CONTROLLER_COLOR).color();
     public final ValueString ikTarget = new ValueString("ik_target", "");
+    /** The colour of the marker at the chain's target. */
+    public final ValueInt ikTargetColor = new ValueInt("ik_target_color", TARGET_COLOR).color();
     public final ValueString ikPoleTarget = new ValueString("ik_pole_target", "");
     public final ValueInt ikChainLength = new ValueInt("ik_chain_length", 0);
     public final ValueBoolean ikTipRotation = new ValueBoolean("ik_tip_rotation", false);
@@ -91,6 +96,7 @@ public class FormBone extends ValueGroup
         this.boneController.invisible();
         this.boneControllerColor.invisible();
         this.ikTarget.invisible();
+        this.ikTargetColor.invisible();
         this.ikPoleTarget.invisible();
         this.ikChainLength.invisible();
         this.ikTipRotation.invisible();
@@ -114,6 +120,7 @@ public class FormBone extends ValueGroup
         this.add(this.boneController);
         this.add(this.boneControllerColor);
         this.add(this.ikTarget);
+        this.add(this.ikTargetColor);
         this.add(this.ikPoleTarget);
         this.add(this.ikChainLength);
         this.add(this.ikTipRotation);
@@ -173,6 +180,7 @@ public class FormBone extends ValueGroup
             && !this.boneController.get()
             && this.boneControllerColor.get() == CONTROLLER_COLOR
             && !this.hasChain()
+            && this.ikTargetColor.get() == TARGET_COLOR
             && this.ikPoleTarget.get().isEmpty()
             && this.ikChainLength.get() == 0
             && !this.ikTipRotation.get()

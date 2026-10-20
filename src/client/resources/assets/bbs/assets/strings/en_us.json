@@ -1450,6 +1450,7 @@
 	"bbs.ui.forms.editors.model.ik.bone_controller_color": "Controller colour",
 	"bbs.ui.forms.editors.model.ik.target": "Target — the controller bone the chain reaches for",
 	"bbs.ui.forms.editors.model.ik.target_label": "Target",
+	"bbs.ui.forms.editors.model.ik.target_color": "Target colour",
 	"bbs.ui.forms.editors.model.ik.pole": "Pole",
 	"bbs.ui.forms.editors.model.ik.pole_target": "Pole Target — where the bend points (elbow, knee)",
 	"bbs.ui.forms.editors.model.ik.pole_target_label": "Pole target",

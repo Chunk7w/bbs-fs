@@ -595,6 +595,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_IK_BONE_CONTROLLER_COLOR = L10n.lang("bbs.ui.forms.editors.model.ik.bone_controller_color");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET = L10n.lang("bbs.ui.forms.editors.model.ik.target");
     public static final IKey FORMS_EDITORS_MODEL_IK_TARGET_LABEL = L10n.lang("bbs.ui.forms.editors.model.ik.target_label");
+    public static final IKey FORMS_EDITORS_MODEL_IK_TARGET_COLOR = L10n.lang("bbs.ui.forms.editors.model.ik.target_color");
     public static final IKey FORMS_EDITORS_MODEL_IK_POLE = L10n.lang("bbs.ui.forms.editors.model.ik.pole");
     public static final IKey FORMS_EDITORS_MODEL_IK_POLE_TARGET = L10n.lang("bbs.ui.forms.editors.model.ik.pole_target");
     public static final IKey FORMS_EDITORS_MODEL_IK_POLE_TARGET_LABEL = L10n.lang("bbs.ui.forms.editors.model.ik.pole_target_label");
