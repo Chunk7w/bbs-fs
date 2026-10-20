@@ -7,9 +7,16 @@ import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
 import mchorse.bbs_mod.cubic.render.DebugOverlay;
 import mchorse.bbs_mod.cubic.render.ModelPivotFrames;
 import mchorse.bbs_mod.cubic.rig.RigHandles;
+import mchorse.bbs_mod.cubic.spline.ModelSplineRuntime;
+import mchorse.bbs_mod.cubic.spline.SplineCurve;
+import mchorse.bbs_mod.cubic.spline.SplineIK;
+import mchorse.bbs_mod.cubic.spline.SplinePoint;
+import mchorse.bbs_mod.forms.FormUtils;
+import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
+import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.ui.framework.elements.utils.StencilMap;
 import mchorse.bbs_mod.utils.MathUtils;
@@ -34,21 +41,23 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The rig's IK overlay: each chain shown by square joints, its goal and pole as
- * diamonds bridged to the chain by dashed relationship lines, and the form's controller bones as
- * diamonds in their own colour. The look is fixed; the two settings are how solid and how big it
+ * The rig's overlay: each IK chain shown by square joints, its goal and pole as diamonds bridged
+ * to the chain by dashed relationship lines, the form's controller bones as diamonds in their own
+ * colour, and each spline as its curve with its points as diamonds (the picked ones in the accent
+ * colour) over its chain's square joints. The look is fixed; the two settings are how solid and how big it
  * draws ({@code BBSSettings.debugOpacity}, {@code debugSize}), and it always draws through the
  * model. It reads the model-local pivot frames the renderer already produced — IK is applied to
  * the rig before this runs, so the frames are the solved chain (re-solving would double-apply the
  * pole angle).
  *
  * <p>The chains show with the rig's debug switch ({@code BBSSettings.debugOverlay}, also F5); the
- * handles — goals, poles and controllers — show with it too, and on their own while the form is
- * open on the rig tab ({@link RigHandles}), to be clicked without the debug.
+ * handles — goals, poles, controllers and the splines with their points — show with it too, and on
+ * their own while the form is open on the rig tab ({@link RigHandles}), to be clicked without the
+ * debug.
  *
  * <p>{@link #prepareStencil} mirrors the handles into the picking pass so a click on one selects
- * its bone, exactly as if its (often mesh-less) bone had been clicked directly. The pick geometry
- * is the visible marker's own shape and size.
+ * its bone, exactly as if its (often mesh-less) bone had been clicked directly, and a click on a
+ * spline's point picks the point. The pick geometry is the visible marker's own shape and size.
  */
 public final class ModelIKDebug
 {
@@ -59,9 +68,17 @@ public final class ModelIKDebug
     private static final float JOINTS_SIZE = 0.03F;
     private static final float TARGET_SIZE = 0.09F;
     private static final float POLE_SIZE = 0.07F;
+    private static final int POINT_COLOR = 0xffffff;
+    private static final float POINT_SIZE = 0.07F;
+    private static final int CURVE_STEPS = 20;
 
     /** A diamond on a bone: a chain's goal or pole, or a controller (in the bone's own colour). */
     private record Handle(String bone, float size, int color)
+    {
+    }
+
+    /** A spline as drawn: its points and its sampled curve in the model space, and its chain's bones. */
+    private record Path(SplineIK spline, List<SplinePoint> points, List<Vector3f> positions, List<Vector3f> curve, List<String> chain)
     {
     }
 
@@ -88,18 +105,26 @@ public final class ModelIKDebug
         List<ModelIKCache.CompiledChain> enabled = enabledChains(model, form);
         Map<String, Handle> handles = handles(model, form, enabled);
         List<ModelIKCache.CompiledChain> chains = overlay ? enabled : List.of();
+        List<Path> paths = paths(model, form);
 
-        if (chains.isEmpty() && handles.isEmpty())
+        if (chains.isEmpty() && handles.isEmpty() && paths.isEmpty())
         {
             return null;
         }
 
-        Map<String, PivotFrame> frames = collectFrames(model, chains, handles.keySet());
+        Set<String> bones = new HashSet<>(handles.keySet());
 
-        return () -> render(stack, model, chains, handles, frames);
+        if (overlay)
+        {
+            paths.forEach((path) -> bones.addAll(path.chain()));
+        }
+
+        Map<String, PivotFrame> frames = collectFrames(model, chains, bones);
+
+        return () -> render(stack, model, form, chains, handles, paths, overlay, frames);
     }
 
-    private static void render(MatrixStack stack, IModel model, List<ModelIKCache.CompiledChain> chains, Map<String, Handle> handles, Map<String, PivotFrame> frames)
+    private static void render(MatrixStack stack, IModel model, ModelForm form, List<ModelIKCache.CompiledChain> chains, Map<String, Handle> handles, List<Path> paths, boolean joints, Map<String, PivotFrame> frames)
     {
         RenderSystem.disableDepthTest();
         RenderSystem.disableCull();
@@ -132,6 +157,11 @@ public final class ModelIKDebug
             {
                 DebugOverlay.diamond(builder, stack, point, unit * handle.size(), DebugOverlay.rgb(handle.color()), opacity);
             }
+        }
+
+        for (Path path : paths)
+        {
+            drawPath(builder, stack, frames, form, path, joints, unit, opacity);
         }
 
         BufferRenderer.drawWithGlobalProgram(builder.end());
@@ -202,9 +232,48 @@ public final class ModelIKDebug
         return formBone == null ? FormBone.CONTROLLER_COLOR : formBone.boneControllerColor.get();
     }
 
-    private static Map<String, PivotFrame> collectFrames(IModel model, List<ModelIKCache.CompiledChain> chains, Set<String> handles)
+    /** The form's splines: each one's points and curve, where the spline step put them this frame. */
+    private static List<Path> paths(IModel model, ModelForm form)
     {
-        Set<String> wanted = new HashSet<>(handles);
+        List<Path> paths = new ArrayList<>();
+        ModelSplineRuntime.Motion motion = FormUtilsClient.getRenderer(form) instanceof ModelFormRenderer renderer ? renderer.getSplineMotion() : null;
+
+        for (SplineIK spline : form.splines.getAllTyped())
+        {
+            Matrix4f frame = ModelSplineRuntime.pointFrame(model, spline, motion);
+            List<SplinePoint> points = spline.points.getAllTyped();
+
+            if (frame == null || points.isEmpty())
+            {
+                continue;
+            }
+
+            List<Vector3f> local = new ArrayList<>(points.size());
+            List<Vector3f> positions = new ArrayList<>(points.size());
+            List<Vector3f> curve = new ArrayList<>();
+
+            for (SplinePoint point : points)
+            {
+                Vector3f position = new Vector3f(spline.position(point.getId()).translate);
+
+                local.add(position);
+                positions.add(frame.transformPosition(new Vector3f(position)));
+            }
+
+            for (Vector3f sample : SplineCurve.sample(local, CURVE_STEPS, spline.closed()))
+            {
+                curve.add(frame.transformPosition(sample));
+            }
+
+            paths.add(new Path(spline, points, positions, curve, ModelIKRuntime.chainBones(model, spline.tip.get(), spline.chainLength.get())));
+        }
+
+        return paths;
+    }
+
+    private static Map<String, PivotFrame> collectFrames(IModel model, List<ModelIKCache.CompiledChain> chains, Set<String> bones)
+    {
+        Set<String> wanted = new HashSet<>(bones);
 
         for (ModelIKCache.CompiledChain chain : chains)
         {
@@ -239,18 +308,19 @@ public final class ModelIKDebug
         }
 
         Map<String, Handle> handles = handles(model, modelForm, enabledChains(model, modelForm));
+        List<Path> paths = paths(model, modelForm);
 
-        if (handles.isEmpty())
+        if (handles.isEmpty() && paths.isEmpty())
         {
             return null;
         }
 
         Map<String, PivotFrame> frames = collectFrames(model, List.of(), handles.keySet());
 
-        return () -> renderStencil(stack, model, stencilMap, form, handles.values(), frames);
+        return () -> renderStencil(stack, model, stencilMap, form, handles.values(), paths, frames);
     }
 
-    private static void renderStencil(MatrixStack stack, IModel model, StencilMap stencilMap, Form form, Collection<Handle> handles, Map<String, PivotFrame> frames)
+    private static void renderStencil(MatrixStack stack, IModel model, StencilMap stencilMap, Form form, Collection<Handle> handles, List<Path> paths, Map<String, PivotFrame> frames)
     {
         RenderSystem.disableDepthTest();
         RenderSystem.disableCull();
@@ -277,11 +347,17 @@ public final class ModelIKDebug
                 continue;
             }
 
-            int id = stencilMap.objectIndex;
-            float[] col = {(id & 0xFF) / 255F, (id >> 8 & 0xFF) / 255F, (id >> 16 & 0xFF) / 255F};
-
-            DebugOverlay.diamond(builder, stack, point, unit * handle.size(), col, 1F);
+            DebugOverlay.diamond(builder, stack, point, unit * handle.size(), pickColor(stencilMap), 1F);
             stencilMap.addPicking(form, handle.bone());
+        }
+
+        for (Path path : paths)
+        {
+            for (int i = 0; i < path.points().size(); i++)
+            {
+                DebugOverlay.diamond(builder, stack, path.positions().get(i), unit * POINT_SIZE, pickColor(stencilMap), 1F);
+                stencilMap.addPointPicking(form, FormUtils.getPropertyPath(path.points().get(i).position));
+            }
         }
 
         BufferRenderer.drawWithGlobalProgram(builder.end());
@@ -341,6 +417,48 @@ public final class ModelIKDebug
         {
             DebugOverlay.square(builder, stack, pts.get(i), unit * JOINTS_SIZE, joint, a);
         }
+    }
+
+    /** The spline's curve, its chain's joints (with the debug) and its points over them. */
+    private static void drawPath(BufferBuilder builder, MatrixStack stack, Map<String, PivotFrame> frames, ModelForm form, Path path, boolean joints, float unit, float a)
+    {
+        Matrix4f matrix = stack.peek().getPositionMatrix();
+        float[] line = DebugOverlay.rgb(JOINTS_COLOR);
+        List<Vector3f> curve = path.curve();
+
+        for (int i = 1; i < curve.size(); i++)
+        {
+            DebugOverlay.segment(builder, matrix, unit * LINES_SIZE, false, 0F, curve.get(i - 1), curve.get(i), line, 0.9F * a);
+        }
+
+        if (joints)
+        {
+            for (String bone : path.chain())
+            {
+                Vector3f joint = position(frames, bone);
+
+                if (joint != null)
+                {
+                    DebugOverlay.square(builder, stack, joint, unit * JOINTS_SIZE, line, a);
+                }
+            }
+        }
+
+        for (int i = 0; i < path.points().size(); i++)
+        {
+            boolean picked = RigHandles.picked(form, path.spline().getId(), path.points().get(i).getId());
+            int color = picked ? BBSSettings.primaryColor.get() : POINT_COLOR;
+
+            DebugOverlay.diamond(builder, stack, path.positions().get(i), unit * POINT_SIZE, DebugOverlay.rgb(color), a);
+        }
+    }
+
+    /** The colour the picking pass reads back as the stencil's next id. */
+    private static float[] pickColor(StencilMap stencilMap)
+    {
+        int id = stencilMap.objectIndex;
+
+        return new float[] {(id & 0xFF) / 255F, (id >> 8 & 0xFF) / 255F, (id >> 16 & 0xFF) / 255F};
     }
 
     private static Vector3f position(Map<String, PivotFrame> frames, String bone)

@@ -4,6 +4,7 @@ import mchorse.bbs_mod.ui.utils.shapes.ShapeControllerOverlay;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.factories.UIShapeKeysKeyframeFactory;
 import mchorse.bbs_mod.ui.utils.SplineKeyframeEditor;
 import mchorse.bbs_mod.cubic.spline.SplineIK;
+import mchorse.bbs_mod.cubic.spline.SplineSource;
 import mchorse.bbs_mod.forms.forms.SplineForm;
 import mchorse.bbs_mod.ui.forms.editors.forms.UISplineForm;
 import mchorse.bbs_mod.ui.utils.SplineFormTool;
@@ -569,6 +570,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
             && this.editor.view instanceof SplineFormTool panel && !panel.pointEditor().position.isEditing())
         {
             SplineOverlay.CurveHit hit = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
+            if (hit == null && stencil.getPickedPoint() == null) hit = this.splineIKCurveAt(panel.splineSources(), context);
             if (hit != null && panel.splineSources().contains(hit.chain()))
             {
                 panel.selectSpline(hit.chain());
@@ -584,7 +586,14 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
 
         if (this.statesEditor.isVisible())
         {
-            return this.statesKeyframes.pickSplinePoint(context) || this.statesKeyframes.clickViewport(context, stencil);
+            return this.statesKeyframes.pickSplinePoint(context, stencil) || this.statesKeyframes.clickViewport(context, stencil);
+        }
+
+        SplineEditorUtils.Point point = this.editor == null ? null : SplineEditorUtils.resolve(FormUtils.getRoot(this.editor.form), stencil.getPickedPoint());
+        if (context.mouseButton == 0 && point != null)
+        {
+            this.pickSplinePoint(point);
+            return true;
         }
 
         if (context.mouseButton == 0 && this.editor != null && this.editor.view instanceof SplineFormTool panel)
@@ -679,13 +688,10 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         var sources = SplineEditorUtils.sourcesInTree(FormUtils.getRoot(this.editor.form));
         for (var chain : sources)
         {
-            if (chain instanceof SplineIK && (panel == null || !panel.splineSources().contains(chain))) continue;
-            Form owner = SplineEditorUtils.owner(chain);
-            Matrix4f parent = SplineEditorUtils.parentMatrix(FormUtils.getRoot(owner), this.renderer.getTargetEntity(), context.getTransition(), owner, chain);
-            if (parent == null) continue;
-            Matrix4f modelView = new Matrix4f(this.renderer.camera.view)
-                .translate((float) -this.renderer.camera.position.x, (float) -this.renderer.camera.position.y, (float) -this.renderer.camera.position.z)
-                .mul(this.renderer.toSceneMatrix(parent));
+            /* A model's spline is the rig overlay's. */
+            if (chain instanceof SplineIK) continue;
+            Matrix4f modelView = this.splineModelView(chain, context.getTransition());
+            if (modelView == null) continue;
             this.splineOverlay.draw(context, modelView, this.renderer.camera.projection, this.renderer.area, chain,
                 panel != null && chain == panel.activeSpline() ? panel.pointEditor().selected() : java.util.Set.of(),
                 panel != null && chain == panel.activeSpline() ? panel.pointEditor().points.hoveredPoint(context) : "");
@@ -695,6 +701,44 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
             this.splineOverlay.drawInsertionPreview(context, this.renderer.area);
         SplineOverlay.Hit hovered = this.renderer.area.isInside(context) ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
         if (panel != null) panel.pointEditor().points.viewportHover = (hovered != null && hovered.chain() == panel.activeSpline() ? hovered.point().getId() : "");
+    }
+
+    /** The camera's view of the frame a spline's points live in, or null when it has none. */
+    private Matrix4f splineModelView(SplineSource chain, float transition)
+    {
+        Form owner = SplineEditorUtils.owner(chain);
+        Matrix4f parent = SplineEditorUtils.parentMatrix(FormUtils.getRoot(owner), this.renderer.getTargetEntity(), transition, owner, chain);
+        if (parent == null) return null;
+        return new Matrix4f(this.renderer.camera.view)
+            .translate((float) -this.renderer.camera.position.x, (float) -this.renderer.camera.position.y, (float) -this.renderer.camera.position.z)
+            .mul(this.renderer.toSceneMatrix(parent));
+    }
+
+    /** The nearest of the model splines' curves under the cursor, for a Ctrl click to insert a point on. */
+    private SplineOverlay.CurveHit splineIKCurveAt(List<SplineSource> sources, UIContext context)
+    {
+        SplineOverlay.CurveHit best = null;
+        for (SplineSource chain : sources)
+        {
+            Matrix4f modelView = chain instanceof SplineIK ? this.splineModelView(chain, context.getTransition()) : null;
+            if (modelView == null) continue;
+            SplineOverlay.CurveHit hit = SplineOverlay.curveAt(chain, modelView, this.renderer.camera.projection, this.renderer.area, context.mouseX, context.mouseY);
+            if (hit != null && (best == null || hit.distance() < best.distance())) best = hit;
+        }
+        return best;
+    }
+
+    /** A model's spline point clicked in the viewport: the rig tab of its form opens and picks it. */
+    private void pickSplinePoint(SplineEditorUtils.Point point)
+    {
+        if (point.form() != this.editor.form || !(this.editor instanceof UIModelForm model))
+        {
+            this.pickFormFromRenderer(new Pair<>(point.form(), ""));
+            return;
+        }
+        if (this.editor.view != model.rigPanel) model.setPanel(model.rigPanel);
+        model.rigPanel.selectSpline(point.chain());
+        model.rigPanel.pointEditor().selectInViewport(point.point().getId(), Window.isCtrlPressed() || Window.isShiftPressed());
     }
 
     private FormEditorTool getPanelTool()

@@ -31,6 +31,7 @@ public class StencilFormFramebuffer
 
     private int index;
     private Map<Integer, Pair<Form, String>> indexMap = new HashMap<>();
+    private Map<Integer, String> points = new HashMap<>();
 
     /** Reused readback buffer for the tolerance region pick (grows as needed). */
     private FloatBuffer pickBuffer;
@@ -85,6 +86,12 @@ public class StencilFormFramebuffer
     public Pair<Form, String> getPicked()
     {
         return this.indexMap.get(this.index);
+    }
+
+    /** The path of the spline point's position under the cursor, or null when it's no spline point. */
+    public String getPickedPoint()
+    {
+        return this.points.get(this.index);
     }
 
     /** The id the last pass drew {@code bone} of {@code form} with, or 0 when it wasn't drawn. */
@@ -289,6 +296,8 @@ public class StencilFormFramebuffer
 
         this.indexMap.clear();
         this.indexMap.putAll(map.indexMap);
+        this.points.clear();
+        this.points.putAll(map.points);
     }
 
     public void unbind()
@@ -300,6 +309,7 @@ public class StencilFormFramebuffer
     {
         this.index = 0;
         this.indexMap.clear();
+        this.points.clear();
     }
 
     /** Nothing under the cursor, while what the pass drew stays known (for {@link #indexOf}). */

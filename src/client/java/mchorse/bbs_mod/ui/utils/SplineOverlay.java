@@ -16,7 +16,11 @@ import java.util.Collection;
 import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.l10n.L10n;
 
-/** Screen-space spline handles shared by the form, state and film viewports. */
+/**
+ * Screen-space spline handles shared by the form, state and film viewports, for the spline form. A
+ * model's spline IK is the rig overlay's (see ModelIKDebug); only its curve is hit from here, on a
+ * Ctrl click that inserts a point ({@link #curveAt}).
+ */
 public class SplineOverlay
 {
     public record Hit(SplineSource chain, SplinePoint point, float x, float y, float depth) {}
@@ -51,6 +55,14 @@ public class SplineOverlay
             context.batcher.box(position.x - 3, position.y - 3, position.x + 3, position.y + 3, 0xFF15212B);
             context.batcher.box(position.x - 2, position.y - 2, position.x + 2, position.y + 2, 0xFF79BBFF);
         }
+    }
+
+    /** Where a click lands on the curve of a spline this overlay doesn't draw, or null off it. */
+    public static CurveHit curveAt(SplineSource chain, Matrix4f parentModelView, Matrix4f projection, Area viewport, int x, int y)
+    {
+        List<Vector3f> positions = new ArrayList<>();
+        for (SplinePoint point : chain.points().getAllTyped()) positions.add(new Vector3f(chain.position(point.getId()).translate));
+        return findCurveHit(chain, positions, new Matrix4f(projection).mul(parentModelView), viewport, x, y);
     }
 
     /** Clear pick data and share the axes visibility switch across editor viewports. */

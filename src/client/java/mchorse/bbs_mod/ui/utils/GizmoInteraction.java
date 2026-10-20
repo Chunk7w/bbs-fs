@@ -109,6 +109,12 @@ public class GizmoInteraction
         {
             Pair<Form, String> pair = stencil.getPicked();
 
+            /* A spline's point is the viewport's own pick, not the sphere's. */
+            if (stencil.getPickedPoint() != null)
+            {
+                return false;
+            }
+
             if (pair != null && pair.a != null)
             {
                 this.pendingDownX = context.mouseX;
