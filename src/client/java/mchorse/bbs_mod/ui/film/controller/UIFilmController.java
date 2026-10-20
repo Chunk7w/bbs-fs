@@ -171,7 +171,8 @@ public class UIFilmController extends UIElement implements GizmoViewport
             if (entity == null || entity.getForm() == null) continue;
             for (var source : SplineEditorUtils.sourcesInTree(entity.getForm()))
             {
-                if (source instanceof SplineIK && entity != this.getCurrentEntity()) continue;
+                /* A model's spline shows with the IK debug, on the actor being edited. */
+                if (source instanceof SplineIK && (entity != this.getCurrentEntity() || !BBSSettings.ikDebug.enabled.get())) continue;
                 var owner = SplineEditorUtils.owner(source);
                 Matrix4f parent;
                 if (source instanceof SplineForm)

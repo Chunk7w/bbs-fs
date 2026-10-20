@@ -2,6 +2,7 @@ package mchorse.bbs_mod.ui.forms.editors.states.keyframes;
 
 import mchorse.bbs_mod.ui.utils.SplineKeyframeEditor;
 import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.cubic.spline.SplineIK;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.replays.tracks.TrackCatalog;
@@ -91,6 +92,9 @@ public class UIAnimationStateEditor extends UIElement
             Form model = entry.getForm();
             for (var chain : SplineEditorUtils.sources(model))
             {
+                /* A model's spline shows with the IK debug. */
+                if (chain instanceof SplineIK && !BBSSettings.ikDebug.enabled.get()) continue;
+
                 Matrix4f parent = SplineEditorUtils.parentMatrix(this.root, renderer.getTargetEntity(), context.getTransition(), model, chain);
                 if (parent == null) continue;
                 this.splineOverlay.draw(context, new Matrix4f(view).mul(renderer.toSceneMatrix(parent)), camera.projection,

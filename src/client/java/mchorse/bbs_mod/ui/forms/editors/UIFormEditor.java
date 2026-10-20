@@ -648,11 +648,20 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         {
             return SplineEditorUtils.selectedPath(this.statesKeyframes.keyframeEditor) == null ? Gizmo.HandleMask.ALL : SplineEditorUtils.HANDLES;
         }
-        if (this.editor != null && this.editor.view instanceof SplineFormTool panel)
+        if (this.editor != null && this.editor.view instanceof SplineFormTool panel && !this.leavesGizmoToPose(panel))
         {
             return panel.getGizmoTransform() == null ? NO_GIZMO_HANDLES : SplineEditorUtils.HANDLES;
         }
         return Gizmo.HandleMask.ALL;
+    }
+
+    /**
+     * Whether a spline tool with no point picked leaves the gizmo to the bones: on a form with a
+     * skeleton (the model's rig tab) it moves the selected bone, on a spline form it does nothing.
+     */
+    private boolean leavesGizmoToPose(SplineFormTool panel)
+    {
+        return panel.getGizmoTransform() == null && this.editor.getPoseEditor() != null;
     }
 
     public void renderSplineOverlay(UIContext context)
@@ -698,7 +707,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
     public boolean startGizmo(UIContext context, int stencilIndex)
     {
         if (!this.statesEditor.isVisible() && this.editor != null
-            && this.editor.view instanceof SplineFormTool panel && panel.getGizmoTransform() == null)
+            && this.editor.view instanceof SplineFormTool panel && panel.getGizmoTransform() == null && !this.leavesGizmoToPose(panel))
         {
             return false;
         }

@@ -1,9 +1,5 @@
 package mchorse.bbs_mod.ui.utils.bones;
 
-import mchorse.bbs_mod.cubic.rig.RigClaim;
-import mchorse.bbs_mod.cubic.rig.RigOwners;
-import mchorse.bbs_mod.cubic.rig.RigStep;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +70,12 @@ public class BoneRoles
      */
     public void chain(List<String> bones, BoneRole link)
     {
+        this.chain(bones, link, 0);
+    }
+
+    /** The same, with the links marked in {@code slot} — a list keeping a column per kind of chain. */
+    public void chain(List<String> bones, BoneRole link, int slot)
+    {
         if (bones == null || bones.isEmpty())
         {
             return;
@@ -85,7 +87,7 @@ public class BoneRoles
         {
             String bone = bones.get(i);
 
-            this.mark(bone, 0, link);
+            this.mark(bone, slot, link);
 
             if (i > 0)
             {
@@ -95,54 +97,6 @@ public class BoneRoles
                 {
                     this.links.put(bone, new Link(chain, link));
                 }
-            }
-        }
-    }
-
-    /**
-     * Marks what one step of the rig has on the bones, as the rig reports it (see {@link RigOwners}):
-     * the bone a setting lives on and its chain along the branches into {@code slot}, what the chain
-     * reaches for and bends toward into {@code readSlot}. A switched-off setting marks gray; a pole
-     * only shows while its chain is on.
-     */
-    public void step(RigOwners owners, RigStep step, int slot, int readSlot)
-    {
-        /* Targets before poles: a bone that is both reads as the target, as it always has. */
-        for (RigClaim claim : owners.getClaims())
-        {
-            if (claim.step() != step)
-            {
-                continue;
-            }
-
-            if (claim.part() == RigClaim.Part.HOME)
-            {
-                this.chain(claim.chain(), claim.on() ? BoneRole.LINK : BoneRole.LINK.off());
-                this.mark(claim.bone(), slot, claim.on() ? BoneRole.CHAIN : BoneRole.CHAIN.off());
-            }
-            else if (claim.part() == RigClaim.Part.TARGET)
-            {
-                this.mark(claim.bone(), readSlot, claim.on() ? BoneRole.TARGET : BoneRole.TARGET.off());
-            }
-        }
-
-        for (RigClaim claim : owners.getClaims())
-        {
-            if (claim.step() == step && claim.part() == RigClaim.Part.POLE && claim.on())
-            {
-                this.mark(claim.bone(), readSlot, BoneRole.POLE);
-            }
-        }
-    }
-
-    /** Brightens every bone one step of the rig has something on, without a mark. */
-    public void touch(RigOwners owners, RigStep step)
-    {
-        for (RigClaim claim : owners.getClaims())
-        {
-            if (claim.step() == step)
-            {
-                this.touch(claim.bone());
             }
         }
     }

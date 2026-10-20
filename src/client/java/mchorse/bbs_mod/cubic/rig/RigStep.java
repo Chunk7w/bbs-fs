@@ -33,32 +33,85 @@ import java.util.function.Predicate;
  * renderer is the one place that runs them; what a pass adds on top (a world frame or none, IK in the
  * shadow's sample only for a spline) stays written at its call there.</p>
  *
- * <p>Each step is also the one description of its kind of rig: the form properties a timeline keys it
- * by ({@link #tracks}), whether a form has anything of it set up, its debug overlay. The lists that
- * used to name them one by one (the Rig heading, the track looks, which tracks a form offers, F5) are
- * read from here.</p>
+ * <p>Each step is also the one description of its kind of rig: its name and icon, the form properties
+ * a timeline keys it by ({@link #tracks}), which of the form's values are its own ({@link #boneValues},
+ * {@link #formValues}: what a rig preset carries of it), whether a form has anything of it set up, its
+ * debug overlay. The lists that used to name them one by one (the Rig heading, the track looks, which
+ * tracks a form offers, F5, the tabs and their presets) are read from here.</p>
  */
 public enum RigStep
 {
     /** Bone shake, an additive layer of the pose: the channels phase. */
-    SHAKE(new Track("shake", Icons.EXCHANGE, 0x159e64)),
-    /** IK chains. */
-    IK(new Track("ik", Icons.IK, Colors.WHITE)),
+    SHAKE("shake", Icons.EXCHANGE,
+        List.of("shake"),
+        List.of("shake"),
+        new Track("shake", Icons.EXCHANGE, 0x159e64)),
+    /** IK chains, and the controller bones they reach for. */
+    IK("ik", Icons.IK,
+        List.of("ik_target", "ik_pole_target", "ik_chain_length", "ik_tip_rotation", "ik_stretch", "ik_squash", "ik_classic", "bone_controller"),
+        List.of("ik"),
+        new Track("ik", Icons.IK, Colors.WHITE)),
     /** The addons' pose hook ({@code FormPoseEvents.MODEL_POSE}): after IK, before the built-in physics. */
-    HOOK,
+    HOOK(null, null, List.of(), List.of()),
     /** Chain physics, the one step with a memory over time. The wind acts on its chains, so it comes with them. */
-    PHYSICS(new Track("physics", Icons.PHYSICS, 0x9d6cff), new Track("wind", Icons.PARTICLE, Colors.ORANGE)),
+    PHYSICS("physics", Icons.PHYSICS,
+        List.of("physics_end", "physics_target_bone", "physics_iterations", "physics_collisions", "physics_radius",
+            "physics_relative_gravity", "physics_gravity_rotate_x", "physics_gravity_rotate_y", "physics_gravity_rotate_z"),
+        List.of("physics", "wind"),
+        new Track("physics", Icons.PHYSICS, 0x9d6cff), new Track("wind", Icons.PARTICLE, Colors.ORANGE)),
     /** Spline IK, solved in its root's parent frame after the physics; it may move the whole model. */
-    SPLINE(new Track("spline_ik", Icons.GRAPH, Colors.BLUE)),
+    SPLINE("spline", Icons.GRAPH,
+        List.of(),
+        List.of("splines", "spline_ik"),
+        new Track("spline_ik", Icons.GRAPH, Colors.BLUE)),
     /** Bone limits, the last word on a bone's rotation. Keyed per bone, not by a form property. */
-    LIMITS;
+    LIMITS("limits", Icons.LOCKED,
+        List.of("constraints"),
+        List.of());
+
+    /** The steps an animator sets up, each a section of the rig tab, in the frame's order. */
+    public static final List<RigStep> SYSTEMS = List.of(SHAKE, IK, PHYSICS, SPLINE, LIMITS);
+
+    /** The step's own name, its keys go by; null for the addons' hook. */
+    public final String id;
+    public final Icon icon;
+
+    /** What of a bone's own values is this step's, by their ids. */
+    public final List<String> boneValues;
+
+    /** What of the form's values is this step's, by their ids, in the order they load. */
+    public final List<String> formValues;
 
     /** The form properties a timeline keys the step by, one track each, as they show there. */
     public final List<Track> tracks;
 
-    RigStep(Track... tracks)
+    RigStep(String id, Icon icon, List<String> boneValues, List<String> formValues, Track... tracks)
     {
+        this.id = id;
+        this.icon = icon;
+        this.boneValues = boneValues;
+        this.formValues = formValues;
         this.tracks = List.of(tracks);
+    }
+
+    /** What the step is called in the rig tab. */
+    public IKey title()
+    {
+        return L10n.lang("bbs.ui.forms.editors.model.rig." + this.id);
+    }
+
+    /** The step going by this name, or null. */
+    public static RigStep byId(String id)
+    {
+        for (RigStep step : SYSTEMS)
+        {
+            if (step.id.equals(id))
+            {
+                return step;
+            }
+        }
+
+        return null;
     }
 
     /* The sets are enum sets: they iterate in the frame's order whatever order they were written in. */

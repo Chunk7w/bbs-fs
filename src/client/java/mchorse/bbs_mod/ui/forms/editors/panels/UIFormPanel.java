@@ -66,7 +66,15 @@ public abstract class UIFormPanel <T extends Form> extends UIElement
      */
     protected UISection section(IKey title, String id, boolean defaultExpanded)
     {
-        return new UISection(title).remember(sectionFolds, id, defaultExpanded);
+        return this.remember(new UISection(title), id, defaultExpanded);
+    }
+
+    /** The same fold memory for a section of a kind of its own. */
+    protected <S extends UISection> S remember(S section, String id, boolean defaultExpanded)
+    {
+        section.remember(sectionFolds, id, defaultExpanded);
+
+        return section;
     }
 
     public void startEdit(T form)

@@ -6,6 +6,7 @@ import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
 import mchorse.bbs_mod.cubic.render.DebugOverlay;
 import mchorse.bbs_mod.cubic.render.ModelPivotFrames;
+import mchorse.bbs_mod.cubic.rig.RigHandles;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
@@ -48,6 +49,9 @@ import java.util.Set;
  * bone had been clicked directly. The pick geometry is the same shape and size
  * as the visible marker — no oversized hitboxes in the hover highlight, and
  * hidden markers are not pickable at all.
+ *
+ * <p>With the overlay off, the form open on the rig tab still shows its handles: the controller
+ * rings, drawn and pickable the same way, without the chains (see {@link RigHandles}).</p>
  */
 public final class ModelIKDebug
 {
@@ -65,13 +69,14 @@ public final class ModelIKDebug
     public static Runnable prepare(MatrixStack stack, IModel model, ModelForm form, String selectedTip)
     {
         ValueIKDebug config = BBSSettings.ikDebug;
+        boolean overlay = config.enabled.get();
 
-        if (!config.enabled.get() || model == null || form == null)
+        if ((!overlay && !RigHandles.shown(form)) || model == null || form == null)
         {
             return null;
         }
 
-        ModelIKCache.Compiled compiled = ModelIKCache.compile(model, form);
+        ModelIKCache.Compiled compiled = overlay ? ModelIKCache.compile(model, form) : null;
         List<ModelIKCache.CompiledChain> chains = compiled == null ? List.of() : compiled.chains();
         Set<String> controllers = collectControllers(model, form, chains, config);
 
@@ -215,15 +220,16 @@ public final class ModelIKDebug
     public static Runnable prepareStencil(MatrixStack stack, IModel model, ModelForm modelForm, StencilMap stencilMap, Form form)
     {
         ValueIKDebug config = BBSSettings.ikDebug;
+        boolean overlay = config.enabled.get();
         boolean targets = config.target.visible.get();
         boolean poles = config.pole.visible.get();
 
-        if (!config.enabled.get() || (!targets && !poles && !config.controller.visible.get()) || model == null || modelForm == null || stencilMap == null)
+        if ((!overlay && !RigHandles.shown(modelForm)) || (!targets && !poles && !config.controller.visible.get()) || model == null || modelForm == null || stencilMap == null)
         {
             return null;
         }
 
-        ModelIKCache.Compiled compiled = ModelIKCache.compile(model, modelForm);
+        ModelIKCache.Compiled compiled = overlay ? ModelIKCache.compile(model, modelForm) : null;
         List<ModelIKCache.CompiledChain> chains = compiled == null ? List.of() : compiled.chains();
         Set<String> controllers = collectControllers(model, modelForm, chains, config);
 

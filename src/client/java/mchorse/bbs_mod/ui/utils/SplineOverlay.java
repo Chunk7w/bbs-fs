@@ -1,8 +1,6 @@
 package mchorse.bbs_mod.ui.utils;
 
-import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.spline.SplineCurve;
-import mchorse.bbs_mod.cubic.spline.SplineIK;
 import mchorse.bbs_mod.cubic.spline.SplineSource;
 import mchorse.bbs_mod.cubic.spline.SplinePoint;
 import mchorse.bbs_mod.ui.framework.UIContext;
@@ -71,7 +69,6 @@ public class SplineOverlay
         float distance = 100;
         for (Hit hit : this.handles)
         {
-            if (hit.chain instanceof SplineIK && !BBSSettings.ikDebug.enabled.get()) continue;
             float d = (hit.x - x) * (hit.x - x) + (hit.y - y) * (hit.y - y);
             if (d < distance || (d == distance && best != null && hit.depth < best.depth))
             {
@@ -94,7 +91,6 @@ public class SplineOverlay
     public void draw(UIContext context, Matrix4f parentModelView, Matrix4f projection, Area viewport, SplineSource chain,
         Collection<String> selectedPointIds, String hoveredPointId)
     {
-        if (chain instanceof SplineIK && !BBSSettings.ikDebug.enabled.get()) return;
         Matrix4f matrix = new Matrix4f(projection).mul(parentModelView);
         List<Vector3f> positions = new ArrayList<>();
         for (SplinePoint point : chain.points().getAllTyped()) positions.add(new Vector3f(chain.position(point.getId()).translate));
@@ -163,7 +159,7 @@ public class SplineOverlay
     public CurveHit insertionAt(int x, int y)
     {
         if (!UIBaseMenu.shouldRenderAxes()) return null;
-        if (this.curveHit == null || (this.curveHit.chain instanceof SplineIK && !BBSSettings.ikDebug.enabled.get()) || this.pick(x, y) != null) return null;
+        if (this.curveHit == null || this.pick(x, y) != null) return null;
         float dx = this.curveHit.x - x, dy = this.curveHit.y - y;
         return dx * dx + dy * dy <= 64F ? this.curveHit : null;
     }
