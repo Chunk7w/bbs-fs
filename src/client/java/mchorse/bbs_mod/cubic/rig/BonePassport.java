@@ -70,6 +70,12 @@ public abstract class BonePassport
     public abstract float restLength(String bone, String child);
 
     /**
+     * The bone's own turn at rest, relative to its parent: a cubic bone's authored rest rotation,
+     * a BOBJ bone's bind rotation off its parent. A fresh copy; null when the bone is missing.
+     */
+    public abstract Quaternionf restRotation(String bone);
+
+    /**
      * Direction to rotation: the local rotation that swings a rest axis onto the world direction
      * {@code from → to}, as seen from the parent's world frame — the step a chain writer takes for
      * each bone. Normalises {@code restAxis} in place, for the twist a writer takes about it. Null
@@ -178,6 +184,14 @@ public abstract class BonePassport
             }
 
             return len <= EPS ? EPS : len;
+        }
+
+        @Override
+        public Quaternionf restRotation(String bone)
+        {
+            ModelGroup group = this.model.getGroup(bone);
+
+            return group == null ? null : Matrices.toLocalRotationZYXDegrees(group.initial.rotate);
         }
 
         private static float length(ModelGroup a, ModelGroup b)
@@ -333,6 +347,14 @@ public abstract class BonePassport
             }
 
             return len <= EPS ? EPS : len;
+        }
+
+        @Override
+        public Quaternionf restRotation(String bone)
+        {
+            BOBJBone b = this.model.getArmature().bones.get(bone);
+
+            return b == null ? null : b.relBoneMat.getNormalizedRotation(new Quaternionf());
         }
 
         /** The axis to the first child off the bone's head (a child on the head itself gives none), or null. */

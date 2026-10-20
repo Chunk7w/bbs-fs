@@ -26,9 +26,6 @@ import java.util.List;
  */
 interface IKRig
 {
-    /** Rest direction from the chain's i-th bone toward the next one, normalised. */
-    Vector3f restDirection(List<String> chainIds, int i);
-
     /**
      * The side the chain was modelled bent towards: the normal of its rest bend plane, in the frame
      * its root's parent rotation lifts into the pose, or null when the rest pose is dead straight.
@@ -70,12 +67,6 @@ interface IKRig
         }
 
         @Override
-        public Vector3f restDirection(List<String> chainIds, int i)
-        {
-            return ClassicLimbSolver.cubicRestDirection(this.model, chainIds, i);
-        }
-
-        @Override
         public Vector3f restBendNormal(List<String> chainIds)
         {
             return ClassicLimbSolver.cubicRestBendNormal(this.model, chainIds);
@@ -95,12 +86,6 @@ interface IKRig
         private BobjIKRig(BOBJModel model)
         {
             this.model = model;
-        }
-
-        @Override
-        public Vector3f restDirection(List<String> chainIds, int i)
-        {
-            return ClassicLimbSolver.bobjRestDirection(this.model, chainIds, i);
         }
 
         @Override
