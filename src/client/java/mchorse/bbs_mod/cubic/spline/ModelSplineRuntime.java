@@ -218,22 +218,6 @@ public final class ModelSplineRuntime
         return parentFrame(model.getGroup(root));
     }
 
-    /**
-     * The frame the spline's points live in, in the model space the form draws in (the stack the
-     * spline motion has already moved): its root's parent; for the spline that moves the model, that
-     * parent as it was before the move, so the path stays put while the model travels along it.
-     * Null for a spline with no chain on the model. Read right after this form evaluated.
-     */
-    public static Matrix4f pointFrame(IModel source, SplineIK spline, Motion motion)
-    {
-        if (!(source instanceof Model model)) return null;
-        List<ModelGroup> chain = chain(model, spline);
-        if (chain.isEmpty()) return null;
-        if (motion == null || !motion.chainId().equals(spline.getId())) return parentFrame(chain.get(0));
-        Matrix4f frame = new Matrix4f(motion.matrix()).invert().mul(motion.parentFrame());
-        return frame.isFinite() ? frame : null;
-    }
-
     private static Matrix4f parentFrame(ModelGroup group)
     {
         List<ModelGroup> parents = new ArrayList<>();

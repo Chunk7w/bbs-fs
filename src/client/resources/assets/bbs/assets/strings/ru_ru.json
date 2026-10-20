@@ -2649,7 +2649,6 @@
     "bbs.ui.forms.editors.model.spline.move_model": "Двигать всю модель",
     "bbs.ui.forms.editors.model.spline.move_model_tooltip": "Вся модель следует за первой костью цепочки.",
     "bbs.ui.forms.editors.model.spline.points": "Точки",
-    "bbs.ui.forms.editors.model.spline.insert_point": "Ctrl + ЛКМ — добавить точку",
     "bbs.ui.forms.editors.model.spline.progress": "Положение на кривой",
     "bbs.ui.forms.editors.model.spline.progress_short": "Положение",
     "bbs.ui.forms.editors.model.spline.progress_tooltip": "Положение цепочки на кривой: 0 — начало, 100 — конец.",

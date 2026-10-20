@@ -2667,7 +2667,6 @@
     "bbs.ui.forms.editors.model.spline.move_model": "Move entire model",
     "bbs.ui.forms.editors.model.spline.move_model_tooltip": "The entire model follows the first bone of the chain.",
     "bbs.ui.forms.editors.model.spline.points": "Points",
-    "bbs.ui.forms.editors.model.spline.insert_point": "Ctrl + click to add a point",
     "bbs.ui.forms.editors.model.spline.progress": "Position on curve",
     "bbs.ui.forms.editors.model.spline.progress_short": "Position",
     "bbs.ui.forms.editors.model.spline.progress_tooltip": "Chain position on the curve: 0 is the start, 100 is the end.",

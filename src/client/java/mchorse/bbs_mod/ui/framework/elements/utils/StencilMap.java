@@ -11,8 +11,6 @@ public class StencilMap
 {
     public int objectIndex;
     public Map<Integer, Pair<Form, String>> indexMap = new HashMap<>();
-    /** The ids that are a spline's points, by the path of the point's position. */
-    public Map<Integer, String> points = new HashMap<>();
     public boolean increment = true;
 
     public void setIncrement(boolean increment)
@@ -31,7 +29,6 @@ public class StencilMap
         /* Reset map and seed a pair per gizmo handle (move/scale/rotate axes,
          * planes, the trackball sphere and the shared view-plane ring). */
         this.indexMap.clear();
-        this.points.clear();
 
         for (Gizmo.Handle handle : Gizmo.Handle.values())
         {
@@ -42,20 +39,6 @@ public class StencilMap
     public void addPicking(Form form)
     {
         this.addPicking(form, "");
-    }
-
-    /**
-     * A spline's point: picks as its form for whoever reads forms and bones, and as the point (by
-     * the path of its position) for whoever asks {@code StencilFormFramebuffer#getPickedPoint}.
-     */
-    public void addPointPicking(Form form, String path)
-    {
-        if (this.increment)
-        {
-            this.points.put(this.objectIndex, path);
-        }
-
-        this.addPicking(form);
     }
 
     public void addPicking(Form form, String bone)

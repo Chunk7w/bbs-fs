@@ -74,7 +74,6 @@ import java.util.List;
 import java.util.Set;
 import mchorse.bbs_mod.ui.utils.SplineEditorUtils;
 import mchorse.bbs_mod.ui.utils.SplineOverlay;
-import mchorse.bbs_mod.cubic.spline.SplineSource;
 
 public class UIAnimationStateEditor extends UIElement
 {
@@ -87,74 +86,41 @@ public class UIAnimationStateEditor extends UIElement
         if (this.state == null || this.root == null || !this.isVisible()) return;
         var renderer = this.editor.renderer;
         var camera = renderer.camera;
+        Matrix4f view = new Matrix4f(camera.view).translate((float) -camera.position.x, (float) -camera.position.y, (float) -camera.position.z);
         for (var entry : this.bodyParts.getList())
         {
             Form model = entry.getForm();
             for (var chain : SplineEditorUtils.sources(model))
             {
-                /* A model's spline is the rig overlay's. */
-                if (chain instanceof SplineIK) continue;
+                /* A model's spline shows with the rig's debug. */
+                if (chain instanceof SplineIK && !BBSSettings.debugOverlay.get()) continue;
 
-                Matrix4f modelView = this.splineModelView(model, chain, context.getTransition());
-                if (modelView == null) continue;
-                this.splineOverlay.draw(context, modelView, camera.projection,
+                Matrix4f parent = SplineEditorUtils.parentMatrix(this.root, renderer.getTargetEntity(), context.getTransition(), model, chain);
+                if (parent == null) continue;
+                this.splineOverlay.draw(context, new Matrix4f(view).mul(renderer.toSceneMatrix(parent)), camera.projection,
                     renderer.area, chain, SplineEditorUtils.selectedPoints(this.keyframeEditor, chain),
                     SplineEditorUtils.hoveredPoint(this.keyframeEditor, context, chain));
             }
         }
-        this.splineOverlay.finish(context, renderer.area);
         if (Window.isCtrlPressed() && !context.isFocused()
             && this.keyframeEditor.editor instanceof SplineKeyframeEditor spline
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
-            /* A model spline's curve is the rig overlay's; over one of its points a Ctrl click picks the point instead. */
-            if (insertion == null && renderer.area.isInside(context) && renderer.getStencil().getPickedPoint() == null)
-                insertion = this.splineIKCurveAt(spline, context);
-            if (insertion != null && spline.sameSource(insertion.chain())) SplineOverlay.drawInsertion(context, renderer.area, insertion);
+            if (insertion != null && spline.sameSource(insertion.chain())) this.splineOverlay.drawInsertionPreview(context, renderer.area);
         }
         SplineEditorUtils.viewportHover(this.keyframeEditor, renderer.area.isInside(context)
             ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null);
     }
 
-    /** The camera's view of the frame the points of the form's spline live in, or null when it has none. */
-    private Matrix4f splineModelView(Form model, SplineSource chain, float transition)
-    {
-        var renderer = this.editor.renderer;
-        var camera = renderer.camera;
-        Matrix4f parent = SplineEditorUtils.parentMatrix(this.root, renderer.getTargetEntity(), transition, model, chain);
-        if (parent == null) return null;
-        return new Matrix4f(camera.view).translate((float) -camera.position.x, (float) -camera.position.y, (float) -camera.position.z)
-            .mul(renderer.toSceneMatrix(parent));
-    }
-
-    /** Where a Ctrl click lands on the curve of the model spline the keyframe editor edits. */
-    private SplineOverlay.CurveHit splineIKCurveAt(SplineKeyframeEditor spline, UIContext context)
-    {
-        var renderer = this.editor.renderer;
-        for (var entry : this.bodyParts.getList())
-        {
-            for (var chain : SplineEditorUtils.sources(entry.getForm()))
-            {
-                if (!(chain instanceof SplineIK) || !spline.sameSource(chain)) continue;
-                Matrix4f modelView = this.splineModelView(entry.getForm(), chain, context.getTransition());
-                return modelView == null ? null : SplineOverlay.curveAt(chain, modelView, renderer.camera.projection, renderer.area, context.mouseX, context.mouseY);
-            }
-        }
-        return null;
-    }
-
-    public boolean pickSplinePoint(UIContext context, StencilFormFramebuffer stencil)
+    public boolean pickSplinePoint(UIContext context)
     {
         if (this.state == null || (context.mouseButton != 0 && context.mouseButton != 1) || !this.editor.renderer.area.isInside(context)) return false;
-        /* A model spline's point, from the rig overlay's picks. */
-        String point = stencil.getPickedPoint();
         if (context.mouseButton == 0 && Window.isCtrlPressed() && !context.isFocused()
             && this.keyframeEditor.editor instanceof SplineKeyframeEditor spline
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
-            if (insertion == null && point == null) insertion = this.splineIKCurveAt(spline, context);
             if (insertion != null && spline.sameSource(insertion.chain()))
             {
                 spline.pointEditor().insert(insertion.after(), insertion.position());
@@ -162,8 +128,8 @@ public class UIAnimationStateEditor extends UIElement
             }
         }
         var hit = this.splineOverlay.pick(context.mouseX, context.mouseY);
-        String path = point != null ? point : hit == null ? null : FormUtils.getPropertyPath(hit.point().position);
-        if (path == null) return false;
+        if (hit == null) return false;
+        String path = FormUtils.getPropertyPath(hit.point().position);
         String compound = SplineEditorUtils.compoundPath(path);
         for (TrackSearchEntry entry : UIReplaysEditorUtils.formSearchEntries(this.root, true))
         {

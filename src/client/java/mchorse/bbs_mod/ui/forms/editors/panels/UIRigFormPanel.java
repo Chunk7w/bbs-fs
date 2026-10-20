@@ -405,7 +405,7 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
     public void render(UIContext context)
     {
         /* The rig's handles show while the tab is drawn, debug overlay or not. */
-        RigHandles.show(this.form, this.spline.getChainId(), this.spline.pointEditor.selected());
+        RigHandles.show(this.form);
 
         /* F5 flips the same switch. */
         if (this.debug.getValue() != BBSSettings.debugOverlay.get())

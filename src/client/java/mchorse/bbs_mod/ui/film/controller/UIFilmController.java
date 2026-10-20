@@ -123,15 +123,12 @@ public class UIFilmController extends UIElement implements GizmoViewport
         int stencil = this.getGizmoStencil().getIndex();
         if (context.mouseButton == 0 && this.canShowGizmo() && stencil >= Gizmo.STENCIL_X && stencil <= Gizmo.STENCIL_MAX) return false;
         var hit = this.splineOverlay.pick(context.mouseX, context.mouseY);
-        /* A model spline's point, from the rig overlay's picks. */
-        String point = this.getGizmoStencil().getPickedPoint();
         if (context.mouseButton == 0 && Window.isCtrlPressed() && !context.isFocused()
             && this.panel.replayEditor.keyframeEditor != null
             && this.panel.replayEditor.keyframeEditor.editor instanceof SplineKeyframeEditor spline
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
-            if (insertion == null && point == null) insertion = this.splineIKCurveAt(spline, context);
             if (insertion != null && spline.sameSource(insertion.chain()) && this.getCurrentEntity() != null
                 && FormUtils.getRoot(SplineEditorUtils.owner(insertion.chain())) == this.getCurrentEntity().getForm())
             {
@@ -140,40 +137,19 @@ public class UIFilmController extends UIElement implements GizmoViewport
             }
         }
         var source = this.splineOverlay.pickSource(context.mouseX, context.mouseY);
-        Pair<Form, String> picked = point == null ? null : this.getGizmoStencil().getPicked();
-        Form owner = picked != null ? picked.a : source == null ? null : SplineEditorUtils.owner(source);
-        if (owner == null) return false;
-        String path = point != null ? point : hit == null ? null : FormUtils.getPropertyPath(hit.point().position);
+        if (source == null) return false;
+        var owner = SplineEditorUtils.owner(source);
         var root = FormUtils.getRoot(owner);
         for (var entry : this.getEntities().entrySet())
         {
             if (entry.getValue().getForm() != root) continue;
             if (entry.getValue() != this.getCurrentEntity())
                 this.panel.replayEditor.setReplay(this.panel.getData().replays.getById(entry.getKey()));
-            if (path != null) return this.panel.replayEditor.pickSplinePoint(path, context);
+            if (hit != null) return this.panel.replayEditor.pickSplinePoint(FormUtils.getPropertyPath(hit.point().position), context);
             this.panel.replayEditor.pickForm(owner, "");
             return true;
         }
         return false;
-    }
-
-    /** Where a Ctrl click lands on the curve of the model spline the keyframe editor edits, on the actor being edited. */
-    private SplineOverlay.CurveHit splineIKCurveAt(SplineKeyframeEditor spline, UIContext context)
-    {
-        IEntity entity = this.getCurrentEntity();
-        Replay replay = this.getReplay();
-        if (entity == null || entity.getForm() == null || replay == null) return null;
-        var camera = this.panel.getCamera();
-        for (var source : SplineEditorUtils.sourcesInTree(entity.getForm()))
-        {
-            if (!(source instanceof SplineIK) || !spline.sameSource(source) || source.points().getAllTyped().isEmpty()) continue;
-            String path = FormUtils.getPropertyPath(source.points().getAllTyped().get(0).position);
-            Matrix4f parent = mchorse.bbs_mod.film.FilmMatrices.getSplineParentCompositeMatrix(this.getEntities(), entity, replay,
-                camera.position.x, camera.position.y, camera.position.z, this.getCurrentTransition(), SplineEditorUtils.resolve(entity.getForm(), path));
-            if (parent == null) return null;
-            return SplineOverlay.curveAt(source, new Matrix4f(camera.view).mul(parent), camera.projection, this.panel.preview.getViewport(), context.mouseX, context.mouseY);
-        }
-        return null;
     }
 
     public mchorse.bbs_mod.forms.forms.Form pickSplineForm(UIContext context)
@@ -195,30 +171,36 @@ public class UIFilmController extends UIElement implements GizmoViewport
             if (entity == null || entity.getForm() == null) continue;
             for (var source : SplineEditorUtils.sourcesInTree(entity.getForm()))
             {
-                /* A model's spline is the rig overlay's. */
-                if (!(source instanceof SplineForm)) continue;
+                /* A model's spline shows with the rig's debug, as the rest of the rig does. */
+                if (source instanceof SplineIK && !BBSSettings.debugOverlay.get()) continue;
                 var owner = SplineEditorUtils.owner(source);
-                Matrix4f parent = mchorse.bbs_mod.film.FilmMatrices.getBoneCompositeMatrix(this.getEntities(), entity, replay,
-                    camera.position.x, camera.position.y, camera.position.z, transition, FormUtils.getPath(owner), true);
+                Matrix4f parent;
+                if (source instanceof SplineForm)
+                    parent = mchorse.bbs_mod.film.FilmMatrices.getBoneCompositeMatrix(this.getEntities(), entity, replay,
+                        camera.position.x, camera.position.y, camera.position.z, transition, FormUtils.getPath(owner), true);
+                else
+                {
+                    if (source.points().getAllTyped().isEmpty()) continue;
+                    String path = FormUtils.getPropertyPath(source.points().getAllTyped().get(0).position);
+                    var point = SplineEditorUtils.resolve(entity.getForm(), path);
+                    parent = mchorse.bbs_mod.film.FilmMatrices.getSplineParentCompositeMatrix(this.getEntities(), entity, replay,
+                        camera.position.x, camera.position.y, camera.position.z, transition, point);
+                }
                 if (parent == null) continue;
                 this.splineOverlay.draw(context, new Matrix4f(camera.view).mul(parent), camera.projection, this.panel.preview.getViewport(),
                     source, entity == this.getCurrentEntity() ? SplineEditorUtils.selectedPoints(this.panel.replayEditor.keyframeEditor, source) : java.util.Set.of(),
                     entity == this.getCurrentEntity() ? SplineEditorUtils.hoveredPoint(this.panel.replayEditor.keyframeEditor, context, source) : "");
             }
         }
-        this.splineOverlay.finish(context, this.panel.preview.getViewport());
         if (Window.isCtrlPressed() && !context.isFocused() && !this.panel.isFlying()
             && this.panel.replayEditor.keyframeEditor != null
             && this.panel.replayEditor.keyframeEditor.editor instanceof SplineKeyframeEditor spline
             && !spline.pointEditor().position.isEditing())
         {
             var insertion = this.splineOverlay.insertionAt(context.mouseX, context.mouseY);
-            /* A model spline's curve is the rig overlay's; over one of its points a Ctrl click picks the point instead. */
-            if (insertion == null && this.panel.preview.getViewport().isInside(context) && this.getGizmoStencil().getPickedPoint() == null)
-                insertion = this.splineIKCurveAt(spline, context);
             if (insertion != null && spline.sameSource(insertion.chain()) && this.getCurrentEntity() != null
                 && FormUtils.getRoot(SplineEditorUtils.owner(insertion.chain())) == this.getCurrentEntity().getForm())
-                SplineOverlay.drawInsertion(context, this.panel.preview.getViewport(), insertion);
+                this.splineOverlay.drawInsertionPreview(context, this.panel.preview.getViewport());
         }
         var hovered = this.panel.preview.getViewport().isInside(context) ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
         if (hovered != null && (this.getCurrentEntity() == null || FormUtils.getRoot(
