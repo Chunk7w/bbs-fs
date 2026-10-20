@@ -17,14 +17,17 @@ import mchorse.bbs_mod.utils.colors.Colors;
 
 /**
  * Screen-space spline handles shared by the form, state and film viewports: the curve as a plain line
- * and its points as small squares, the picked ones white; with Ctrl over the curve, a square the
- * same as a point marks where a click puts a new one.
+ * and its points as small squares, the picked ones white and the one under the cursor lighter; with
+ * Ctrl over the curve, a square the same as a point marks where a click puts a new one.
  */
 public class SplineOverlay
 {
     private static final int LINE_COLOR = 0xFF4A78AD;
     private static final int POINT_COLOR = 0xFF79BBFF;
+    private static final int HOVER_COLOR = 0xFFB7DCFF;
     private static final int POINT_SIZE = 3;
+    /** How near the cursor (squared, in pixels) a point answers to it: lights up and takes the click. */
+    private static final float PICK_DISTANCE = 100;
 
     public record Hit(SplineSource chain, SplinePoint point, float x, float y, float depth) {}
     public record CurveHit(SplineSource chain, int after, Vector3f position, float x, float y, float depth, float distance) {}
@@ -67,7 +70,7 @@ public class SplineOverlay
         /* The shortcut can hide the overlay between its last draw and the next click. */
         if (!UIBaseMenu.shouldRenderAxes()) return null;
         Hit best = null;
-        float distance = 100;
+        float distance = PICK_DISTANCE;
         for (Hit hit : this.handles)
         {
             float d = (hit.x - x) * (hit.x - x) + (hit.y - y) * (hit.y - y);
@@ -114,8 +117,9 @@ public class SplineOverlay
         {
             Vector3f p = project(matrix, viewport, chain.position(point.getId()).translate);
             if (p == null || !viewport.isInside((int) p.x, (int) p.y)) continue;
-            boolean lit = selectedPointIds.contains(point.getId()) || point.getId().equals(hoveredPointId);
-            square(context, p.x, p.y, lit ? Colors.WHITE : POINT_COLOR);
+            float dx = p.x - context.mouseX, dy = p.y - context.mouseY;
+            boolean hover = point.getId().equals(hoveredPointId) || (viewport.isInside(context) && dx * dx + dy * dy < PICK_DISTANCE);
+            square(context, p.x, p.y, selectedPointIds.contains(point.getId()) ? Colors.WHITE : hover ? HOVER_COLOR : POINT_COLOR);
             this.handles.add(new Hit(chain, point, p.x, p.y, p.z));
         }
         context.batcher.unclip(context);
