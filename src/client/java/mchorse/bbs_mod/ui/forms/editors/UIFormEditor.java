@@ -587,9 +587,18 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
             return this.statesKeyframes.pickSplinePoint(context) || this.statesKeyframes.clickViewport(context, stencil);
         }
 
+        SplineOverlay.Hit splineHit = context.mouseButton == 0 && this.editor != null ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
+
+        /* A model's spline point picked off the rig tab (shown with the rig's debug) opens the tab to edit it. */
+        if (splineHit != null && splineHit.chain() instanceof SplineIK && SplineEditorUtils.owner(splineHit.chain()) == this.editor.form
+            && this.editor instanceof UIModelForm model && this.editor.view != model.rigPanel)
+        {
+            model.setPanel(model.rigPanel);
+        }
+
         if (context.mouseButton == 0 && this.editor != null && this.editor.view instanceof SplineFormTool panel)
         {
-            SplineOverlay.Hit hit = this.splineOverlay.pick(context.mouseX, context.mouseY);
+            SplineOverlay.Hit hit = splineHit;
             if (hit != null && panel.splineSources().contains(hit.chain()))
             {
                 panel.selectSpline(hit.chain());
@@ -641,18 +650,35 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         return super.subKeyPressed(context);
     }
 
-    /** Translation-only handles for a spline control; ordinary form tools retain their mask. */
+    /** Translation-only handles for a spline control; a bone's locked channels drop the handles they hold still. */
     public Gizmo.HandleMask getGizmoHandleMask()
     {
         if (this.statesEditor.isVisible())
         {
-            return SplineEditorUtils.selectedPath(this.statesKeyframes.keyframeEditor) == null ? Gizmo.HandleMask.ALL : SplineEditorUtils.HANDLES;
+            if (SplineEditorUtils.selectedPath(this.statesKeyframes.keyframeEditor) != null)
+            {
+                return SplineEditorUtils.HANDLES;
+            }
+
+            return Gizmo.HandleMask.ALL.locked(this.statesKeyframes.axisLocks(), this.statesKeyframes.getGizmoSpace());
         }
-        if (this.editor != null && this.editor.view instanceof SplineFormTool panel)
+        if (this.editor != null && this.editor.view instanceof SplineFormTool panel && !this.leavesGizmoToPose(panel))
         {
             return panel.getGizmoTransform() == null ? NO_GIZMO_HANDLES : SplineEditorUtils.HANDLES;
         }
-        return Gizmo.HandleMask.ALL;
+
+        UIPropTransform transform = this.editor == null || this.isBodyPartGizmoMode() ? null : this.editor.getEditableTransform();
+
+        return transform == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.locked(transform.axisLocks(), transform.getSpace());
+    }
+
+    /**
+     * Whether a spline tool with no point picked leaves the gizmo to the bones: on a form with a
+     * skeleton (the model's rig tab) it moves the selected bone, on a spline form it does nothing.
+     */
+    private boolean leavesGizmoToPose(SplineFormTool panel)
+    {
+        return panel.getGizmoTransform() == null && this.editor.getPoseEditor() != null;
     }
 
     public void renderSplineOverlay(UIContext context)
@@ -670,7 +696,8 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         var sources = SplineEditorUtils.sourcesInTree(FormUtils.getRoot(this.editor.form));
         for (var chain : sources)
         {
-            if (chain instanceof SplineIK && (panel == null || !panel.splineSources().contains(chain))) continue;
+            /* A model's spline: always on the rig tab that edits it, elsewhere with the rig's debug. */
+            if (chain instanceof SplineIK && (panel == null || !panel.splineSources().contains(chain)) && !BBSSettings.debugOverlay.get()) continue;
             Form owner = SplineEditorUtils.owner(chain);
             Matrix4f parent = SplineEditorUtils.parentMatrix(FormUtils.getRoot(owner), this.renderer.getTargetEntity(), context.getTransition(), owner, chain);
             if (parent == null) continue;
@@ -681,7 +708,6 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
                 panel != null && chain == panel.activeSpline() ? panel.pointEditor().selected() : java.util.Set.of(),
                 panel != null && chain == panel.activeSpline() ? panel.pointEditor().points.hoveredPoint(context) : "");
         }
-        this.splineOverlay.finish(context, this.renderer.area);
         if (panel != null && Window.isCtrlPressed() && !context.isFocused() && !panel.pointEditor().position.isEditing())
             this.splineOverlay.drawInsertionPreview(context, this.renderer.area);
         SplineOverlay.Hit hovered = this.renderer.area.isInside(context) ? this.splineOverlay.pick(context.mouseX, context.mouseY) : null;
@@ -698,7 +724,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
     public boolean startGizmo(UIContext context, int stencilIndex)
     {
         if (!this.statesEditor.isVisible() && this.editor != null
-            && this.editor.view instanceof SplineFormTool panel && panel.getGizmoTransform() == null)
+            && this.editor.view instanceof SplineFormTool panel && panel.getGizmoTransform() == null && !this.leavesGizmoToPose(panel))
         {
             return false;
         }

@@ -2,6 +2,7 @@ package mchorse.bbs_mod.ui.forms.editors.states.keyframes;
 
 import mchorse.bbs_mod.ui.utils.SplineKeyframeEditor;
 import mchorse.bbs_mod.BBSSettings;
+import mchorse.bbs_mod.cubic.spline.SplineIK;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.replays.tracks.TrackCatalog;
@@ -51,6 +52,7 @@ import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCategoryBar;
 import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.GizmoDrag;
+import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.StencilFormFramebuffer;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
@@ -91,6 +93,9 @@ public class UIAnimationStateEditor extends UIElement
             Form model = entry.getForm();
             for (var chain : SplineEditorUtils.sources(model))
             {
+                /* A model's spline shows with the rig's debug. */
+                if (chain instanceof SplineIK && !BBSSettings.debugOverlay.get()) continue;
+
                 Matrix4f parent = SplineEditorUtils.parentMatrix(this.root, renderer.getTargetEntity(), context.getTransition(), model, chain);
                 if (parent == null) continue;
                 this.splineOverlay.draw(context, new Matrix4f(view).mul(renderer.toSceneMatrix(parent)), camera.projection,
@@ -98,7 +103,6 @@ public class UIAnimationStateEditor extends UIElement
                     SplineEditorUtils.hoveredPoint(this.keyframeEditor, context, chain));
             }
         }
-        this.splineOverlay.finish(context, renderer.area);
         if (Window.isCtrlPressed() && !context.isFocused()
             && this.keyframeEditor.editor instanceof SplineKeyframeEditor spline
             && !spline.pointEditor().position.isEditing())
@@ -622,6 +626,12 @@ public class UIAnimationStateEditor extends UIElement
         return false;
     }
 
+    /** The locked channels of the bones the states' keyframe editor moves. */
+    public int axisLocks()
+    {
+        return GizmoLocks.of(this.root, this.keyframeEditor);
+    }
+
     public boolean startGizmo(UIContext context, int stencilIndex)
     {
         UIPropTransform transform = UIReplaysEditorUtils.getEditableTransform(this.keyframeEditor);
@@ -861,6 +871,7 @@ public class UIAnimationStateEditor extends UIElement
 
                     return this.buildGizmoDrag(transform, current == null ? 0F : current.getTransition());
                 });
+                transform.axisLocks(this::axisLocks);
             }
 
             this.editArea.area.render(context.batcher, Colors.A75);

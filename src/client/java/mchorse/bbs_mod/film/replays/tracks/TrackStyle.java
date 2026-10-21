@@ -4,6 +4,7 @@ import java.util.Objects;
 import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.l10n.keys.IKey;
 
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.entities.EntityState;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
@@ -106,12 +107,18 @@ public class TrackStyle
         setupColors();
         setupIcons();
         setupLabels();
-        register("ik", Icons.IK, Colors.WHITE);
-        register("physics", Icons.PHYSICS, 0x9d6cff);
-        register("wind", Icons.PARTICLE, Colors.ORANGE);
-        /* The camera shake clip's icon and colour: the same thing, done to bones. */
-        register("shake", Icons.EXCHANGE, 0x159e64);
-        register("spline_ik", Icons.GRAPH, Colors.BLUE);
+
+        /* The rig's tracks look the way the rig describes them (the shake wears the camera shake
+         * clip's icon and colour: the same thing, done to bones). */
+        for (RigStep step : RigStep.values())
+        {
+            for (RigStep.Track track : step.tracks)
+            {
+                register(track.id(), track.icon(), track.color());
+                LABELS.put(track.id(), track.label());
+            }
+        }
+
         register("curve", Icons.GRAPH, Colors.BLUE);
     }
 
@@ -331,8 +338,7 @@ public class TrackStyle
             "settings", "frequency", "count", "max", "velocity", "scattering_pitch", "scattering_yaw",
             "offset_x", "offset_y", "offset_z", "leaning", "roll",
             "user1", "user2", "user3", "user4", "user5", "user6",
-            /* The rig */
-            "ik", "physics", "wind", "shake", "spline_ik",
+            /* The rig's CEM states; the steps' own tracks are named by the rig itself, see setup() */
             "cem_aggressive", "cem_burning", "cem_climbing", "cem_crawling", "cem_health",
             "cem_in_lava", "cem_on_shoulder", "cem_sitting", "cem_tamed",
             /* Splines */

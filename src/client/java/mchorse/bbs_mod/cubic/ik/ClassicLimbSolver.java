@@ -6,7 +6,8 @@ import mchorse.bbs_mod.cubic.data.model.Model;
 import mchorse.bbs_mod.cubic.data.model.ModelGroup;
 import mchorse.bbs_mod.cubic.model.bobj.BOBJModel;
 import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
-import mchorse.bbs_mod.cubic.render.ModelRotationBlender;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
+import mchorse.bbs_mod.cubic.rig.RigWriter;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -467,9 +468,7 @@ final class ClassicLimbSolver
             Vector3f restNormal = new Quaternionf(restFrame[i]).conjugate().transform(new Vector3f(restNormalShared[i]));
 
             Quaternionf localRot = Matrices.orientMirroredX(restDir[i], restNormal, segLocal, normalLocal);
-            Quaternionf oriented = weight >= 1F - EPS ? new Quaternionf(localRot) : bone.evaluatedRotation().slerp(localRot, weight);
-
-            bone.orient = oriented;
+            Quaternionf oriented = RigWriter.blend(bone, localRot, weight);
 
             /* Stretch: open the gap before this bone (the segment from its parent),
              * pushing it and everything below out along the limb. parentWorld is
@@ -509,9 +508,7 @@ final class ClassicLimbSolver
          * the controller's world orientation. parentWorld is now the tip's parent frame. */
         if (tipTarget != null)
         {
-            Quaternionf tipLocal = new Quaternionf(parentWorld).conjugate().mul(tipTarget);
-
-            tip.orient = weight >= 1F - EPS ? tipLocal : tip.evaluatedRotation().slerp(tipLocal, weight);
+            RigWriter.blend(tip, new Quaternionf(parentWorld).conjugate().mul(tipTarget), weight);
         }
     }
 
@@ -530,6 +527,7 @@ final class ClassicLimbSolver
     static void buildChainOrientationsBobj(BOBJModel model, List<String> chainIds, List<Vector3f> solved, Quaternionf rootParentRotation, float weight, Quaternionf tipTarget, Vector3f stretchGap, Vector3f bendSeed)
     {
         int bones = chainIds.size() - 1;
+        BonePassport passport = BonePassport.of(model);
         Map<String, BOBJBone> bonesMap = model.getArmature().bones;
         BOBJBone[] chainBones = new BOBJBone[bones];
         Vector3f[] restDir = new Vector3f[bones];
@@ -549,7 +547,7 @@ final class ClassicLimbSolver
             }
 
             chainBones[i] = bone;
-            relRot[i] = bone.relBoneMat.getNormalizedRotation(new Quaternionf());
+            relRot[i] = passport.restRotation(chainIds.get(i));
             segWorld[i] = seg.normalize();
         }
 
@@ -586,9 +584,7 @@ final class ClassicLimbSolver
             Vector3f restNormalLocal = new Quaternionf(restFrame[i]).conjugate().transform(new Vector3f(restNormalWorld[i]));
 
             Quaternionf localRot = Matrices.orientMirroredX(restDir[i], restNormalLocal, segLocal, normalLocal);
-            Quaternionf oriented = weight >= 1F - EPS ? new Quaternionf(localRot) : chainBones[i].evaluatedRotation().slerp(localRot, weight);
-
-            chainBones[i].orient = oriented;
+            Quaternionf oriented = RigWriter.blend(chainBones[i], localRot, weight);
 
             if (i + 1 < bones)
             {
@@ -605,11 +601,9 @@ final class ClassicLimbSolver
 
             if (tip != null)
             {
-                Quaternionf tipRelRot = tip.relBoneMat.getNormalizedRotation(new Quaternionf());
-                Quaternionf tipParent = new Quaternionf(originRot).mul(chainBones[bones - 1].orient).mul(tipRelRot);
-                Quaternionf tipLocal = tipParent.conjugate().mul(tipTarget);
+                Quaternionf tipParent = new Quaternionf(originRot).mul(chainBones[bones - 1].orient).mul(passport.restRotation(chainIds.get(chainIds.size() - 1)));
 
-                tip.orient = weight >= 1F - EPS ? new Quaternionf(tipLocal) : tip.evaluatedRotation().slerp(tipLocal, weight);
+                RigWriter.blend(tip, tipParent.conjugate().mul(tipTarget), weight);
             }
         }
 
@@ -760,48 +754,21 @@ final class ClassicLimbSolver
     }
 
     /**
-     * The bone's local rest direction towards its child, taken exactly as that
-     * model's renderer takes it (cubic: pivot difference; BOBJ: the renderer's own
-     * {@link ModelRotationBlender#getBobjRestDirection}), so the orientation pass
-     * reconstructs the same swing the renderer applies.
+     * The local rest direction from the chain's i-th bone towards the next, normalised, taken
+     * exactly as the rotation writer takes it ({@link BonePassport#restAxisPastTip}), so the
+     * orientation pass reconstructs the same swing the renderer applies. Null when the model is
+     * not a skeleton the passport knows or a bone is missing.
      */
     private static Vector3f restDirection(IModel model, List<String> chainIds, int i)
     {
-        IKRig rig = IKRig.of(model);
+        BonePassport passport = BonePassport.of(model);
+        Vector3f axis = passport == null ? null : passport.restAxisPastTip(chainIds.get(i), chainIds.get(i + 1), i > 0 ? chainIds.get(i - 1) : null);
 
-        return rig == null ? null : rig.restDirection(chainIds, i);
-    }
-
-    /** See {@link IKRig.CubicIKRig#restDirection}. */
-    static Vector3f cubicRestDirection(Model model, List<String> chainIds, int i)
-    {
-        ModelGroup bone = model.getGroup(chainIds.get(i));
-        ModelGroup child = model.getGroup(chainIds.get(i + 1));
-
-        if (bone == null || child == null)
-        {
-            return null;
-        }
-
-        return normalizeRest(new Vector3f(child.initial.translate).sub(bone.initial.translate));
-    }
-
-    /** See {@link IKRig.BobjIKRig#restDirection}. */
-    static Vector3f bobjRestDirection(BOBJModel model, List<String> chainIds, int i)
-    {
-        BOBJBone bone = model.getArmature().bones.get(chainIds.get(i));
-        BOBJBone child = model.getArmature().bones.get(chainIds.get(i + 1));
-
-        if (bone == null)
-        {
-            return null;
-        }
-
-        return normalizeRest(ModelRotationBlender.getBobjRestDirection(model, bone, child, chainIds, i));
+        return axis == null ? null : normalizeRest(axis);
     }
 
     /**
-     * The frames a cubic chain's {@link #cubicRestDirection}s live in, relative to the
+     * The frames a cubic chain's {@link #restDirection}s live in, relative to the
      * root's parent frame: a pivot difference is measured after its bone's authored
      * rest rotation ({@code initial.rotate}) and those of the chain bones above it, so
      * frame {@code i} is their product walked from the root, the way the renderer
@@ -809,12 +776,13 @@ final class ClassicLimbSolver
      */
     private static Quaternionf[] cubicRestFrames(Model model, List<String> chainIds, int bones)
     {
+        BonePassport passport = BonePassport.of(model);
         Quaternionf[] frames = new Quaternionf[bones];
         Quaternionf walk = new Quaternionf();
 
         for (int i = 0; i < bones; i++)
         {
-            walk.mul(Matrices.toLocalRotationZYXDegrees(model.getGroup(chainIds.get(i)).initial.rotate));
+            walk.mul(passport.restRotation(chainIds.get(i)));
             frames[i] = new Quaternionf(walk);
         }
 
@@ -824,8 +792,8 @@ final class ClassicLimbSolver
     /** See {@link IKRig.CubicIKRig#restBendNormal}. */
     static Vector3f cubicRestBendNormal(Model model, List<String> chainIds)
     {
-        Vector3f a = cubicRestDirection(model, chainIds, 0);
-        Vector3f b = cubicRestDirection(model, chainIds, 1);
+        Vector3f a = restDirection(model, chainIds, 0);
+        Vector3f b = restDirection(model, chainIds, 1);
 
         if (a == null || b == null)
         {
@@ -840,8 +808,8 @@ final class ClassicLimbSolver
     /** See {@link IKRig.BobjIKRig#restBendNormal}. */
     static Vector3f bobjRestBendNormal(BOBJModel model, List<String> chainIds)
     {
-        Vector3f a = bobjRestDirection(model, chainIds, 0);
-        Vector3f b = bobjRestDirection(model, chainIds, 1);
+        Vector3f a = restDirection(model, chainIds, 0);
+        Vector3f b = restDirection(model, chainIds, 1);
 
         return a == null || b == null ? null : bendNormal(a, b);
     }

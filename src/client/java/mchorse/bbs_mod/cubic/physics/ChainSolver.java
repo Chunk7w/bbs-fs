@@ -3,6 +3,7 @@ package mchorse.bbs_mod.cubic.physics;
 import mchorse.bbs_mod.cubic.IModel;
 import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.cubic.render.CubicRenderer.PivotFrame;
+import mchorse.bbs_mod.cubic.rig.BonePassport;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -311,9 +312,9 @@ final class ChainSolver
         /* Per-bone angle limits: each bone's swing is decomposed into a local euler rotation off its rest
          * direction and clamped to its constraint's per-axis min/max. Skipped when nothing is constrained. */
         boolean limits = constraints != null && !constraints.isEmpty();
-        PhysicsRig rig = limits ? PhysicsRig.of(model) : null;
+        BonePassport passport = limits ? BonePassport.of(model) : null;
 
-        if (rig == null)
+        if (passport == null)
         {
             limits = false;
         }
@@ -436,7 +437,7 @@ final class ChainSolver
              * lengths and endpoints the clamp disturbed; when collisions are off, do it here. */
             if (limits)
             {
-                applyAngleConstraints(rig, ids, state.pos, lengths, constraints, parentRotation);
+                applyAngleConstraints(passport, ids, state.pos, lengths, constraints, parentRotation);
 
                 if (!collisions)
                 {
@@ -778,7 +779,7 @@ final class ChainSolver
      * along the clamped direction. Only enabled constraints clamp; every bone still advances the parent
      * frame so the next bone is measured in the right space.
      */
-    private static void applyAngleConstraints(PhysicsRig rig, List<String> ids, Vector3f[] pos, float[] lengths, Map<String, BoneConstraint> constraints, Quaternionf rootParentRotation)
+    private static void applyAngleConstraints(BonePassport passport, List<String> ids, Vector3f[] pos, float[] lengths, Map<String, BoneConstraint> constraints, Quaternionf rootParentRotation)
     {
         int boneCount = ids.size();
 
@@ -795,38 +796,24 @@ final class ChainSolver
             String childId = i + 1 < boneCount ? ids.get(i + 1) : null;
             BoneConstraint c = boneId == null ? null : constraints.get(boneId);
 
-            Vector3f restDirLocal = rig.restDirectionLocal(boneId, childId);
+            Vector3f restDirLocal = passport.restAxis(boneId, childId);
 
             if (restDirLocal == null)
             {
                 return;
             }
 
-            Vector3f desiredDirWorld = new Vector3f(pos[i + 1]).sub(pos[i]);
+            Quaternionf localRot = BonePassport.aim(restDirLocal.mul(passport.scale()), pos[i], pos[i + 1], parentWorld);
 
-            if (restDirLocal.lengthSquared() < EPS * EPS || desiredDirWorld.lengthSquared() < EPS * EPS)
+            if (localRot == null)
             {
                 continue;
             }
 
-            restDirLocal.normalize();
-            desiredDirWorld.normalize();
-
-            Quaternionf invParent = new Quaternionf(parentWorld).invert();
-            Vector3f desiredDirLocal = new Vector3f(desiredDirWorld);
-            invParent.transform(desiredDirLocal);
-
-            if (desiredDirLocal.lengthSquared() < EPS * EPS)
-            {
-                continue;
-            }
-
-            desiredDirLocal.normalize();
-
-            Quaternionf localRot = Matrices.fromToMirroredX(restDirLocal, desiredDirLocal);
             Quaternionf applied = localRot;
 
-            if (c != null && c.isActive())
+            /* The angle limits only: a lock keeps the keyed pose, which a swinging chain has none of. */
+            if (c != null && c.isLimited())
             {
                 Vector3f eulerDeg = Matrices.toEulerZYXDegrees(localRot);
 
@@ -914,11 +901,17 @@ final class ChainSolver
         return v > 1F ? 1F : v;
     }
 
-    /** The chain tip's rest direction, asked of whichever rig this model is. */
+    /**
+     * The local rest direction of the virtual tip past the chain's last bone, in model units: on
+     * along the line the chain comes in on, the rotation writer's convention, so the solved tip and
+     * the pose target agree at rest. Null for a model the passport does not know.
+     */
     private static Vector3f tipRestDirection(IModel model, List<String> ids)
     {
-        PhysicsRig rig = PhysicsRig.of(model);
+        BonePassport passport = BonePassport.of(model);
+        int n = ids.size();
+        Vector3f axis = passport == null ? null : passport.restAxisPastTip(ids.get(n - 1), null, n >= 2 ? ids.get(n - 2) : null);
 
-        return rig == null ? null : rig.tipRestDirectionLocal(ids);
+        return axis == null ? null : axis.mul(passport.scale());
     }
 }

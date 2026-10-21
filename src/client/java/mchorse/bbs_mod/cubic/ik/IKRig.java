@@ -19,17 +19,13 @@ import java.util.List;
  *
  * <p>What it removes is the TYPE TEST, which used to be repeated at every call: the question
  * "which skeleton is this" is asked once, in {@link #of}, and the answer is an object that knows
- * its own way. Mirrors {@link mchorse.bbs_mod.cubic.physics.PhysicsRig}, which drew the same
- * line for the physics solver.
+ * its own way.
  *
  * <p>The procedures themselves stay in {@link ClassicLimbSolver} next to the solve they finish —
  * moving that much numerical code would have been a rewrite, not a rename.
  */
 interface IKRig
 {
-    /** Rest direction from the chain's i-th bone toward the next one, normalised. */
-    Vector3f restDirection(List<String> chainIds, int i);
-
     /**
      * The side the chain was modelled bent towards: the normal of its rest bend plane, in the frame
      * its root's parent rotation lifts into the pose, or null when the rest pose is dead straight.
@@ -71,12 +67,6 @@ interface IKRig
         }
 
         @Override
-        public Vector3f restDirection(List<String> chainIds, int i)
-        {
-            return ClassicLimbSolver.cubicRestDirection(this.model, chainIds, i);
-        }
-
-        @Override
         public Vector3f restBendNormal(List<String> chainIds)
         {
             return ClassicLimbSolver.cubicRestBendNormal(this.model, chainIds);
@@ -96,12 +86,6 @@ interface IKRig
         private BobjIKRig(BOBJModel model)
         {
             this.model = model;
-        }
-
-        @Override
-        public Vector3f restDirection(List<String> chainIds, int i)
-        {
-            return ClassicLimbSolver.bobjRestDirection(this.model, chainIds, i);
         }
 
         @Override

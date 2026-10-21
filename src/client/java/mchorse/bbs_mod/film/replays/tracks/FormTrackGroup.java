@@ -2,6 +2,7 @@ package mchorse.bbs_mod.film.replays.tracks;
 
 import mchorse.bbs_mod.api.client.editor.TrackCategories;
 import mchorse.bbs_mod.api.client.editor.TrackCategory;
+import mchorse.bbs_mod.cubic.rig.RigStep;
 import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.l10n.L10n;
 import mchorse.bbs_mod.l10n.keys.IKey;
@@ -9,8 +10,6 @@ import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
-
-import java.util.Set;
 
 /**
  * The headings a form's own tracks sit under in a timeline. The Form tab holds what used to be the
@@ -21,11 +20,9 @@ public enum FormTrackGroup
 {
     /* In the order the headings show. The rig bends the same skeleton the pose keys, so it follows it. */
     POSE("pose", Icons.POSE, Colors.RED),
-    RIG("rig", Icons.IK, 0xfb7185),
+    RIG("rig", Icons.BONE, 0xfb7185),
     TRANSFORM("transform", Icons.ALL_DIRECTIONS, 0x4ade80),
     LOOK("look", Icons.MATERIAL, 0xfb923c);
-
-    private static final Set<String> RIG_PROPERTIES = Set.of("ik", "physics", "spline_ik", "wind", "shake");
 
     public final String id;
     public final IKey label;
@@ -86,7 +83,7 @@ public enum FormTrackGroup
             return POSE;
         }
 
-        if (RIG_PROPERTIES.contains(name) || name.startsWith("splines/"))
+        if (RigStep.ofTrack(name) != null || name.startsWith("splines/"))
         {
             return RIG;
         }

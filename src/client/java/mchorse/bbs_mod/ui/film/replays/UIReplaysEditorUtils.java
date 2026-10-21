@@ -14,11 +14,12 @@ import mchorse.bbs_mod.ui.film.UIFilmPanel;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.utils.GizmoDrag;
+import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.pose.PoseBones;
 import mchorse.bbs_mod.cubic.ModelInstance;
 import mchorse.bbs_mod.cubic.data.animation.Animation;
 import mchorse.bbs_mod.cubic.data.animation.AnimationPart;
-import mchorse.bbs_mod.cubic.ik.ModelIKRuntime;
+import mchorse.bbs_mod.cubic.rig.RigOwners;
 import mchorse.bbs_mod.film.replays.FormProperties;
 import mchorse.bbs_mod.film.replays.tracks.TrackDescriptor;
 import mchorse.bbs_mod.film.replays.tracks.TrackId;
@@ -360,13 +361,27 @@ public class UIReplaysEditorUtils
 
         transform.worldTransform(pose ? new FilmBoneWorldProvider(panel) : null);
         transform.rotationConstrained(pose ? () -> isFilmBoneRotationConstrained(panel) : null);
+        transform.axisLocks(() -> getFilmAxisLocks(panel));
+    }
+
+    /** The locked channels of the bones the film's keyframe editor moves on the current replay. */
+    public static int getFilmAxisLocks(UIFilmPanel panel)
+    {
+        IEntity entity = panel.getController().getCurrentEntity();
+
+        return entity == null ? 0 : GizmoLocks.of(entity.getForm(), panel.replayEditor.keyframeEditor);
+    }
+
+    /** The handles the film's gizmo may show on {@code target}: a bone's locked channels take theirs off. */
+    public static Gizmo.HandleMask getFilmGizmoMask(UIFilmPanel panel, FilmTarget target)
+    {
+        return target.boneOrNull() == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.locked(getFilmAxisLocks(panel), target.space());
     }
 
     /**
-     * Whether the film pose editor's current bone rotation is owned by an
-     * enabled IK chain of its (possibly nested) model form — the gizmo then
-     * refuses rotation gestures and dims its rings (see
-     * {@link ModelIKRuntime#isRotationConstrained}).
+     * Whether a solve of its (possibly nested) model form sets the film pose
+     * editor's current bone rotation — the gizmo then refuses rotation gestures
+     * and dims its rings (see {@link RigOwners#locksRotation}).
      */
     private static boolean isFilmBoneRotationConstrained(UIFilmPanel panel)
     {
@@ -396,7 +411,7 @@ public class UIReplaysEditorUtils
 
         ModelInstance instance = ModelFormRenderer.getModel(modelForm);
 
-        return instance != null && ModelIKRuntime.isRotationConstrained(instance.model, modelForm, StringUtils.fileName(bone.a));
+        return instance != null && RigOwners.of(instance.model, modelForm).locksRotation(StringUtils.fileName(bone.a));
     }
 
     /**
