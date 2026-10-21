@@ -1120,7 +1120,7 @@
     "bbs.ui.forms.editors.model.actions": "动作",
     "bbs.ui.forms.editors.model.pose": "姿势",
     "bbs.ui.forms.editors.model.constraints.apply_to_children": "应用于子骨骼",
-    "bbs.ui.forms.editors.model.constraints.axis": "%s 最小 / 最大角度",
+    "bbs.ui.forms.editors.model.constraints.limits_title": "旋转限制",
     "bbs.ui.forms.editors.model.constraints.limit": "限制 %s 角度",
     "bbs.ui.forms.editors.model.constraints.lock": "锁定 %s 轴",
     "bbs.ui.forms.editors.model.constraints.stiffness": "刚度 %s",

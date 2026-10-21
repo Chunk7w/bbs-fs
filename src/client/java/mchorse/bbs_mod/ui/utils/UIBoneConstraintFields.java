@@ -1,5 +1,6 @@
 package mchorse.bbs_mod.ui.utils;
 
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.cubic.constraints.BoneConstraint;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
@@ -8,6 +9,8 @@ import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
+import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
+import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.utils.colors.Colors;
@@ -20,10 +23,11 @@ import java.util.function.Supplier;
 
 /**
  * Every field of a bone's limits, built the same for the rig and for the constraint track's
- * keyframes: the move and the scale locks first, a row each in the transform editor's order; then
- * per rotation axis a header naming it, with the lock and the limit switch, and the two angles
- * under it; then the stiffness of the three, shown only where an IK chain runs through the bone —
- * the one step that reads it.
+ * keyframes. The locks first, a grid laid out like the transform editor's rows — move, scale,
+ * rotation, each across X, Y, Z — so a lock sits where its channel's number does; then the
+ * rotation limits, an axis a row: its switch, and the two angles only while the axis is limited;
+ * then the stiffness of the three, shown only where an IK chain runs through the bone — the one
+ * step that reads it.
  */
 public class UIBoneConstraintFields
 {
@@ -39,12 +43,12 @@ public class UIBoneConstraintFields
     public final UIToggle limitX;
     public final UIToggle limitY;
     public final UIToggle limitZ;
-    public final UISliderTrackpad minX;
-    public final UISliderTrackpad minY;
-    public final UISliderTrackpad minZ;
-    public final UISliderTrackpad maxX;
-    public final UISliderTrackpad maxY;
-    public final UISliderTrackpad maxZ;
+    public final UITrackpad minX;
+    public final UITrackpad minY;
+    public final UITrackpad minZ;
+    public final UITrackpad maxX;
+    public final UITrackpad maxY;
+    public final UITrackpad maxZ;
     public final UISliderTrackpad stiffnessX;
     public final UISliderTrackpad stiffnessY;
     public final UISliderTrackpad stiffnessZ;
@@ -67,16 +71,15 @@ public class UIBoneConstraintFields
         this.edit = edit;
         this.changed = changed;
 
-        this.lockTranslateX = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_X, Colors.RED, (c) -> c.lockTranslateX, (c, v) -> c.lockTranslateX = v);
-        this.lockTranslateY = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_Y, Colors.GREEN, (c) -> c.lockTranslateY, (c, v) -> c.lockTranslateY = v);
-        this.lockTranslateZ = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_Z, Colors.BLUE, (c) -> c.lockTranslateZ, (c, v) -> c.lockTranslateZ = v);
-        this.lockScaleX = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_X, Colors.RED, (c) -> c.lockScaleX, (c, v) -> c.lockScaleX = v);
-        this.lockScaleY = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_Y, Colors.GREEN, (c) -> c.lockScaleY, (c, v) -> c.lockScaleY = v);
-        this.lockScaleZ = this.axisLock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_Z, Colors.BLUE, (c) -> c.lockScaleZ, (c, v) -> c.lockScaleZ = v);
-
-        this.lockX = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK.format(UIKeys.GENERAL_X), (c) -> c.lockX, (c, v) -> c.lockX = v);
-        this.lockY = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK.format(UIKeys.GENERAL_Y), (c) -> c.lockY, (c, v) -> c.lockY = v);
-        this.lockZ = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK.format(UIKeys.GENERAL_Z), (c) -> c.lockZ, (c, v) -> c.lockZ = v);
+        this.lockTranslateX = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_X, (c) -> c.lockTranslateX, (c, v) -> c.lockTranslateX = v);
+        this.lockTranslateY = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_Y, (c) -> c.lockTranslateY, (c, v) -> c.lockTranslateY = v);
+        this.lockTranslateZ = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE, UIKeys.GENERAL_Z, (c) -> c.lockTranslateZ, (c, v) -> c.lockTranslateZ = v);
+        this.lockScaleX = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_X, (c) -> c.lockScaleX, (c, v) -> c.lockScaleX = v);
+        this.lockScaleY = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_Y, (c) -> c.lockScaleY, (c, v) -> c.lockScaleY = v);
+        this.lockScaleZ = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE, UIKeys.GENERAL_Z, (c) -> c.lockScaleZ, (c, v) -> c.lockScaleZ = v);
+        this.lockX = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK, UIKeys.GENERAL_X, (c) -> c.lockX, (c, v) -> c.lockX = v);
+        this.lockY = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK, UIKeys.GENERAL_Y, (c) -> c.lockY, (c, v) -> c.lockY = v);
+        this.lockZ = this.lock(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK, UIKeys.GENERAL_Z, (c) -> c.lockZ, (c, v) -> c.lockZ = v);
 
         this.limitX = this.limit(UIKeys.GENERAL_X, (c, v) -> c.limitX = v);
         this.limitY = this.limit(UIKeys.GENERAL_Y, (c, v) -> c.limitY = v);
@@ -98,11 +101,11 @@ public class UIBoneConstraintFields
     }
 
     /**
-     * The per-axis lock as a padlock: open while the axis turns, closed when it stays where the keys
-     * put it. The glyph is the state, read live from the limits; a locked axis also gets the
-     * selection highlight behind it.
+     * A lock of the grid: a cell as wide as a pad of the transform editor's row, on the pads'
+     * surface, with a padlock — open and grey while the axis is free, closed and white under the
+     * selection highlight when it is locked. The glyph is the state, read live from the limits.
      */
-    private UIIcon lock(IKey tooltip, Predicate<BoneConstraint> getter, BiConsumer<BoneConstraint, Boolean> setter)
+    private UIIcon lock(IKey kind, IKey axis, Predicate<BoneConstraint> getter, BiConsumer<BoneConstraint, Boolean> setter)
     {
         UIIcon icon = new UIIcon(() -> getter.test(this.current.get()) ? Icons.LOCKED : Icons.UNLOCKED, (b) ->
         {
@@ -115,28 +118,24 @@ public class UIBoneConstraintFields
             @Override
             protected void renderSkin(UIContext context)
             {
-                if (getter.test(UIBoneConstraintFields.this.current.get()))
+                boolean locked = getter.test(UIBoneConstraintFields.this.current.get());
+
+                this.area.render(context.batcher, BBSSettings.inputSurface());
+
+                if (locked)
                 {
                     context.batcher.highlight(this.area, Direction.BOTTOM);
                 }
+
+                this.iconColor = locked ? Colors.WHITE : Colors.GRAY;
 
                 super.renderSkin(context);
             }
         };
 
-        icon.wh(UIConstants.ICON_SIZE, UIConstants.CONTROL_HEIGHT);
-        icon.tooltip(tooltip);
-
-        return icon;
-    }
-
-    /** A move or scale lock: as wide as a pad of the transform editor's row, in its axis' colour like the pad's number. */
-    private UIIcon axisLock(IKey kind, IKey axis, int color, Predicate<BoneConstraint> getter, BiConsumer<BoneConstraint, Boolean> setter)
-    {
-        UIIcon icon = this.lock(kind.format(axis), getter, setter);
-
         icon.w(0);
-        icon.iconColor(Colors.A100 | color);
+        icon.h(UIConstants.CONTROL_HEIGHT);
+        icon.tooltip(kind.format(axis));
 
         return icon;
     }
@@ -149,16 +148,16 @@ public class UIBoneConstraintFields
             this.changed.run();
         });
 
-        /* As tall as the header row, so its switch lines up with the axis name and the lock. */
+        /* As tall as the row, so its switch lines up with the axis letter and the angles. */
         toggle.w(UIConstants.SWITCH_WIDTH).h(UIConstants.CONTROL_HEIGHT);
         toggle.tooltip(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LIMIT.format(axis));
 
         return toggle;
     }
 
-    private UISliderTrackpad angle(IKey kind, IKey axis, int color, BiConsumer<BoneConstraint, Float> setter)
+    private UITrackpad angle(IKey kind, IKey axis, int color, BiConsumer<BoneConstraint, Float> setter)
     {
-        UISliderTrackpad pad = new UISliderTrackpad((v) -> this.edit.accept((c) -> setter.accept(c, v.floatValue())));
+        UITrackpad pad = new UITrackpad((v) -> this.edit.accept((c) -> setter.accept(c, v.floatValue())));
 
         pad.angle180();
         pad.textbox.setColor(color);
@@ -178,29 +177,50 @@ public class UIBoneConstraintFields
         return pad;
     }
 
-    /** An axis' header: its name on the left, the lock and the limit switch pinned right. */
-    private static UIElement header(IKey axis, UIIcon lock, UIToggle limit)
+    /** The grid's column heads: X, Y and Z in their colours, over the locks. */
+    private static UIElement axisHeads()
     {
-        UIElement row = new UIElement();
+        UIElement corner = new UIElement();
 
-        row.row(UIConstants.MARGIN).preferred(0).height(UIConstants.CONTROL_HEIGHT);
-        row.add(UI.label(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_AXIS.format(axis), UIConstants.CONTROL_HEIGHT).labelAnchor(0, 0.5F), lock, limit);
+        corner.w(UIConstants.CONTROL_HEIGHT);
 
-        return row;
+        return UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, corner,
+            axisName(UIKeys.GENERAL_X, Colors.RED), axisName(UIKeys.GENERAL_Y, Colors.GREEN), axisName(UIKeys.GENERAL_Z, Colors.BLUE));
     }
 
-    /** The rows top to bottom: the move and the scale locks, each rotation axis' header and angles, then the stiffness. */
+    private static UIElement axisName(IKey axis, int color)
+    {
+        return UI.label(axis, UIConstants.CONTROL_HEIGHT, Colors.A100 | color).labelAnchor(0.5F, 0.5F);
+    }
+
+    /** A row of the grid: the transform editor's marker for the operation, then its three locks. */
+    private static UIElement locks(Icon icon, IKey operation, UIIcon x, UIIcon y, UIIcon z)
+    {
+        return UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, UI.marker(icon, operation), x, y, z);
+    }
+
+    /** A rotation limit: the axis letter and its switch, then the two angles while it is limited. */
+    private static UIElement limits(IKey axis, int color, UIToggle limit, UITrackpad min, UITrackpad max)
+    {
+        UIElement name = axisName(axis, color);
+
+        name.w(UIConstants.CONTROL_HEIGHT);
+
+        return UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, name, limit, min, max);
+    }
+
+    /** The rows top to bottom: the locks' grid, the rotation limits, then the stiffness. */
     public UIElement[] rows()
     {
         return new UIElement[] {
-            UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, UI.marker(Icons.ALL_DIRECTIONS, UIKeys.TRANSFORMS_TRANSLATE), this.lockTranslateX, this.lockTranslateY, this.lockTranslateZ),
-            UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, UI.marker(Icons.SCALE, UIKeys.TRANSFORMS_SCALE), this.lockScaleX, this.lockScaleY, this.lockScaleZ),
-            header(UIKeys.GENERAL_X, this.lockX, this.limitX),
-            UI.row(this.minX, this.maxX),
-            header(UIKeys.GENERAL_Y, this.lockY, this.limitY),
-            UI.row(this.minY, this.maxY),
-            header(UIKeys.GENERAL_Z, this.lockZ, this.limitZ),
-            UI.row(this.minZ, this.maxZ),
+            axisHeads(),
+            locks(Icons.ALL_DIRECTIONS, UIKeys.TRANSFORMS_TRANSLATE, this.lockTranslateX, this.lockTranslateY, this.lockTranslateZ),
+            locks(Icons.SCALE, UIKeys.TRANSFORMS_SCALE, this.lockScaleX, this.lockScaleY, this.lockScaleZ),
+            locks(Icons.REFRESH, UIKeys.TRANSFORMS_ROTATE, this.lockX, this.lockY, this.lockZ),
+            UI.label(UIKeys.FORMS_EDITORS_MODEL_CONSTRAINTS_LIMITS_TITLE).marginTop(UIConstants.SECTION_GAP),
+            limits(UIKeys.GENERAL_X, Colors.RED, this.limitX, this.minX, this.maxX),
+            limits(UIKeys.GENERAL_Y, Colors.GREEN, this.limitY, this.minY, this.maxY),
+            limits(UIKeys.GENERAL_Z, Colors.BLUE, this.limitZ, this.minZ, this.maxZ),
             this.stiffnessTitle,
             this.stiffnessRow
         };
@@ -215,7 +235,7 @@ public class UIBoneConstraintFields
             this.stiffnessX, this.stiffnessY, this.stiffnessZ);
     }
 
-    /** Push the limits into the fields; the stiffness shows only with {@code stiffness}. */
+    /** Push the limits into the fields: an axis' angles show only while it is limited, the stiffness only with {@code stiffness}. */
     public void fill(BoneConstraint c, boolean stiffness)
     {
         this.limitX.setValue(c.limitX);
@@ -227,6 +247,12 @@ public class UIBoneConstraintFields
         this.maxX.setValue(c.maxX);
         this.maxY.setValue(c.maxY);
         this.maxZ.setValue(c.maxZ);
+        this.minX.setVisible(c.limitX);
+        this.maxX.setVisible(c.limitX);
+        this.minY.setVisible(c.limitY);
+        this.maxY.setVisible(c.limitY);
+        this.minZ.setVisible(c.limitZ);
+        this.maxZ.setVisible(c.limitZ);
         this.stiffnessX.setValue(c.stiffnessX);
         this.stiffnessY.setValue(c.stiffnessY);
         this.stiffnessZ.setValue(c.stiffnessZ);
@@ -234,19 +260,12 @@ public class UIBoneConstraintFields
         this.stiffnessRow.setVisible(stiffness);
     }
 
-    /** Greys the fields with their host; an axis' angles stay grey while it isn't limited. */
+    /** Greys the fields with their host. */
     public void setEnabled(boolean enabled, BoneConstraint c)
     {
         for (UIElement element : this.all())
         {
             element.setEnabled(enabled);
         }
-
-        this.minX.setEnabled(enabled && c.limitX);
-        this.maxX.setEnabled(enabled && c.limitX);
-        this.minY.setEnabled(enabled && c.limitY);
-        this.maxY.setEnabled(enabled && c.limitY);
-        this.minZ.setEnabled(enabled && c.limitZ);
-        this.maxZ.setEnabled(enabled && c.limitZ);
     }
 }
