@@ -136,7 +136,7 @@ public class UIBoneConstraintFields
         UIIcon icon = this.lock(kind.format(axis), getter, setter);
 
         icon.w(0);
-        icon.iconColor(color);
+        icon.iconColor(Colors.A100 | color);
 
         return icon;
     }
