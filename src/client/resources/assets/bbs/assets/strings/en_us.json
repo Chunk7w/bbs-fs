@@ -1527,7 +1527,7 @@
 	"bbs.ui.forms.editors.model.rig.context.save": "Save rig",
 	"bbs.ui.forms.editors.model.rig.context.name": "Name...",
 	"bbs.ui.forms.editors.model.rig.shake": "Shake",
-	"bbs.ui.forms.editors.model.rig.ik": "IK",
+	"bbs.ui.forms.editors.model.rig.ik": "Inverse Kinematics",
 	"bbs.ui.forms.editors.model.rig.physics": "Physics",
 	"bbs.ui.forms.editors.model.rig.spline": "Spline IK",
 	"bbs.ui.forms.editors.model.rig.limits": "Limits",

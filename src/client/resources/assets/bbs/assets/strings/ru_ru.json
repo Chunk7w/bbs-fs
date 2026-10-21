@@ -1522,7 +1522,7 @@
 	"bbs.ui.forms.editors.model.rig.context.save": "Сохранить риг",
 	"bbs.ui.forms.editors.model.rig.context.name": "Имя...",
 	"bbs.ui.forms.editors.model.rig.shake": "Тряска",
-	"bbs.ui.forms.editors.model.rig.ik": "ИК",
+	"bbs.ui.forms.editors.model.rig.ik": "Обратная кинематика",
 	"bbs.ui.forms.editors.model.rig.physics": "Физика",
 	"bbs.ui.forms.editors.model.rig.spline": "Сплайн ИК",
 	"bbs.ui.forms.editors.model.rig.limits": "Ограничения",

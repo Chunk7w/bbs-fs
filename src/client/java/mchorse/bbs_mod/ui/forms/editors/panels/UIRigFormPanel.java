@@ -148,10 +148,11 @@ public class UIRigFormPanel extends UIBoneListFormPanel implements SplineFormToo
         this.spline = this.remember(new UIRigSplineSection(this), "rig.spline", true);
         this.limits = new UIRigLimitsSection(this);
 
-        this.sections.add(this.shake);
+        /* The solvers and the simulation first, the shake after them, the limits last. */
         this.sections.add(this.ik);
         this.sections.add(this.physics);
         this.sections.add(this.spline);
+        this.sections.add(this.shake);
         this.sections.add(this.limits);
 
         this.options.add(this.debug, this.bonesSearch, controllerRow);
