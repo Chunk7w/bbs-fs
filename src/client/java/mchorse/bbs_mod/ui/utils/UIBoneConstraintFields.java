@@ -25,7 +25,7 @@ import java.util.function.Supplier;
  * Every field of a bone's limits, built the same for the rig and for the constraint track's
  * keyframes. The locks first, a grid laid out like the transform editor's rows — move, scale,
  * rotation, each across X, Y, Z — so a lock sits where its channel's number does; then the
- * rotation limits, an axis a row: its switch, and the two angles only while the axis is limited;
+ * rotation limits, an axis a row: its switch and the two angles, grey while the axis isn't limited;
  * then the stiffness of the three, shown only where an IK chain runs through the bone — the one
  * step that reads it.
  */
@@ -199,7 +199,7 @@ public class UIBoneConstraintFields
         return UI.row(UIConstants.MARGIN, 0, UIConstants.CONTROL_HEIGHT, UI.marker(icon, operation), x, y, z);
     }
 
-    /** A rotation limit: the axis letter and its switch, then the two angles while it is limited. */
+    /** A rotation limit: the axis letter and its switch, then the two angles. */
     private static UIElement limits(IKey axis, int color, UIToggle limit, UITrackpad min, UITrackpad max)
     {
         UIElement name = axisName(axis, color);
@@ -235,7 +235,16 @@ public class UIBoneConstraintFields
             this.stiffnessX, this.stiffnessY, this.stiffnessZ);
     }
 
-    /** Push the limits into the fields: an axis' angles show only while it is limited, the stiffness only with {@code stiffness}. */
+    /** An axis' angles in its colour while it is limited, grey while they wait for the switch — still there to edit. */
+    private static void tint(UITrackpad min, UITrackpad max, boolean limited, int color)
+    {
+        int text = limited ? color : Colors.GRAY;
+
+        min.textbox.setColor(text);
+        max.textbox.setColor(text);
+    }
+
+    /** Push the limits into the fields: an unlimited axis' angles turn grey, the stiffness shows only with {@code stiffness}. */
     public void fill(BoneConstraint c, boolean stiffness)
     {
         this.limitX.setValue(c.limitX);
@@ -247,12 +256,9 @@ public class UIBoneConstraintFields
         this.maxX.setValue(c.maxX);
         this.maxY.setValue(c.maxY);
         this.maxZ.setValue(c.maxZ);
-        this.minX.setVisible(c.limitX);
-        this.maxX.setVisible(c.limitX);
-        this.minY.setVisible(c.limitY);
-        this.maxY.setVisible(c.limitY);
-        this.minZ.setVisible(c.limitZ);
-        this.maxZ.setVisible(c.limitZ);
+        tint(this.minX, this.maxX, c.limitX, Colors.RED);
+        tint(this.minY, this.maxY, c.limitY, Colors.GREEN);
+        tint(this.minZ, this.maxZ, c.limitZ, Colors.BLUE);
         this.stiffnessX.setValue(c.stiffnessX);
         this.stiffnessY.setValue(c.stiffnessY);
         this.stiffnessZ.setValue(c.stiffnessZ);
