@@ -596,8 +596,10 @@ public class Gizmo
 
         /* The mask already keeps a forbidden handle out of both draw passes, so a pick
          * can't name one; the hotkey walk and any programmatic start bypass the stencil
-         * though, so the refusal lives here too. */
-        if (handle == null || !this.mask.allows(handle))
+         * though, so the refusal lives here too. A ring the bone's locked channels hold
+         * still is refused even where the caller drew no mask for them. */
+        if (handle == null || !this.mask.allows(handle)
+            || (transform != null && !HandleMask.ALL.lockRotation(transform.rotationLocks(), transform.getSpace()).allows(handle)))
         {
             return false;
         }
@@ -1676,6 +1678,36 @@ public class Gizmo
         {
             this.ops = EnumSet.copyOf(ops);
             this.rotateAxes = EnumSet.copyOf(rotateAxes);
+        }
+
+        /**
+         * This mask minus what a bone's locked rotation channels ({@link GizmoLocks}) take away.
+         * All three locked leave no rotation handle in any frame. A single locked channel drops
+         * its ring in the bone's own frames (LOCAL, PARENT), where a ring turns the channel it is
+         * named after; in a scene frame one ring moves several channels, and the gesture holds
+         * the locked ones still instead, as Blender does.
+         */
+        public HandleMask lockRotation(int locks, TransformSpace space)
+        {
+            if (locks == 0)
+            {
+                return this;
+            }
+
+            EnumSet<Op> ops = EnumSet.copyOf(this.ops);
+            EnumSet<Axis> rotation = EnumSet.copyOf(this.rotateAxes);
+
+            if (locks == GizmoLocks.ALL)
+            {
+                ops.removeAll(EnumSet.of(Op.ROTATE, Op.VIEW, Op.TRACKBALL));
+            }
+
+            if (space == TransformSpace.LOCAL || space == TransformSpace.PARENT)
+            {
+                rotation.removeIf((axis) -> GizmoLocks.isLocked(locks, axis));
+            }
+
+            return new HandleMask(ops, rotation);
         }
 
         public boolean allows(Op op)

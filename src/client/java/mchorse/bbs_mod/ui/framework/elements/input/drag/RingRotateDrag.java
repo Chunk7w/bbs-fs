@@ -196,6 +196,15 @@ public class RingRotateDrag extends DragStrategy
          * drop — the actor would then settle somewhere the sweep never pointed. */
         boolean channelOnly = this.ctx.rotationChannelOnly() && !this.quatMode;
 
+        /* A bone whose limits lock some of its channels turns the ring's own channel in its own
+         * frames (LOCAL, PARENT), where the rings are named after the channels: the free one moves
+         * alone and exactly, the locked ones never feel it — Blender's gimbal ring. In a scene
+         * frame the ring keeps its world axis, and the writes hold the locked channels instead. */
+        if (this.ctx.rotationLocks() != 0 && (this.space == TransformSpace.LOCAL || this.space == TransformSpace.PARENT))
+        {
+            channelOnly = true;
+        }
+
         if (!this.channelPath)
         {
             Matrix3f parentInverse = channelOnly ? null : RotationDragMath.parentInverse(this.ctx, drag);

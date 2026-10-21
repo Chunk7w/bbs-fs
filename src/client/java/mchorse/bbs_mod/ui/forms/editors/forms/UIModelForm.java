@@ -13,6 +13,7 @@ import mchorse.bbs_mod.ui.forms.editors.panels.UIActionsFormPanel;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIModelFormPanel;
 import mchorse.bbs_mod.ui.forms.editors.panels.UIRigFormPanel;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
+import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.pose.UIPoseEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformSpace;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
@@ -37,6 +38,7 @@ public class UIModelForm extends UIForm<ModelForm>
 
             return instance != null && RigOwners.of(instance.model, form).locksRotation(this.modelPanel.poseEditor.groups.list.getCurrentFirst());
         });
+        this.modelPanel.poseEditor.transform.rotationLocks(() -> GizmoLocks.of(this.form, this.modelPanel.poseEditor.groups.list.getCurrent()));
         this.defaultPanel = this.modelPanel;
 
         this.registerPanel(this.defaultPanel, UIKeys.FORMS_EDITORS_MODEL_POSE, ModelForm.ICON);

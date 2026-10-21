@@ -52,6 +52,7 @@ import mchorse.bbs_mod.ui.framework.elements.utils.UITimelineCategoryBar;
 import mchorse.bbs_mod.ui.utils.Gizmo;
 import mchorse.bbs_mod.ui.utils.UIConstants;
 import mchorse.bbs_mod.ui.utils.GizmoDrag;
+import mchorse.bbs_mod.ui.utils.GizmoLocks;
 import mchorse.bbs_mod.ui.utils.StencilFormFramebuffer;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.ui.utils.renderers.TimelineRulerRenderer;
@@ -625,6 +626,12 @@ public class UIAnimationStateEditor extends UIElement
         return false;
     }
 
+    /** The locked rotation channels of the bones the states' keyframe editor turns. */
+    public int rotationLocks()
+    {
+        return GizmoLocks.of(this.root, this.keyframeEditor);
+    }
+
     public boolean startGizmo(UIContext context, int stencilIndex)
     {
         UIPropTransform transform = UIReplaysEditorUtils.getEditableTransform(this.keyframeEditor);
@@ -864,6 +871,7 @@ public class UIAnimationStateEditor extends UIElement
 
                     return this.buildGizmoDrag(transform, current == null ? 0F : current.getTransition());
                 });
+                transform.rotationLocks(this::rotationLocks);
             }
 
             this.editArea.area.render(context.batcher, Colors.A75);
