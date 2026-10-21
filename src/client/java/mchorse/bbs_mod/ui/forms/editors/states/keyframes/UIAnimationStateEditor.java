@@ -626,8 +626,8 @@ public class UIAnimationStateEditor extends UIElement
         return false;
     }
 
-    /** The locked rotation channels of the bones the states' keyframe editor turns. */
-    public int rotationLocks()
+    /** The locked channels of the bones the states' keyframe editor moves. */
+    public int axisLocks()
     {
         return GizmoLocks.of(this.root, this.keyframeEditor);
     }
@@ -871,7 +871,7 @@ public class UIAnimationStateEditor extends UIElement
 
                     return this.buildGizmoDrag(transform, current == null ? 0F : current.getTransition());
                 });
-                transform.rotationLocks(this::rotationLocks);
+                transform.axisLocks(this::axisLocks);
             }
 
             this.editArea.area.render(context.batcher, Colors.A75);

@@ -650,7 +650,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
         return super.subKeyPressed(context);
     }
 
-    /** Translation-only handles for a spline control; a bone's locked rotation channels drop the rings they hold still. */
+    /** Translation-only handles for a spline control; a bone's locked channels drop the handles they hold still. */
     public Gizmo.HandleMask getGizmoHandleMask()
     {
         if (this.statesEditor.isVisible())
@@ -660,7 +660,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
                 return SplineEditorUtils.HANDLES;
             }
 
-            return Gizmo.HandleMask.ALL.lockRotation(this.statesKeyframes.rotationLocks(), this.statesKeyframes.getGizmoSpace());
+            return Gizmo.HandleMask.ALL.locked(this.statesKeyframes.axisLocks(), this.statesKeyframes.getGizmoSpace());
         }
         if (this.editor != null && this.editor.view instanceof SplineFormTool panel && !this.leavesGizmoToPose(panel))
         {
@@ -669,7 +669,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor, IBo
 
         UIPropTransform transform = this.editor == null || this.isBodyPartGizmoMode() ? null : this.editor.getEditableTransform();
 
-        return transform == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.lockRotation(transform.rotationLocks(), transform.getSpace());
+        return transform == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.locked(transform.axisLocks(), transform.getSpace());
     }
 
     /**

@@ -77,8 +77,8 @@ public class TransformGesture implements DragContext
         /** Whether rotation channels are gimbal angles with no third axis to spare. */
         boolean isRotationChannelOnly();
 
-        /** The rotation channels the edited bones lock ({@link GizmoLocks}), XYZ bits; none by default. */
-        default int rotationLocks()
+        /** The channels the edited bones lock ({@link GizmoLocks}), three bits per operation; none by default. */
+        default int axisLocks()
         {
             return 0;
         }
@@ -182,7 +182,7 @@ public class TransformGesture implements DragContext
         GizmoDrag drag = BBSSettings.simpleKeyboardTransform.get() ? null : this.host.freshHotkeyDrag();
         boolean ray = drag != null;
 
-        if (op == TransformOp.ROTATE && this.enableLockedRotate(drag))
+        if (this.enableLocked(op, drag))
         {
             return;
         }
@@ -244,7 +244,7 @@ public class TransformGesture implements DragContext
         return HotkeyTarget.X;
     }
 
-    /** The next step of the walk, past the rotation axes the bones lock; null when every step is locked. */
+    /** The next step of the walk, past the axes the bones lock; null when every step is locked. */
     private HotkeyTarget nextHotkeyTarget(TransformOp op, boolean ray)
     {
         HotkeyTarget target = HotkeyTarget.next(op, ray, this.currentHotkeyTarget(op));
@@ -259,45 +259,65 @@ public class TransformGesture implements DragContext
     }
 
     /**
-     * R on bones whose limits lock rotation channels: all three locked turn nothing, and a single
-     * free one is turned straight away — the walk's view spin would only leak into it — in the
-     * bone's own frame, where the ring turns exactly that channel (see {@link RingRotateDrag}).
-     * Returns whether the locks decided the press; with two free channels the walk goes on.
+     * G, R or S on bones whose limits lock some of the operation's axes: all three locked do
+     * nothing, and a single free one is driven straight away — the walk's free steps (the screen
+     * grab, the view spin, the uniform lever) would only leak into it — in the frame where its
+     * handle moves exactly that channel ({@link #channelSpace}). Returns whether the locks decided
+     * the press; with two free axes the walk goes on.
      */
-    private boolean enableLockedRotate(GizmoDrag drag)
+    private boolean enableLocked(TransformOp op, GizmoDrag drag)
     {
-        int locks = this.host.rotationLocks();
+        int locks = this.host.axisLocks();
 
-        if (locks == GizmoLocks.ALL)
+        if (GizmoLocks.isLockedFully(locks, op))
         {
             return true;
         }
 
-        Axis free = GizmoLocks.onlyFree(locks);
+        Axis free = GizmoLocks.onlyFree(locks, op);
 
         if (free == null)
         {
             return false;
         }
 
-        /* Already turning it: a second R must not rewind the sweep to start over. */
-        if (this.editing && this.getOp() == TransformOp.ROTATE && this.axis == free && this.axis2 == null
-            && !this.isViewRotate() && !this.isSphereRotate())
+        /* Already on it: a second press must not rewind the edit to start over. */
+        if (this.editing && this.getOp() == op && this.axis == free && this.axis2 == null
+            && !this.isViewRotate() && !this.isSphereRotate() && !this.isScreenTranslate() && !this.isScaleAll())
         {
             return true;
         }
 
-        TransformSpace space = this.host.pickedSpace();
-
-        this.startEdit(TransformOp.ROTATE, free, null, DragStrategyFactory.Variant.AXIS, drag, true,
-            space == TransformSpace.LOCAL || space == TransformSpace.PARENT ? null : TransformSpace.PARENT);
+        this.startEdit(op, free, null, DragStrategyFactory.Variant.AXIS, drag, true, this.channelSpace(op));
 
         return true;
     }
 
+    /**
+     * The frame an axis edit of {@code op} moves exactly its own channel in, or null when the
+     * picked one does: the move channels are the parent's axes, the rotation ones turn in the
+     * bone's own frames (LOCAL, PARENT), and scale works on the bone's own axes in any frame.
+     */
+    private TransformSpace channelSpace(TransformOp op)
+    {
+        TransformSpace space = this.host.pickedSpace();
+
+        if (op == TransformOp.TRANSLATE)
+        {
+            return space == TransformSpace.PARENT ? null : TransformSpace.PARENT;
+        }
+
+        if (op == TransformOp.ROTATE)
+        {
+            return space == TransformSpace.LOCAL || space == TransformSpace.PARENT ? null : TransformSpace.PARENT;
+        }
+
+        return null;
+    }
+
     private boolean isAxisLocked(TransformOp op, Axis axis)
     {
-        return op == TransformOp.ROTATE && GizmoLocks.isLocked(this.host.rotationLocks(), axis);
+        return GizmoLocks.isLocked(this.host.axisLocks(), op, axis);
     }
 
     public void enableMode(TransformOp op, Axis axis)
@@ -1131,9 +1151,9 @@ public class TransformGesture implements DragContext
     }
 
     @Override
-    public int rotationLocks()
+    public int axisLocks()
     {
-        return this.host.rotationLocks();
+        return this.host.axisLocks();
     }
 
     @Override
@@ -1175,27 +1195,33 @@ public class TransformGesture implements DragContext
         this.host.refreshFields();
     }
 
+    /* The writes every strategy funnels through, so the bones' locked channels are kept here once:
+     * a locked channel is written back with its value from the gesture's start. That holds in any
+     * frame — a move along a scene axis, a free spin or the uniform lever keep only what the free
+     * channels can carry, as Blender's locks do. */
+
     @Override
     public void writeTranslate(float x, float y, float z)
     {
-        this.host.setT(null, x, y, z);
+        int locks = GizmoLocks.axes(this.host.axisLocks(), TransformOp.TRANSLATE);
+        Vector3f start = this.cache.translate;
+
+        this.host.setT(null, held(locks, Axis.X, x, start.x), held(locks, Axis.Y, y, start.y), held(locks, Axis.Z, z, start.z));
     }
 
     @Override
     public void writeScale(float x, float y, float z)
     {
-        this.host.setS(null, x, y, z);
-    }
+        int locks = GizmoLocks.axes(this.host.axisLocks(), TransformOp.SCALE);
+        Vector3f start = this.cache.scale;
 
-    /* The rotation writes every strategy funnels through, so the bones' locked channels are kept
-     * here once: a locked channel is written back with its value from the gesture's start. That
-     * holds in any frame — a turn about a scene axis or a free spin keeps only what the free
-     * channels can carry, as Blender's locks do. */
+        this.host.setS(null, held(locks, Axis.X, x, start.x), held(locks, Axis.Y, y, start.y), held(locks, Axis.Z, z, start.z));
+    }
 
     @Override
     public void writeRotateDeg(float xDeg, float yDeg, float zDeg)
     {
-        int locks = this.host.rotationLocks();
+        int locks = GizmoLocks.axes(this.host.axisLocks(), TransformOp.ROTATE);
 
         if (locks != 0)
         {
@@ -1212,7 +1238,7 @@ public class TransformGesture implements DragContext
     @Override
     public void writeRotationQuat(Quaternionf quat)
     {
-        int locks = this.host.rotationLocks();
+        int locks = GizmoLocks.axes(this.host.axisLocks(), TransformOp.ROTATE);
 
         if (locks != 0)
         {
@@ -1229,9 +1255,10 @@ public class TransformGesture implements DragContext
         this.host.setRQuat(quat);
     }
 
-    private static float held(int locks, Axis axis, float value, float start)
+    /** {@code value}, or {@code start} on an axis of {@code axes} (one operation's XYZ bits). */
+    private static float held(int axes, Axis axis, float value, float start)
     {
-        return GizmoLocks.isLocked(locks, axis) ? start : value;
+        return (axes & 1 << axis.ordinal()) != 0 ? start : value;
     }
 
     private class AcceptRejectOverlay extends UIElement

@@ -19,6 +19,9 @@ import mchorse.bbs_mod.utils.interps.IInterp;
  * and the last step of the frame clamps the result to the locks and limits. The numbers and the
  * stiffness interpolate; the switches step. An all-default instance is neutral: the bone is free,
  * as if the value didn't exist.</p>
+ *
+ * <p>The move and scale locks are the hand's alone: no step of the frame reads them, the gizmo and
+ * its hotkeys leave a locked axis where it is — the rotation locks restrain the hand as well.</p>
  */
 public class BoneConstraint implements IMapSerializable
 {
@@ -44,6 +47,12 @@ public class BoneConstraint implements IMapSerializable
     public float stiffnessX;
     public float stiffnessY;
     public float stiffnessZ;
+    public boolean lockTranslateX;
+    public boolean lockTranslateY;
+    public boolean lockTranslateZ;
+    public boolean lockScaleX;
+    public boolean lockScaleY;
+    public boolean lockScaleZ;
 
     /** Whether the bone is held at all: an axis locked or limited. */
     public boolean isActive()
@@ -63,6 +72,13 @@ public class BoneConstraint implements IMapSerializable
         return !this.isActive() && this.stiffnessX <= 0F && this.stiffnessY <= 0F && this.stiffnessZ <= 0F;
     }
 
+    /** Whether the hand may not move or scale the bone along some axis. */
+    public boolean locksTranslateOrScale()
+    {
+        return this.lockTranslateX || this.lockTranslateY || this.lockTranslateZ
+            || this.lockScaleX || this.lockScaleY || this.lockScaleZ;
+    }
+
     public void identity()
     {
         this.lockX = false;
@@ -80,6 +96,12 @@ public class BoneConstraint implements IMapSerializable
         this.stiffnessX = 0F;
         this.stiffnessY = 0F;
         this.stiffnessZ = 0F;
+        this.lockTranslateX = false;
+        this.lockTranslateY = false;
+        this.lockTranslateZ = false;
+        this.lockScaleX = false;
+        this.lockScaleY = false;
+        this.lockScaleZ = false;
     }
 
     /**
@@ -184,6 +206,12 @@ public class BoneConstraint implements IMapSerializable
         this.limitX = a.limitX;
         this.limitY = a.limitY;
         this.limitZ = a.limitZ;
+        this.lockTranslateX = a.lockTranslateX;
+        this.lockTranslateY = a.lockTranslateY;
+        this.lockTranslateZ = a.lockTranslateZ;
+        this.lockScaleX = a.lockScaleX;
+        this.lockScaleY = a.lockScaleY;
+        this.lockScaleZ = a.lockScaleZ;
     }
 
     public BoneConstraint copy()
@@ -212,6 +240,12 @@ public class BoneConstraint implements IMapSerializable
         this.stiffnessX = other.stiffnessX;
         this.stiffnessY = other.stiffnessY;
         this.stiffnessZ = other.stiffnessZ;
+        this.lockTranslateX = other.lockTranslateX;
+        this.lockTranslateY = other.lockTranslateY;
+        this.lockTranslateZ = other.lockTranslateZ;
+        this.lockScaleX = other.lockScaleX;
+        this.lockScaleY = other.lockScaleY;
+        this.lockScaleZ = other.lockScaleZ;
     }
 
     public boolean isDefault()
@@ -243,7 +277,13 @@ public class BoneConstraint implements IMapSerializable
                 && this.maxZ == constraint.maxZ
                 && this.stiffnessX == constraint.stiffnessX
                 && this.stiffnessY == constraint.stiffnessY
-                && this.stiffnessZ == constraint.stiffnessZ;
+                && this.stiffnessZ == constraint.stiffnessZ
+                && this.lockTranslateX == constraint.lockTranslateX
+                && this.lockTranslateY == constraint.lockTranslateY
+                && this.lockTranslateZ == constraint.lockTranslateZ
+                && this.lockScaleX == constraint.lockScaleX
+                && this.lockScaleY == constraint.lockScaleY
+                && this.lockScaleZ == constraint.lockScaleZ;
         }
 
         return false;
@@ -276,6 +316,20 @@ public class BoneConstraint implements IMapSerializable
             data.putDouble("stiffness_y", this.stiffnessY);
             data.putDouble("stiffness_z", this.stiffnessZ);
         }
+
+        if (this.lockTranslateX || this.lockTranslateY || this.lockTranslateZ)
+        {
+            data.putBool("lock_translate_x", this.lockTranslateX);
+            data.putBool("lock_translate_y", this.lockTranslateY);
+            data.putBool("lock_translate_z", this.lockTranslateZ);
+        }
+
+        if (this.lockScaleX || this.lockScaleY || this.lockScaleZ)
+        {
+            data.putBool("lock_scale_x", this.lockScaleX);
+            data.putBool("lock_scale_y", this.lockScaleY);
+            data.putBool("lock_scale_z", this.lockScaleZ);
+        }
     }
 
     @Override
@@ -296,5 +350,11 @@ public class BoneConstraint implements IMapSerializable
         this.stiffnessX = MathUtils.clamp((float) data.getDouble("stiffness_x", DEFAULT.stiffnessX), 0F, 1F);
         this.stiffnessY = MathUtils.clamp((float) data.getDouble("stiffness_y", DEFAULT.stiffnessY), 0F, 1F);
         this.stiffnessZ = MathUtils.clamp((float) data.getDouble("stiffness_z", DEFAULT.stiffnessZ), 0F, 1F);
+        this.lockTranslateX = data.getBool("lock_translate_x", DEFAULT.lockTranslateX);
+        this.lockTranslateY = data.getBool("lock_translate_y", DEFAULT.lockTranslateY);
+        this.lockTranslateZ = data.getBool("lock_translate_z", DEFAULT.lockTranslateZ);
+        this.lockScaleX = data.getBool("lock_scale_x", DEFAULT.lockScaleX);
+        this.lockScaleY = data.getBool("lock_scale_y", DEFAULT.lockScaleY);
+        this.lockScaleZ = data.getBool("lock_scale_z", DEFAULT.lockScaleZ);
     }
 }

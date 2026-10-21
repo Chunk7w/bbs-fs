@@ -8,12 +8,10 @@ import mchorse.bbs_mod.graphics.window.Window;
 import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
-import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.UISliderTrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.utils.context.ContextMenuManager;
 import mchorse.bbs_mod.ui.utils.context.MenuVerb;
-import mchorse.bbs_mod.ui.utils.icons.Icon;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
 import mchorse.bbs_mod.utils.colors.Colors;
 import org.joml.Vector3f;
@@ -189,23 +187,10 @@ public class UIShakeControlFields
     public UIElement[] amplitudes()
     {
         return new UIElement[] {
-            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.ALL_DIRECTIONS, UIKeys.TRANSFORMS_TRANSLATE), this.translateX, this.translateY, this.translateZ),
-            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.SCALE, UIKeys.TRANSFORMS_SCALE), this.scaleX, this.scaleY, this.scaleZ),
-            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, icon(Icons.REFRESH, UIKeys.TRANSFORMS_ROTATE), this.rotateX, this.rotateY, this.rotateZ)
+            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, UI.marker(Icons.ALL_DIRECTIONS, UIKeys.TRANSFORMS_TRANSLATE), this.translateX, this.translateY, this.translateZ),
+            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, UI.marker(Icons.SCALE, UIKeys.TRANSFORMS_SCALE), this.scaleX, this.scaleY, this.scaleZ),
+            UI.row(2, 0, UIConstants.CONTROL_HEIGHT, UI.marker(Icons.REFRESH, UIKeys.TRANSFORMS_ROTATE), this.rotateX, this.rotateY, this.rotateZ)
         };
-    }
-
-    /** A row's marker, drawn the way the transform editor draws its own: white, not a button. */
-    private static UIIcon icon(Icon icon, IKey tooltip)
-    {
-        UIIcon element = new UIIcon(icon, null);
-
-        element.wh(UIConstants.CONTROL_HEIGHT, UIConstants.CONTROL_HEIGHT);
-        element.disabledColor = element.hoverColor = Colors.WHITE;
-        element.setEnabled(false);
-        element.tooltip(tooltip);
-
-        return element;
     }
 
     /** Push a control's values into the fields. */

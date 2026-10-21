@@ -647,6 +647,8 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_AXIS = L10n.lang("bbs.ui.forms.editors.model.constraints.axis");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LIMIT = L10n.lang("bbs.ui.forms.editors.model.constraints.limit");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK = L10n.lang("bbs.ui.forms.editors.model.constraints.lock");
+    public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_TRANSLATE = L10n.lang("bbs.ui.forms.editors.model.constraints.lock_translate");
+    public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_LOCK_SCALE = L10n.lang("bbs.ui.forms.editors.model.constraints.lock_scale");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_STIFFNESS = L10n.lang("bbs.ui.forms.editors.model.constraints.stiffness");
     public static final IKey FORMS_EDITORS_MODEL_CONSTRAINTS_STIFFNESS_TITLE = L10n.lang("bbs.ui.forms.editors.model.constraints.stiffness_title");
     public static final IKey FORMS_EDITORS_MODEL_POSE = L10n.lang("bbs.ui.forms.editors.model.pose");

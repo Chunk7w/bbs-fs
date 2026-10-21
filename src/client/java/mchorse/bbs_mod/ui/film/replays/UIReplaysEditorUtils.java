@@ -361,21 +361,21 @@ public class UIReplaysEditorUtils
 
         transform.worldTransform(pose ? new FilmBoneWorldProvider(panel) : null);
         transform.rotationConstrained(pose ? () -> isFilmBoneRotationConstrained(panel) : null);
-        transform.rotationLocks(() -> getFilmRotationLocks(panel));
+        transform.axisLocks(() -> getFilmAxisLocks(panel));
     }
 
-    /** The locked rotation channels of the bones the film's keyframe editor turns on the current replay. */
-    public static int getFilmRotationLocks(UIFilmPanel panel)
+    /** The locked channels of the bones the film's keyframe editor moves on the current replay. */
+    public static int getFilmAxisLocks(UIFilmPanel panel)
     {
         IEntity entity = panel.getController().getCurrentEntity();
 
         return entity == null ? 0 : GizmoLocks.of(entity.getForm(), panel.replayEditor.keyframeEditor);
     }
 
-    /** The handles the film's gizmo may show on {@code target}: a bone's locked channels take their rings off. */
+    /** The handles the film's gizmo may show on {@code target}: a bone's locked channels take theirs off. */
     public static Gizmo.HandleMask getFilmGizmoMask(UIFilmPanel panel, FilmTarget target)
     {
-        return target.boneOrNull() == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.lockRotation(getFilmRotationLocks(panel), target.space());
+        return target.boneOrNull() == null ? Gizmo.HandleMask.ALL : Gizmo.HandleMask.ALL.locked(getFilmAxisLocks(panel), target.space());
     }
 
     /**

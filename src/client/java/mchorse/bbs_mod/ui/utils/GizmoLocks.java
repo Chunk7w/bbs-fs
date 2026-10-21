@@ -8,6 +8,7 @@ import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.forms.utils.FormBone;
 import mchorse.bbs_mod.settings.values.base.BaseValueBasic;
+import mchorse.bbs_mod.ui.framework.elements.input.drag.TransformOp;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeEditor;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.UIKeyframeSheet;
 import mchorse.bbs_mod.ui.framework.elements.input.keyframes.factories.UIPoseKeyframeFactory;
@@ -17,28 +18,42 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * The rotation channels the gizmo leaves where they are on the bones an editor turns: the locks of
- * the bones' limits ({@link BoneConstraint}), the same ones the IK solve and the final pose keep, so
- * a bone's freedom is set in one place for the hand too. XYZ bits, X lowest; zero locks nothing.
- * Several bones merge: one gesture turns them all, so an axis any of them locks stays still for the
- * whole selection. Typed values and keyframes stay free, as with Blender's transform locks.
+ * The channels the gizmo and its hotkeys leave where they are on the bones an editor moves: the
+ * locks of the bones' limits ({@link BoneConstraint}). The rotation ones are the same the IK solve
+ * and the final pose keep, so a bone's freedom is set in one place for the hand too; the move and
+ * scale ones are the hand's alone. Three bits per operation, X lowest — move, then rotation, then
+ * scale; zero locks nothing. Several bones merge: one gesture moves them all, so an axis any of them
+ * locks stays still for the whole selection. Typed values and keyframes stay free, as with
+ * Blender's transform locks.
  */
 public final class GizmoLocks
 {
-    /** Every rotation channel locked: the bone does not turn by hand at all. */
-    public static final int ALL = 0b111;
+    /** Every axis of one operation. */
+    public static final int ALL_AXES = 0b111;
 
     private GizmoLocks()
     {}
 
-    public static int of(BoneConstraint constraint)
+    public static int of(BoneConstraint c)
     {
-        if (constraint == null)
+        if (c == null)
         {
             return 0;
         }
 
-        return (constraint.lockX ? 1 : 0) | (constraint.lockY ? 2 : 0) | (constraint.lockZ ? 4 : 0);
+        return bits(c.lockTranslateX, c.lockTranslateY, c.lockTranslateZ) << shift(TransformOp.TRANSLATE)
+            | bits(c.lockX, c.lockY, c.lockZ) << shift(TransformOp.ROTATE)
+            | bits(c.lockScaleX, c.lockScaleY, c.lockScaleZ) << shift(TransformOp.SCALE);
+    }
+
+    private static int bits(boolean x, boolean y, boolean z)
+    {
+        return (x ? 1 : 0) | (y ? 2 : 0) | (z ? 4 : 0);
+    }
+
+    private static int shift(TransformOp op)
+    {
+        return op == TransformOp.TRANSLATE ? 0 : op == TransformOp.ROTATE ? 3 : 6;
     }
 
     public static int of(ModelForm form, Collection<String> bones)
@@ -106,19 +121,31 @@ public final class GizmoLocks
         return form instanceof ModelForm model ? of(model, List.of(track.subject())) : 0;
     }
 
-    public static boolean isLocked(int locks, Axis axis)
+    /** The locked axes of one operation as XYZ bits. */
+    public static int axes(int locks, TransformOp op)
     {
-        return axis != null && (locks & 1 << axis.ordinal()) != 0;
+        return op == null ? 0 : locks >> shift(op) & ALL_AXES;
     }
 
-    /** The one channel these locks leave free, or null when none or more than one is. */
-    public static Axis onlyFree(int locks)
+    public static boolean isLocked(int locks, TransformOp op, Axis axis)
+    {
+        return axis != null && (axes(locks, op) & 1 << axis.ordinal()) != 0;
+    }
+
+    /** Whether every axis of the operation is locked: the hand can't do it at all. */
+    public static boolean isLockedFully(int locks, TransformOp op)
+    {
+        return op != null && axes(locks, op) == ALL_AXES;
+    }
+
+    /** The one axis of the operation these locks leave free, or null when none or more than one is. */
+    public static Axis onlyFree(int locks, TransformOp op)
     {
         Axis free = null;
 
         for (Axis axis : Axis.values())
         {
-            if (!isLocked(locks, axis))
+            if (!isLocked(locks, op, axis))
             {
                 if (free != null)
                 {

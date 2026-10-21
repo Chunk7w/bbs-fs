@@ -1497,6 +1497,8 @@
 	"bbs.ui.forms.editors.model.constraints.axis": "%s: мин. / макс. угол",
 	"bbs.ui.forms.editors.model.constraints.limit": "Ограничить угол %s",
 	"bbs.ui.forms.editors.model.constraints.lock": "Заблокировать ось %s",
+	"bbs.ui.forms.editors.model.constraints.lock_translate": "Заблокировать сдвиг по %s",
+	"bbs.ui.forms.editors.model.constraints.lock_scale": "Заблокировать размер по %s",
 	"bbs.ui.forms.editors.model.constraints.stiffness": "Жёсткость %s",
 	"bbs.ui.forms.editors.model.constraints.stiffness_title": "Жёсткость",
 	"bbs.ui.forms.editors.model.pose": "Поза",

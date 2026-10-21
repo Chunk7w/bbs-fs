@@ -38,7 +38,7 @@ public class UIModelForm extends UIForm<ModelForm>
 
             return instance != null && RigOwners.of(instance.model, form).locksRotation(this.modelPanel.poseEditor.groups.list.getCurrentFirst());
         });
-        this.modelPanel.poseEditor.transform.rotationLocks(() -> GizmoLocks.of(this.form, this.modelPanel.poseEditor.groups.list.getCurrent()));
+        this.modelPanel.poseEditor.transform.axisLocks(() -> GizmoLocks.of(this.form, this.modelPanel.poseEditor.groups.list.getCurrent()));
         this.defaultPanel = this.modelPanel;
 
         this.registerPanel(this.defaultPanel, UIKeys.FORMS_EDITORS_MODEL_POSE, ModelForm.ICON);

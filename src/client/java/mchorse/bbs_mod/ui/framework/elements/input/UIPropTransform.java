@@ -85,8 +85,8 @@ public class UIPropTransform extends UITransform implements TransformGesture.Hos
      *  (wired by hosts that have an IK concept; see {@link #rotationConstrained}). */
     private Supplier<Boolean> rotationConstrainedSupplier;
 
-    /** The edited bones' locked rotation channels (wired by hosts that edit bones; see {@link #rotationLocks(IntSupplier)}). */
-    private IntSupplier rotationLocksSupplier;
+    /** The edited bones' locked channels (wired by hosts that edit bones; see {@link #axisLocks(IntSupplier)}). */
+    private IntSupplier axisLocksSupplier;
 
     /** The edit session this editor's transform is worked through. */
     private final TransformGesture gesture = new TransformGesture(this);
@@ -316,19 +316,19 @@ public class UIPropTransform extends UITransform implements TransformGesture.Hos
         return this.rotationConstrainedSupplier != null && Boolean.TRUE.equals(this.rotationConstrainedSupplier.get());
     }
 
-    /** Wire the locked rotation channels of the edited bones (hosts that edit bones; see {@link GizmoLocks}). */
-    public UIPropTransform rotationLocks(IntSupplier supplier)
+    /** Wire the locked channels of the edited bones (hosts that edit bones; see {@link GizmoLocks}). */
+    public UIPropTransform axisLocks(IntSupplier supplier)
     {
-        this.rotationLocksSupplier = supplier;
+        this.axisLocksSupplier = supplier;
 
         return this;
     }
 
-    /** The rotation channels the gizmo and its hotkeys may not turn; the value pads stay free. */
+    /** The channels the gizmo and its hotkeys may not move; the value pads stay free. */
     @Override
-    public int rotationLocks()
+    public int axisLocks()
     {
-        return this.rotationLocksSupplier == null ? 0 : this.rotationLocksSupplier.getAsInt();
+        return this.axisLocksSupplier == null ? 0 : this.axisLocksSupplier.getAsInt();
     }
 
     /**

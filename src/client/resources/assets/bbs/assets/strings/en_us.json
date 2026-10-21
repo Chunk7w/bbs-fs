@@ -1502,6 +1502,8 @@
 	"bbs.ui.forms.editors.model.constraints.axis": "%s min / max angle",
 	"bbs.ui.forms.editors.model.constraints.limit": "Limit %s angle",
 	"bbs.ui.forms.editors.model.constraints.lock": "Lock %s axis",
+	"bbs.ui.forms.editors.model.constraints.lock_translate": "Lock move along %s",
+	"bbs.ui.forms.editors.model.constraints.lock_scale": "Lock scale along %s",
 	"bbs.ui.forms.editors.model.constraints.stiffness": "Stiffness %s",
 	"bbs.ui.forms.editors.model.constraints.stiffness_title": "Stiffness",
 	"bbs.ui.forms.editors.model.pose": "Pose",

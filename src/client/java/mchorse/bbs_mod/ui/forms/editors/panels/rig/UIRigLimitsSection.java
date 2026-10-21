@@ -18,9 +18,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The bone's limits: per axis a lock and an angle range, and the stiffness an IK solve turns it
- * with. Every bone has them, so there is no switch — they act once an axis is locked or limited.
- * The section opens on a bone that has limits, until it is folded by hand.
+ * The bone's limits: the locks of its move and scale, per rotation axis a lock and an angle range,
+ * and the stiffness an IK solve turns it with. Every bone has them, so there is no switch — they act
+ * once an axis is locked or limited. The section opens on a bone that has any, until it is folded
+ * by hand.
  */
 public class UIRigLimitsSection extends UIRigSection
 {
@@ -45,7 +46,7 @@ public class UIRigLimitsSection extends UIRigSection
     protected boolean fill(String bone)
     {
         BoneConstraint constraint = this.current();
-        boolean active = constraint.isActive();
+        boolean active = constraint.isActive() || constraint.locksTranslateOrScale();
 
         this.controls.fill(constraint, this.inIKChain(bone));
 
